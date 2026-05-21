@@ -1,0 +1,11 @@
+# CMIP6 data pipeline dependencies
+# Install: pip install -r requirements-pipeline.txt
+xarray>=2024.1.0
+zarr>=2.18.0,<3      # CMIP6 zarr stores use the zarr-v2 format
+gcsfs>=2024.2.0
+numpy>=1.26.0
+pandas>=2.0.0
+fsspec>=2024.2.0
+aiohttp>=3.9.0
+certifi             # SSL cert fix for macOS Python from python.org
+requests>=2.31.0
