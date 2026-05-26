@@ -569,7 +569,15 @@ function TempGlobe({ year, ssp, theme }) {
     ]).then(([topo, regional]) => {
       const countries = topojson.feature(topo, topo.objects.countries);
       const borders   = topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b);
-      window._geoCache = { countries, borders, regional };
+      // Fixed color scale: 0 → global max across all countries/SSPs/years
+      // so colors shift visibly as year advances rather than normalising per-frame
+      let globalMax = 0;
+      for (const c of Object.values(regional.countries)) {
+        for (const key of ['126','245','585']) {
+          if (c[key]) globalMax = Math.max(globalMax, ...c[key]);
+        }
+      }
+      window._geoCache = { countries, borders, regional, globalMax };
       geoRef.current   = window._geoCache;
       setGeoReady(true);
     }).catch(err => console.warn('[globe] load failed:', err));
@@ -607,21 +615,21 @@ function TempGlobe({ year, ssp, theme }) {
     ctx.beginPath(); path(grat);
     ctx.strokeStyle = theme.faint; ctx.lineWidth = 0.5; ctx.globalAlpha = 0.4; ctx.stroke(); ctx.globalAlpha = 1;
 
-    // Color scale: min→max anomaly cool (sage) → hot (rust)
-    const sspShort = ssp.code.replace('SSP','').replace(/[-\.]/g,'');
-    const yearIdx  = Math.max(0, Math.min(75, year - 2025));
+    // Fixed absolute color scale: 0°C → globalMax so early years look cool
+    // and late years under high-emission SSPs shift visibly to hot orange/rust
+    const sspShort  = ssp.code.replace('SSP','').replace(/[-\.]/g,'');
+    const yearIdx   = Math.max(0, Math.min(75, year - 2025));
+    const globalMax = geo.globalMax || 8;
     const getA = (id) => {
       const d = geo.regional.countries[id]; if (!d) return null;
       return d[sspShort]?.[yearIdx] ?? null;
     };
-    const vals = geo.countries.features.map(f => getA(String(f.id).padStart(3,'0'))).filter(v => v != null);
-    const minA = Math.min(...vals), maxA = Math.max(...vals);
     const color = (a) => {
       if (a == null) return theme.faint;
-      const t = Math.max(0, Math.min(1, (a - minA) / (maxA - minA || 1)));
-      const r = Math.round(55  + t * 190);
-      const g = Math.round(105 - t * 55);
-      const b = Math.round(75  - t * 60);
+      const t = Math.max(0, Math.min(1, a / globalMax));
+      const r = Math.round(255 - t * 45);
+      const g = Math.round(190 - t * 165);
+      const b = Math.round(110 - t * 85);
       return `rgb(${r},${g},${b})`;
     };
 
