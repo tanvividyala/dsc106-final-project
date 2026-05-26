@@ -790,11 +790,13 @@ function Outro({ onRestart }) {
         <div className="row">
           <div>
             <div className="eyebrow" style={{ marginBottom: 22 }}>Chapter Five · The Real Dials</div>
-            <h2>The dials in this article are simplified. The ones in your life are not.</h2>
+            <h2>The dials that matter most are not in your hands.</h2>
             <p style={{ fontSize: 18, color: 'var(--ink-soft)', maxWidth: '54ch', marginTop: 24 }}>
-              Voting records, retirement-fund holdings, what you eat, where you fly, what you buy
-              and from whom. These are the real knobs. The CMIP6 models cannot tell you which to
-              turn first. But they can tell you what happens if no one does.
+              Just 57 corporations are responsible for 80 percent of global emissions since 2016.
+              The CMIP6 pathways are not separated by individual consumer choices. They are separated
+              by policy: carbon pricing, fossil fuel subsidy reform, methane regulation, and the speed
+              at which governments mandate a transition away from extraction. The models do not care
+              what you eat. They care what laws get passed.
             </p>
             <button className="restart" onClick={onRestart}>Restart your future <ArrowIcon/></button>
           </div>

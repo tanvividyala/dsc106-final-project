@@ -1490,8 +1490,8 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 56px 6vw 32px;
-  gap: 16px;
+  padding: 52px 6vw 28px;
+  gap: 14px;
 }
 .metric-row {
   display: grid;
