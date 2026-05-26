@@ -131,6 +131,23 @@ a { color: var(--forest-deep); }
 .topbar .chapter {
   white-space: nowrap;
 }
+.topbar-writeup {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  border: 1px solid rgba(42,51,36,0.25);
+  border-radius: 4px;
+  padding: 5px 10px;
+  transition: color 160ms ease, border-color 160ms ease;
+  white-space: nowrap;
+}
+.topbar-writeup:hover {
+  color: var(--ink);
+  border-color: rgba(42,51,36,0.6);
+}
 
 /* === Section scaffolding === */
 section {
@@ -1537,6 +1554,16 @@ section {
 }
 .metric-pathway-tag span {
   font-weight: 600;
+}
+.metric-row--globe {
+  grid-template-columns: 0.9fr 0.75fr 0.85fr;
+  gap: 36px;
+}
+.metric-globe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 .metric-viz {
   display: flex;
