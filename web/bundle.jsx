@@ -551,6 +551,201 @@ function MetricMiniChart({ metric, year, ssp, theme }) {
   );
 }
 
+// ── TempGlobe ──
+function TempGlobe({ year, ssp, theme }) {
+  const canvasRef = React.useRef(null);
+  const [geoReady, setGeoReady] = React.useState(false);
+  const stateRef = React.useRef({ rotX: -20, rotY: 0, dragging: false, dragStart: null, rotStart: null });
+  const geoRef  = React.useRef(null);
+  const rafRef  = React.useRef(null);
+  const [tooltip, setTooltip] = React.useState(null);
+
+  // Load world topology + regional data once (cached on window)
+  React.useEffect(() => {
+    if (window._geoCache) { geoRef.current = window._geoCache; setGeoReady(true); return; }
+    Promise.all([
+      fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(r => r.json()),
+      fetch('/data/regional-temp.json').then(r => r.json()),
+    ]).then(([topo, regional]) => {
+      const countries = topojson.feature(topo, topo.objects.countries);
+      const borders   = topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b);
+      window._geoCache = { countries, borders, regional };
+      geoRef.current   = window._geoCache;
+      setGeoReady(true);
+    }).catch(err => console.warn('[globe] load failed:', err));
+  }, []);
+
+  // Derive helpers from current props (stable ref so RAF closure sees latest)
+  const propsRef = React.useRef({ year, ssp, theme });
+  React.useEffect(() => { propsRef.current = { year, ssp, theme }; }, [year, ssp, theme]);
+
+  // Draw one frame to canvas
+  const draw = React.useCallback(() => {
+    const canvas = canvasRef.current;
+    const geo = geoRef.current;
+    if (!canvas || !geo) return;
+    const { year, ssp, theme } = propsRef.current;
+
+    const W = canvas.width, H = canvas.height;
+    const R = Math.min(W, H) / 2 - 4;
+    const cx = W / 2, cy = H / 2;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+
+    const proj = d3.geoOrthographic()
+      .scale(R).translate([cx, cy])
+      .rotate([stateRef.current.rotX, stateRef.current.rotY]);
+    const path = d3.geoPath(proj, ctx);
+    const sphere = { type: 'Sphere' };
+
+    // Ocean fill
+    ctx.beginPath(); path(sphere);
+    ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fill();
+
+    // Graticule
+    const grat = d3.geoGraticule().step([30, 30])();
+    ctx.beginPath(); path(grat);
+    ctx.strokeStyle = theme.faint; ctx.lineWidth = 0.5; ctx.globalAlpha = 0.4; ctx.stroke(); ctx.globalAlpha = 1;
+
+    // Color scale: min→max anomaly cool (sage) → hot (rust)
+    const sspShort = ssp.code.replace('SSP','').replace(/[-\.]/g,'');
+    const yearIdx  = Math.max(0, Math.min(75, year - 2025));
+    const getA = (id) => {
+      const d = geo.regional.countries[id]; if (!d) return null;
+      return d[sspShort]?.[yearIdx] ?? null;
+    };
+    const vals = geo.countries.features.map(f => getA(String(f.id).padStart(3,'0'))).filter(v => v != null);
+    const minA = Math.min(...vals), maxA = Math.max(...vals);
+    const color = (a) => {
+      if (a == null) return theme.faint;
+      const t = Math.max(0, Math.min(1, (a - minA) / (maxA - minA || 1)));
+      const r = Math.round(55  + t * 190);
+      const g = Math.round(105 - t * 55);
+      const b = Math.round(75  - t * 60);
+      return `rgb(${r},${g},${b})`;
+    };
+
+    // Countries
+    geo.countries.features.forEach(f => {
+      const id = String(f.id).padStart(3,'0');
+      ctx.beginPath(); path(f);
+      ctx.fillStyle = color(getA(id));
+      ctx.fill();
+    });
+
+    // Border mesh
+    ctx.beginPath(); path(geo.borders);
+    ctx.strokeStyle = theme.bg; ctx.lineWidth = 0.35; ctx.stroke();
+
+    // Globe outline
+    ctx.beginPath(); path(sphere);
+    ctx.strokeStyle = theme.faint; ctx.lineWidth = 1; ctx.stroke();
+
+  }, []);
+
+  // Animation loop — just redraws on each frame; no auto-rotation
+  React.useEffect(() => {
+    if (!geoReady) return;
+    const step = () => { draw(); rafRef.current = requestAnimationFrame(step); };
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [geoReady, draw]);
+
+  // Shared projection builder (keeps draw & hit-test in sync)
+  const makeProj = (W, H) => d3.geoOrthographic()
+    .scale(Math.min(W, H) / 2 - 4)
+    .translate([W / 2, H / 2])
+    .rotate([stateRef.current.rotX, stateRef.current.rotY]);
+
+  const onMouseDown = (e) => {
+    stateRef.current.dragging = true;
+    stateRef.current.dragStart = { x: e.clientX, y: e.clientY };
+    stateRef.current.rotStart  = { x: stateRef.current.rotX, y: stateRef.current.rotY };
+    setTooltip(null);
+  };
+
+  const onMouseMove = (e) => {
+    const canvas = canvasRef.current;
+    const geo    = geoRef.current;
+    if (!canvas || !geo) return;
+
+    // Drag: update rotation
+    if (stateRef.current.dragging) {
+      const dx = e.clientX - stateRef.current.dragStart.x;
+      const dy = e.clientY - stateRef.current.dragStart.y;
+      stateRef.current.rotX = stateRef.current.rotStart.x + dx * 0.4;
+      stateRef.current.rotY = Math.max(-80, Math.min(80, stateRef.current.rotStart.y - dy * 0.4));
+      setTooltip(null);
+      return;
+    }
+
+    // Hover: invert mouse → [lon,lat] → find country
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top)  * scaleY;
+    const proj   = makeProj(canvas.width, canvas.height);
+    const coords = proj.invert([x, y]);
+    if (!coords) { setTooltip(null); return; }
+    const { ssp, year } = propsRef.current;
+    const sspShort = ssp.code.replace('SSP','').replace(/[-\.]/g,'');
+    const yearIdx  = Math.max(0, Math.min(75, year - 2025));
+    for (const f of geo.countries.features) {
+      if (d3.geoContains(f, coords)) {
+        const id = String(f.id).padStart(3,'0');
+        const d  = geo.regional.countries[id];
+        if (!d) { setTooltip(null); return; }
+        const anomaly = d[sspShort]?.[yearIdx];
+        setTooltip({ name: d.name, anomaly, x: e.clientX, y: e.clientY });
+        return;
+      }
+    }
+    setTooltip(null);
+  };
+
+  const onMouseUp   = () => { stateRef.current.dragging = false; };
+  const onMouseLeave = () => { stateRef.current.dragging = false; setTooltip(null); };
+
+  const SIZE = 320;
+  return (
+    <div
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+      style={{ width: '100%', maxWidth: 360, position: 'relative', cursor: 'grab' }}>
+      <canvas ref={canvasRef} width={SIZE} height={SIZE}
+        style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '50%' }}/>
+      {!geoReady && (
+        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width="100%" height="auto"
+          style={{ position: 'absolute', inset: 0, opacity: 0.3 }}>
+          <circle cx={SIZE/2} cy={SIZE/2} r={SIZE/2-4} fill="none" stroke="currentColor" strokeWidth="1"/>
+        </svg>
+      )}
+      {tooltip && tooltip.anomaly != null && (
+        <div style={{
+          position: 'fixed', left: tooltip.x + 14, top: tooltip.y - 14,
+          background: propsRef.current.theme.fg, color: propsRef.current.theme.bg,
+          borderRadius: 6, padding: '7px 12px', pointerEvents: 'none', zIndex: 300,
+          fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.06em', lineHeight: 1.7,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.22)', whiteSpace: 'nowrap',
+        }}>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 14, marginBottom: 2, letterSpacing: 0 }}>
+            {tooltip.name}
+          </div>
+          <div style={{ color: propsRef.current.theme.accent }}>
+            +{tooltip.anomaly.toFixed(2)}°C
+          </div>
+          <div style={{ opacity: 0.45, fontSize: 9 }}>
+            {propsRef.current.year} · {propsRef.current.ssp.code}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MetricBlock ──
 function MetricBlock({ id, ssp, idx }) {
   const theme = METRIC_THEMES[id];
@@ -583,7 +778,7 @@ function MetricBlock({ id, ssp, idx }) {
     <div className="metric-block" data-screen-label={`04${String.fromCharCode(65+idx)} ${theme.title}`} ref={blockRef} style={{ background: theme.bg, color: theme.fg }}>
       <div className="metric-scroller">
         <div className="metric-sticky">
-          <div className="metric-row">
+          <div className={`metric-row${id === 'temp' ? ' metric-row--globe' : ''}`}>
             <div className="metric-narrative">
               <div className="metric-chapter" style={{ color: theme.soft }}>{theme.chapter} · {theme.label}</div>
               <div className="metric-year" style={{ color: theme.accent }}>{year}</div>
@@ -593,6 +788,11 @@ function MetricBlock({ id, ssp, idx }) {
                 Your pathway · <span style={{ color: ssp.swatch }}>{ssp.code}</span> · {ssp.name}
               </div>
             </div>
+            {id === 'temp' && (
+              <div className="metric-globe">
+                <TempGlobe year={year} ssp={ssp} theme={theme}/>
+              </div>
+            )}
             <div className="metric-viz">
               <Viz value={value} year={year} color={theme.accent} fg={theme.fg} faint={theme.faint} soft={theme.soft} bg={theme.bg}/>
             </div>
@@ -638,8 +838,8 @@ function TimelineSection({ ssp }) {
   );
 }
 
-// ── Hero ──
-function Hero() {
+// ── Intro ──
+function Intro() {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [rot, setRot] = React.useState(0);
   React.useEffect(() => {
@@ -650,7 +850,7 @@ function Hero() {
     return () => cancelAnimationFrame(raf);
   }, []);
   return (
-    <section className="hero" data-screen-label="01 Hero">
+    <section className="hero" data-screen-label="01 Intro">
       <div className="left">
         <div className="eyebrow" style={{ marginBottom: 22 }}>An interactive feature · CMIP6 climate models</div>
         <h1>Degrees of<br/><span className="acc">Consequence</span></h1>
@@ -669,11 +869,11 @@ function Hero() {
   );
 }
 
-// ── Intro ──
-function Intro() {
+// ── Forecast ──
+function Forecast() {
   const d = getSSPData;
   return (
-    <section className="intro-block" data-screen-label="02 Intro">
+    <section className="intro-block" data-screen-label="02 The Forecast">
       <div className="wrap">
         <div className="eyebrow" style={{ marginBottom: 32 }}>Chapter One · The Forecast</div>
         <h2>Three roads diverge. Each one leads somewhere we can already see.</h2>
@@ -793,10 +993,10 @@ function Outro({ onRestart }) {
             <h2>The dials that matter most are not in your hands.</h2>
             <p style={{ fontSize: 18, color: 'var(--ink-soft)', maxWidth: '54ch', marginTop: 24 }}>
               Just 57 corporations are responsible for 80 percent of global emissions since 2016.
-              The CMIP6 pathways are not separated by individual consumer choices. They are separated
-              by policy: carbon pricing, fossil fuel subsidy reform, methane regulation, and the speed
-              at which governments mandate a transition away from extraction. The models do not care
-              what you eat. They care what laws get passed.
+              The CMIP6 pathways diverge not on individual choices but on policy: binding carbon
+              pricing, ending fossil fuel subsidies, regulating methane, and mandating a managed
+              phase-out of extraction. Demanding that governments enact these policies, and holding
+              them to account when they don't, is the lever that actually moves the models.
             </p>
             <button className="restart" onClick={onRestart}>Restart your future <ArrowIcon/></button>
           </div>
@@ -900,8 +1100,8 @@ function App() {
           <a href="writeup.html" className="topbar-writeup">Write-up</a>
         </div>
       </div>
-      <Hero/>
       <Intro/>
+      <Forecast/>
       <ChoiceSection values={values} setValues={setValues} persona={persona} setPersona={setPersona} onSubmit={onSubmit} submitted={submitted}/>
       <TimelineSection ssp={ssp}/>
       <Outro onRestart={onRestart}/>
