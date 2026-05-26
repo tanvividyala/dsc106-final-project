@@ -891,10 +891,13 @@ function App() {
     <>
       <div className="topbar">
         <div className="brand">Degrees of Consequence</div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className="chapter">{chapter}</div>
-          <div className="progress"><i style={{ width: `${progress * 100}%` }}/></div>
-          <div className="chapter">{Math.round(progress * 100).toString().padStart(2,'0')}%</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div className="chapter">{chapter}</div>
+            <div className="progress"><i style={{ width: `${progress * 100}%` }}/></div>
+            <div className="chapter">{Math.round(progress * 100).toString().padStart(2,'0')}%</div>
+          </div>
+          <a href="writeup.html" className="topbar-writeup">Write-up</a>
         </div>
       </div>
       <Hero/>
