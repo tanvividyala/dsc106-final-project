@@ -78,7 +78,7 @@ function HalftoneGlobe({ size = 480, rotation = 0, density = 38, color = '#2A332
 }
 
 // ── Knob ──
-function Knob({ value, onChange, color = '#4E7558', label }) {
+function Knob({ value, onChange, color = '#4E7558', label, img }) {
   const ref = React.useRef(null);
   const dragRef = React.useRef(null);
 
@@ -131,6 +131,7 @@ function Knob({ value, onChange, color = '#4E7558', label }) {
 
   return (
     <div className="knob">
+      {img && <img src={img} alt="" className="knob-img"/>}
       <div className="knob-dial" ref={ref} onMouseDown={handleDown} onTouchStart={handleDown} aria-label={label}>
         <svg viewBox="0 0 120 120">
           <path d={arc(a0, a2)} stroke="rgba(42,51,36,0.18)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
@@ -234,19 +235,19 @@ function getSSPData(sspShort) {
 
 // ── Knob / persona definitions ──
 const KNOB_DEFS = [
-  { id: 'fossil',  label: 'Fossil-fuel\ninvestment',   color: '#B4633A', invert: true },
-  { id: 'renew',   label: 'Renewable\nbuildout',        color: '#4E7558' },
-  { id: 'carbon',  label: 'Carbon\npricing',            color: '#4E7558' },
-  { id: 'forest',  label: 'Forest &\nland protection',  color: '#82A78A' },
-  { id: 'coop',    label: 'International\ncooperation', color: '#82A78A' },
-  { id: 'consume', label: 'Consumption\nreduction',     color: '#82A78A' },
+  { id: 'fossil',  label: 'Fossil-fuel\ninvestment',   color: '#B4633A', invert: true, img: '../images/coal_mine_cart.png' },
+  { id: 'renew',   label: 'Renewable\nbuildout',        color: '#4E7558',               img: '../images/solar_panel.png' },
+  { id: 'carbon',  label: 'Carbon\npricing',            color: '#4E7558',               img: '../images/capitol_building.png' },
+  { id: 'forest',  label: 'Forest &\nland protection',  color: '#82A78A',               img: '../images/rainforest.png' },
+  { id: 'coop',    label: 'International\ncooperation', color: '#82A78A',               img: '../images/handshake.png' },
+  { id: 'consume', label: 'Consumption\nreduction',     color: '#82A78A',               img: '../images/recycling.png' },
 ];
 
 const PERSONAS = [
-  { id: 'tycoon',     name: 'Oil Tycoon',        label: 'Drill, baby',    tag: 'Maximize extraction. Discount future damages.',       values: { fossil: 92, renew: 12, carbon: 6,  forest: 18, coop: 18, consume: 8  } },
-  { id: 'politician', name: 'Politician',         label: 'Re-election',   tag: 'Talk green, vote convenient. Split the middle.',      values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
-  { id: 'scientist',  name: 'Climate Scientist',  label: 'IPCC pathway',  tag: 'Follow the curves. Decarbonize by 2050.',            values: { fossil: 8,  renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
-  { id: 'custom',     name: 'Your Call',          label: 'Freeform',      tag: 'Set every dial yourself. Anything goes.',            values: null },
+  { id: 'tycoon',     name: 'Oil Tycoon',        label: 'Drill, baby',    tag: 'Maximize extraction. Discount future damages.',       img: '../images/oil_baron_floating.png',  values: { fossil: 92, renew: 12, carbon: 6,  forest: 18, coop: 18, consume: 8  } },
+  { id: 'politician', name: 'Politician',         label: 'Re-election',   tag: 'Talk green, vote convenient. Split the middle.',      img: '../images/parliament_debate.png',   values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
+  { id: 'scientist',  name: 'Climate Scientist',  label: 'IPCC pathway',  tag: 'Follow the curves. Decarbonize by 2050.',            img: '../images/stressed_researcher.png', values: { fossil: 8,  renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
+  { id: 'custom',     name: 'Your Call',          label: 'Freeform',      tag: 'Set every dial yourself. Anything goes.',            img: '../images/globe.png',               values: null },
 ];
 
 function computeScore(v) {
@@ -271,10 +272,10 @@ const METRICS = [
 ];
 
 const METRIC_THEMES = {
-  temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · A', title: 'The Heat',        icon: 'temp' },
-  co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',              unit: 'ppm', chapter: 'Three · B', title: 'The Atmosphere',  icon: 'co2' },
-  sea:    { bg: '#2E4A35', fg: '#ECE6CE', accent: '#82A78A', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Sea level rise',        unit: 'cm',  chapter: 'Three · C', title: 'The Rising Sea',  icon: 'sea' },
-  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Rains',       icon: 'precip' },
+  temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · A', title: 'The Heat',        icon: 'temp',   img: '../images/smoggy_sun.png' },
+  co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',              unit: 'ppm', chapter: 'Three · B', title: 'The Atmosphere',  icon: 'co2',    img: '../images/urban_air_pollution.png' },
+  sea:    { bg: '#2E4A35', fg: '#ECE6CE', accent: '#82A78A', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Sea level rise',        unit: 'cm',  chapter: 'Three · C', title: 'The Rising Sea',  icon: 'sea',    img: '../images/coastal_flooding.png' },
+  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Rains',       icon: 'precip', img: '../images/typhoon.png' },
 };
 
 // ── Narrative beats (verbatim from design handoff) ──
@@ -788,6 +789,7 @@ function MetricBlock({ id, ssp, idx }) {
         <div className="metric-sticky">
           <div className={`metric-row${id === 'temp' ? ' metric-row--globe' : ''}`}>
             <div className="metric-narrative">
+              {theme.img && <img src={theme.img} alt="" className="metric-decor-img"/>}
               <div className="metric-chapter" style={{ color: theme.soft }}>{theme.chapter} · {theme.label}</div>
               <div className="metric-year" style={{ color: theme.accent }}>{year}</div>
               <h3 style={{ color: theme.fg }}>{activeBeat.title}</h3>
@@ -902,18 +904,21 @@ function Forecast() {
         </div>
         <div className="scenarios">
           <div className="scenario low">
+            <img src="../images/eco_orb.png" alt="" className="scenario-img"/>
             <div className="code">SSP1-2.6</div>
             <h3>The Sustainable Path</h3>
             <p>Aggressive transition. Emissions fall to net zero by 2050 and turn negative after.</p>
             <div className="delta">+<b>{d('1-2.6').temp.val.toFixed(1)}</b>°C by 2100</div>
           </div>
           <div className="scenario mid">
+            <img src="../images/city_street.png" alt="" className="scenario-img"/>
             <div className="code">SSP2-4.5</div>
             <h3>The Middle Road</h3>
             <p>Status quo continues. Emissions plateau, then slowly decline mid-century.</p>
             <div className="delta">+<b>{d('2-4.5').temp.val.toFixed(1)}</b>°C by 2100</div>
           </div>
           <div className="scenario high">
+            <img src="../images/polluted_earth.png" alt="" className="scenario-img"/>
             <div className="code">SSP5-8.5</div>
             <h3>Fossil-Fueled Growth</h3>
             <p>Fossil-fuel boom. CO₂ roughly doubles by 2050. Heat compounds dramatically.</p>
@@ -955,6 +960,7 @@ function ChoiceSection({ values, setValues, persona, setPersona, onSubmit, submi
         <div className="persona-row">
           {PERSONAS.map(p => (
             <button key={p.id} className="persona" aria-pressed={persona === p.id} onClick={() => pickPersona(p)}>
+              {p.img && <img src={p.img} alt="" className="persona-img"/>}
               <div className="persona-icon"><PersonaIcon kind={p.id}/></div>
               <div className="persona-label">{p.label}</div>
               <div className="persona-name">{p.name}</div>
@@ -965,7 +971,7 @@ function ChoiceSection({ values, setValues, persona, setPersona, onSubmit, submi
         <div className="knob-grid">
           <div className="knobs">
             {KNOB_DEFS.map(k => (
-              <Knob key={k.id} value={values[k.id]} onChange={(v) => updateKnob(k.id, v)} label={k.label} color={k.color}/>
+              <Knob key={k.id} value={values[k.id]} onChange={(v) => updateKnob(k.id, v)} label={k.label} color={k.color} img={k.img}/>
             ))}
           </div>
           <div className="reveal-panel">
@@ -1007,6 +1013,10 @@ function Outro({ onRestart }) {
               them to account when they don't, is the lever that actually moves the models.
             </p>
             <button className="restart" onClick={onRestart}>Restart your future <ArrowIcon/></button>
+            <div className="outro-decor-imgs">
+              <img src="../images/handshake.png" alt="" className="outro-decor-img"/>
+              <img src="../images/wind_turbines.png" alt="" className="outro-decor-img"/>
+            </div>
           </div>
           <div className="credits">
             <b>Team</b>
@@ -1023,6 +1033,123 @@ function Outro({ onRestart }) {
         </div>
       </div>
     </section>
+  );
+}
+
+// ── TimeJump ──
+function TimeJump({ onComplete }) {
+  const clampVal = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+  const DURATION = 8500;
+  const LINES = [
+    { from: 0.00, to: 0.18, text: 'The room empties. The decisions begin to settle.' },
+    { from: 0.18, to: 0.38, text: 'A decade passes. Then another.' },
+    { from: 0.38, to: 0.62, text: 'Children born during the meeting are now writing the headlines.' },
+    { from: 0.62, to: 0.84, text: 'The atmosphere keeps a perfect ledger.' },
+    { from: 0.84, to: 1.01, text: 'The future arrives. On schedule.' },
+  ];
+
+  const CORNER_IMGS = [
+    { src: '../images/drought.png',       threshold: 0.18, cls: 'timejump-img timejump-img--1' },
+    { src: '../images/melting_ice.png',   threshold: 0.38, cls: 'timejump-img timejump-img--2' },
+    { src: '../images/typhoon.png',       threshold: 0.62, cls: 'timejump-img timejump-img--3' },
+    { src: '../images/polluted_earth.png',threshold: 0.84, cls: 'timejump-img timejump-img--4' },
+  ];
+
+  const sectionRef = React.useRef(null);
+  const [p, setP] = React.useState(0);
+  const startedRef = React.useRef(false);
+  const doneRef = React.useRef(false);
+  const startTimeRef = React.useRef(null);
+
+  // Build 76 radial ticks SVG
+  const ticks = [];
+  for (let i = 0; i < 76; i++) {
+    const ang = (i / 76) * Math.PI * 2 - Math.PI / 2;
+    const lit = i / 76 <= p;
+    const r1 = 88, r2 = lit ? 96 : 93;
+    ticks.push(
+      <line key={i}
+        x1={100 + r1 * Math.cos(ang)} y1={100 + r1 * Math.sin(ang)}
+        x2={100 + r2 * Math.cos(ang)} y2={100 + r2 * Math.sin(ang)}
+        stroke={lit ? '#E08D5C' : 'rgba(236,230,206,0.25)'}
+        strokeWidth={lit ? 2 : 1}
+        strokeLinecap="round"
+      />
+    );
+  }
+
+  React.useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const checkVisibility = () => {
+      if (startedRef.current) return;
+      const rect = section.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (rect.top < vh * 0.6 && rect.bottom > vh * 0.4) {
+        startedRef.current = true;
+        startTimeRef.current = performance.now();
+        requestAnimationFrame(animate);
+      }
+    };
+
+    const animate = (now) => {
+      const elapsed = now - startTimeRef.current;
+      const rawP = clampVal(elapsed / DURATION, 0, 1);
+      setP(rawP);
+
+      if (rawP < 1) {
+        requestAnimationFrame(animate);
+      } else if (!doneRef.current) {
+        doneRef.current = true;
+        setTimeout(() => { onComplete(); }, 900);
+      }
+    };
+
+    window.addEventListener('scroll', checkVisibility, { passive: true });
+    checkVisibility();
+    return () => window.removeEventListener('scroll', checkVisibility);
+  }, [onComplete]);
+
+  const eased = 1 - Math.pow(1 - clampVal(p / 0.85, 0, 1), 1.6);
+  const year = Math.round(2025 + 75 * eased);
+  const activeLine = [...LINES].reverse().find(l => p >= l.from) || LINES[0];
+
+  return (
+    <div className="timejump-wrap" data-screen-label="04 Time Jump" ref={sectionRef}>
+      <div className="timejump-sticky">
+        {/* Background radial ticks SVG */}
+        <div className="timejump-bg-svg">
+          <svg viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(236,230,206,0.15)" strokeWidth="1"/>
+            {ticks}
+          </svg>
+        </div>
+
+        {/* Corner climate images */}
+        <div className="timejump-img-strip">
+          {CORNER_IMGS.map((img, i) => (
+            <img key={i} src={img.src} alt="" className={img.cls}
+              style={{ opacity: p >= img.threshold ? 1 : 0 }}/>
+          ))}
+        </div>
+
+        <div className="timejump-inner">
+          <div className="timejump-eyebrow">Time passing</div>
+          <div className="timejump-year">{year}</div>
+          <div key={activeLine.text} className="timejump-line">{activeLine.text}</div>
+          <div className="timejump-ticker">
+            <span>2025</span>
+            <span className="timejump-ticker-now">{year}</span>
+            <span>2100</span>
+          </div>
+          <div className="timejump-progress">
+            <div className="timejump-progress-fill" style={{ width: `${p * 100}%` }}/>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1045,6 +1172,7 @@ function App() {
   const [values, setValues] = React.useState({ fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 });
   const [persona, setPersona] = React.useState('politician');
   const [submitted, setSubmitted] = React.useState(false);
+  const [timeJumpDone, setTimeJumpDone] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [chapter, setChapter] = React.useState('Cover');
   const [dataReady, setDataReady] = React.useState(false);
@@ -1082,13 +1210,26 @@ function App() {
 
   const onSubmit = () => {
     setSubmitted(true);
+    setTimeJumpDone(false);
     requestAnimationFrame(() => {
-      const el = document.querySelector('[data-screen-label="04 Timeline Intro"]');
+      const el = document.querySelector('[data-screen-label="04 Time Jump"]');
       if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
     });
   };
 
-  const onRestart = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleTimeJumpComplete = () => {
+    setTimeJumpDone(true);
+    setTimeout(() => {
+      const el = document.querySelector('[data-screen-label="04 Timeline Intro"]');
+      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
+    }, 240);
+  };
+
+  const onRestart = () => {
+    setSubmitted(false);
+    setTimeJumpDone(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const score = computeScore(values);
   const ssp = classify(score);
@@ -1111,8 +1252,9 @@ function App() {
       <Intro/>
       <Forecast/>
       <ChoiceSection values={values} setValues={setValues} persona={persona} setPersona={setPersona} onSubmit={onSubmit} submitted={submitted}/>
-      <TimelineSection ssp={ssp}/>
-      <Outro onRestart={onRestart}/>
+      {submitted && !timeJumpDone && <TimeJump onComplete={handleTimeJumpComplete}/>}
+      {timeJumpDone && <TimelineSection ssp={ssp}/>}
+      {timeJumpDone && <Outro onRestart={onRestart}/>}
     </>
   );
 }
