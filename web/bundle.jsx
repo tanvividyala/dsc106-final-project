@@ -770,59 +770,6 @@ function Intro() {
   );
 }
 
-// ── Forecast ──
-function Forecast() {
-  const d = getSSPData;
-  return (
-    <section className="intro-block" data-screen-label="02 The Forecast">
-      <div className="wrap">
-        <div className="eyebrow" style={{ marginBottom: 32 }}>Chapter One · Three Futures</div>
-        <h2>Three roads diverge.<br/>Each one leads somewhere<br/>we can already see.</h2>
-        <p className="lede">
-          Scientists have mapped our possible futures. They cluster into three paths,
-          not predictions, but consequences. Each one starts from the same point: right now.
-        </p>
-        <div className="two-col" style={{ marginTop: 80 }}>
-          <div>
-            <p><strong>The choices aren't abstract.</strong> They show up as votes, subsidies, infrastructure, and the slow grinding logic of what gets built and what gets shut down. The CMIP6 model we're using ran every version of the next 75 years to ask: where does each set of choices actually lead?</p>
-            <p>In the next chapter, you'll take a seat and make those choices yourself, through the eyes of one of three very different people who hold a very different idea of what the world owes the future.</p>
-          </div>
-          <div>
-            <div className="callout">"By 2040, the divergence is no longer theoretical. It is the weather."</div>
-            <p style={{ fontSize: 14, opacity: 0.75, fontFamily: 'var(--mono)', letterSpacing: '0.04em' }}>IPCC AR6, Working Group I Summary</p>
-          </div>
-        </div>
-        <div className="scenarios">
-          <div className="scenario low">
-            <img src="../images/eco_orb.png" alt="" className="scenario-img"/>
-            <div className="code">SSP1-2.6</div>
-            <h3>The Sustainable Path</h3>
-            <p>Humanity pulls together. Fossil fuels wind down faster than anyone expected. The temperature holds near 1.3°C.</p>
-            <div className="delta">+<b>{d('1-2.6').temp.val.toFixed(1)}</b>°C by 2100</div>
-          </div>
-          <div className="scenario mid">
-            <img src="../images/city_street.png" alt="" className="scenario-img"/>
-            <div className="code">SSP2-4.5</div>
-            <h3>The Middle Road</h3>
-            <p>Progress, but slowly. Old habits linger. The future warms, but not catastrophically. Not yet.</p>
-            <div className="delta">+<b>{d('2-4.5').temp.val.toFixed(1)}</b>°C by 2100</div>
-          </div>
-          <div className="scenario high">
-            <img src="../images/polluted_earth.png" alt="" className="scenario-img"/>
-            <div className="code">SSP5-8.5</div>
-            <h3>Fossil-Fueled Growth</h3>
-            <p>No restraint. Cheap energy wins the short game. The bill comes due by 2100, and every decade after.</p>
-            <div className="delta">+<b>{d('5-8.5').temp.val.toFixed(1)}</b>°C by 2100</div>
-          </div>
-        </div>
-        <p style={{ fontSize: 13, fontFamily: 'var(--mono)', letterSpacing: '0.1em', color: 'var(--ink-soft)', marginTop: 32 }}>
-          DATA · MPI-ESM1-2-LR · CMIP6 · SSP1-2.6 RUNS COOLER THAN THE MULTI-MODEL MEAN; SSP5-8.5 RUNS HOTTER. BOTH REFLECT THIS MODEL'S CLIMATE SENSITIVITY.
-        </p>
-      </div>
-    </section>
-  );
-}
-
 // ── DialDisplay (read-only, dark-panel themed) ──
 function DialDisplay({ value, color, label, img }) {
   const minA = -135, maxA = 135;
@@ -1387,7 +1334,6 @@ function App() {
         </div>
       </div>
       <Intro/>
-      <Forecast/>
       <ChoiceSection values={values} setValues={setValues} persona={persona} setPersona={setPersona} onSubmit={onSubmit}/>
       {submitted && !timeJumpDone && <TimeJump onComplete={handleTimeJumpComplete}/>}
       {timeJumpDone && <TimelineSection ssp={ssp}/>}
