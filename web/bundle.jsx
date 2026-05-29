@@ -1105,7 +1105,7 @@ function Outro({ onRestart }) {
             <b>Team</b>
             Tanvi Vidyala<br/>
             Nithya Nair<br/>
-            Viela Lansangam<br/>
+            Viela Lansangan<br/>
             <b>Data</b>
             CMIP6 / MPI-ESM1-2-LR<br/>
             via NOAA / Google Cloud<br/>
