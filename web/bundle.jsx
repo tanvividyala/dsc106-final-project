@@ -327,77 +327,76 @@ const METRIC_THEMES = {
   co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',                   unit: 'ppm', chapter: 'Three · A', title: 'The Atmosphere',  icon: 'co2',    img: '../images/urban_air_pollution.png' },
   temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · B', title: 'The Heat',        icon: 'temp',   img: '../images/smoggy_sun.png' },
   sea:    { bg: '#2E4A35', fg: '#ECE6CE', accent: '#82A78A', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Sea level rise',        unit: 'cm',  chapter: 'Three · C', title: 'The Rising Sea',  icon: 'sea',    img: '../images/coastal_flooding.png' },
-  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Drought',     icon: 'precip', img: '../images/typhoon.png' },
+  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Water',       icon: 'precip', img: '../images/typhoon.png' },
 };
 
-// ── Narrative beats (verbatim from design handoff) ──
 const METRIC_BEATS = {
   temp: {
     '1-2.6': [
-      { year: 2030, title: 'Peak heat, by the skin of our teeth', body: 'Hot summers still set records, but the rate of warming starts to bend. EVs overtake combustion in every G20 market.' },
-      { year: 2050, title: 'Warming stabilizes', body: 'Net-zero arrives. Temperature anomaly plateaus near +1.3°C. Heatwaves intensify regionally but the worst projections are off the table.' },
-      { year: 2080, title: 'A new normal', body: 'Anomaly holds under 1.5°C. Coral systems are stressed but largely intact. The Arctic ice cap thins but persists in summer.' },
+      { year: 2030, title: 'The rate bends', body: 'Hot summers still set records. But for the first time in decades, the rate of warming starts to ease. Not enough to feel yet — but enough to show in the data.' },
+      { year: 2050, title: 'A plateau', body: 'The anomaly holds near +1.3°C. Heatwaves intensify regionally. But the worst of what the models projected — the runaway scenarios — are off the table.' },
+      { year: 2080, title: 'Held', body: 'Under 1.5°C. Coral systems are stressed but largely intact. The Arctic thins but doesn\'t disappear in summer. It\'s a warmer world. But it\'s one people can navigate.' },
     ],
     '2-4.5': [
-      { year: 2030, title: 'The records keep falling', body: 'Each decade sets new heat records. Climate adaptation becomes a budget line item in every advanced economy.' },
-      { year: 2050, title: 'Heatwaves go chronic', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time.' },
-      { year: 2080, title: 'A warmer world locked in', body: 'Anomaly approaches 2.7°C. Air conditioning is the new running water. Insurance markets retreat from the Gulf Coast.' },
+      { year: 2030, title: 'The records keep falling', body: 'Each decade sets new heat records. Climate adaptation becomes a permanent budget line — seawalls, cooling centers, crop adjustments.' },
+      { year: 2050, title: 'Chronic heat', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time. Outdoor labor becomes legally restricted in dozens of countries.' },
+      { year: 2080, title: 'Locked in', body: 'The anomaly approaches +2.7°C. Air conditioning is infrastructure, not comfort. Insurance markets have abandoned the Gulf Coast. The warming will persist for centuries.' },
     ],
     '5-8.5': [
-      { year: 2030, title: 'The thermometer goes vertical', body: 'No abatement. Each summer eclipses the last. Wildfires double in the boreal north.' },
-      { year: 2050, title: 'Wet-bulb survivability fails', body: 'Multiple regions exceed 35°C wet-bulb for weeks. Outdoor work bans expand. Lethal heat events become routine.' },
-      { year: 2080, title: 'Approaching +5°C', body: 'This model shows higher warming than the multi-model mean, near 5°C. Permafrost methane breaches the carbon budget. Feedback loops engage.' },
+      { year: 2030, title: 'Vertical', body: 'No abatement. Each summer eclipses the last. Wildfires double across the boreal north. The thermometer does not plateau.' },
+      { year: 2050, title: 'The survivability line', body: 'Multiple regions exceed 35°C wet-bulb for weeks at a stretch. At that threshold, the human body cannot cool itself outdoors, even in the shade.' },
+      { year: 2080, title: 'Near +5°C', body: 'Permafrost thaw is now releasing its own carbon. The feedback loops have engaged. The question is no longer whether this accelerates — it\'s how fast.' },
     ],
   },
   co2: {
     '1-2.6': [
-      { year: 2030, title: 'Emissions peak', body: 'Coal plants close ahead of schedule. CO₂ growth slows dramatically.' },
-      { year: 2050, title: 'Net zero achieved', body: 'Atmospheric concentration plateaus near 430 ppm and begins to inch down.' },
-      { year: 2080, title: 'Net negative emissions', body: 'For the first time in the industrial era, humanity pulls more carbon from the air than it emits.' },
+      { year: 2030, title: 'The curve bends', body: 'It took three consecutive climate bills and a decade of market pressure to get here. The CO₂ curve crests. Not enough to erase what\'s already in the air — but enough to change where this goes.' },
+      { year: 2050, title: 'Zeroed out', body: 'Net-zero. The machines running the grid are wind and solar. Atmospheric concentration plateaus near 430 ppm and starts, slowly, to fall.' },
+      { year: 2080, title: 'The air starts to clear', body: 'For the first time since the Industrial Revolution, humanity pulls more carbon out of the air than it puts in. A slow exhale, 150 years in the making. The heat is still here — but it stops compounding.' },
     ],
     '2-4.5': [
-      { year: 2030, title: 'Plateau, not decline', body: 'Emissions flatten as renewables grow, but fossil fuels do not retreat. Concentration climbs steadily.' },
-      { year: 2050, title: 'Slow descent begins', body: 'Emissions finally start to fall by mid-century. CO₂ passes 520 ppm.' },
-      { year: 2080, title: 'Locked-in carbon', body: 'Despite cuts, accumulated CO₂ approaches 565 ppm, roughly double the pre-industrial baseline.' },
+      { year: 2030, title: 'Slowing, not stopping', body: 'Emissions flatten as renewables scale, but the fossil infrastructure is too entrenched to retreat quickly. The concentration keeps climbing — just not as fast.' },
+      { year: 2050, title: 'Half-measures compound', body: 'Emissions finally start to fall. CO₂ has already passed 520 ppm — a level the atmosphere hasn\'t seen in three million years. The descent will be slow.' },
+      { year: 2080, title: 'What didn\'t happen', body: 'The concentration holds near 565 ppm — roughly double the pre-industrial baseline. The world is stable. It\'s just a different world than the one that was possible.' },
     ],
     '5-8.5': [
-      { year: 2030, title: 'Coal comes back', body: 'New gas and coal plants outpace retirements. Emissions accelerate.' },
-      { year: 2050, title: 'CO₂ doubles', body: 'Concentration crosses 630 ppm, a level Earth has not seen in 50 million years.' },
-      { year: 2080, title: 'Off-the-charts atmosphere', body: 'CO₂ approaches 870 ppm. The carbon sinks (forests and oceans) saturate and begin to leak.' },
+      { year: 2030, title: 'All throttle', body: 'New coal and gas plants outpace retirements worldwide. The concentration climbs faster than at any point in human history.' },
+      { year: 2050, title: 'Uncharted air', body: '630 ppm. Earth hasn\'t seen an atmosphere like this in 50 million years. The carbon sinks — the forests, the oceans — are straining to keep up.' },
+      { year: 2080, title: 'The sinks give out', body: '870 ppm. The Amazon and Arctic tundra have stopped absorbing carbon and started releasing it. The feedback loops are no longer a projection. They\'re the weather.' },
     ],
   },
   sea: {
     '1-2.6': [
-      { year: 2040, title: 'Linear, predictable rise', body: 'Sea level climbs steadily at approximately 4-5 mm per year. Coastal cities retain sufficient time to plan and adapt.' },
-      { year: 2070, title: 'Retrofits hold', body: 'Seawalls and managed retreat protect most large cities. Some low-lying communities relocate.' },
-      { year: 2090, title: 'Manageable rise', body: 'Cumulative rise approaches 35 cm. Difficult, but adaptable.' },
+      { year: 2040, title: 'A steady climb', body: 'Sea level rises at roughly 4 mm per year — slow enough that cities can plan. Seawalls get funded. Managed retreat begins in the most exposed neighborhoods.' },
+      { year: 2070, title: 'Adaptation holds', body: 'Most large coastal cities are protected. Some low-lying communities have relocated inland. The ice caps are thinning — contributing to what comes next.' },
+      { year: 2090, title: '35 centimeters', body: 'Difficult. But adaptable. The cities that prepared in the 2030s are the ones still standing.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'The rate accelerates', body: 'Greenland ice sheet contributions ramp up. Insurance markets buckle in low-lying regions.' },
-      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos abandoned. Rise approaches 50 cm.' },
-      { year: 2090, title: 'Coastal redraw', body: 'Sea level rise hits 75 cm. Climate-driven migration redraws political maps.' },
+      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet is now a meaningful contributor. The rise accelerates. Insurance markets in low-lying regions begin to buckle — first the private market, then the public backstop.' },
+      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. The question is no longer whether to retreat, but who pays for it.' },
+      { year: 2090, title: '75 centimeters', body: 'Climate-driven migration is reshaping borders. The word \'coastal\' is being redefined.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'Antarctic ice destabilizes', body: 'West Antarctic ice sheet enters runaway melt. Rate of rise doubles.' },
-      { year: 2070, title: 'Coastlines erased', body: 'Multiple island nations dissolved. Cumulative rise approaches 90 cm.' },
-      { year: 2090, title: 'Over a meter', body: 'Cumulative rise approaches 135 cm. Sea level becomes one of the dominant political forces of the century.' },
+      { year: 2040, title: 'The Antarctic wakes up', body: 'The West Antarctic ice sheet enters runaway melt. The rate of rise doubles. What was a planning problem becomes an emergency.' },
+      { year: 2070, title: 'Coastlines erased', body: 'Multiple island nations have ceased to exist as legal territories. Cumulative rise approaches 90 cm.' },
+      { year: 2090, title: 'Past a meter', body: '135 centimeters of rise. Sea level is now one of the primary forces reshaping where people can live. It will not stop in 2100.' },
     ],
   },
   precip: {
     '1-2.6': [
-      { year: 2040, title: 'Subtle shifts', body: 'Wet regions get slightly wetter, dry ones slightly drier. In this model, global mean precipitation rises modestly, approximately +1% above 2025 levels.' },
-      { year: 2070, title: 'Crop belts adjust', body: 'Agricultural zones shift north by 200 to 400 km. Mostly orderly transitions in this low-warming scenario.' },
-      { year: 2090, title: 'Stable hydrology', body: 'Global precipitation anomaly settles around +2.4% vs 2025. Drought and flood frequencies remain manageable.' },
+      { year: 2040, title: 'A slow redistribution', body: 'Wet regions get slightly wetter. Dry ones, slightly drier. The global mean rises a little. The bigger story is regional — watch the map.' },
+      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move north by 200 to 400 km. The transitions are mostly orderly. Some regions gain arable land. Others lose it.' },
+      { year: 2090, title: 'Manageable variance', body: 'The hydrology is changed but not broken. Flood and drought frequencies stay within the range that infrastructure was built to handle.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'Muted global signal', body: 'This model shows smaller global precipitation change under SSP2-4.5 than the multi-model mean, though regional disruptions can still be severe.' },
-      { year: 2070, title: 'Regional divergence', body: 'While the global mean stays near the 2025 baseline, major river basins face stress. The Colorado and Ganges run low.' },
-      { year: 2090, title: 'Wet/dry extremes', body: 'The global average masks large regional swings: drying in the subtropics, intensifying monsoons elsewhere.' },
+      { year: 2040, title: 'The global mean is misleading', body: 'The average precipitation change looks modest. What it hides: intensifying monsoons in some places, the Colorado and Ganges running low in others.' },
+      { year: 2070, title: 'Regional divergence', body: 'Wet regions amplify. Dry regions dry further. The map is where the story is — the global number tells you almost nothing.' },
+      { year: 2090, title: 'Whiplash', body: 'Drying in the subtropics. Flooding in the tropics. The average stays near zero. The extremes are anything but.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'Hydrologic whiplash', body: 'Extreme floods and droughts begin oscillating. The Amazon hits early tipping points. Global precip creeps above the 2025 baseline.' },
-      { year: 2070, title: 'Intensifying cycle', body: 'Greater atmospheric moisture drives more extreme events, even where the global mean change appears modest in this model.' },
-      { year: 2090, title: 'A stressed cycle', body: 'Global anomaly ~+2.9% vs 2025. Behind that number: mega-droughts in some regions, catastrophic flooding in others.' },
+      { year: 2040, title: 'Oscillating', body: 'Extreme floods and extreme droughts begin alternating in the same river basins. The Amazon is already showing early tipping signals.' },
+      { year: 2070, title: 'More moisture, more violence', body: 'A warmer atmosphere holds more water vapor. When it rains, it deluges. When it doesn\'t, the soil bakes. The global mean tells you little about what\'s happening on the ground.' },
+      { year: 2090, title: 'The cycle, stressed', body: '+2.9% globally. Behind that number: agricultural collapse in parts of West Africa and Central America, catastrophic flooding in South and Southeast Asia. The average is not the story.' },
     ],
   },
 };
@@ -496,6 +495,66 @@ function ThermometerViz({ value, year, color, fg, faint, soft, curve, beats }) {
   );
 }
 
+function CarbonSummaryCard({ value, year, color, fg, faint, soft, bg, ssp }) {
+  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
+  const tempCurve = generateCurve('temp', sspKey);
+  const seaCurve = generateCurve('sea', sspKey);
+  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
+  const seaPt = seaCurve.find(d => d.year === year) || { val: 0 };
+
+  const smogLevel = Math.max(0, Math.min(1, (value - 420) / 450));
+  const skyTop = ssp && ssp.code === 'SSP1-2.6' ? '#4A7A9B' : ssp && ssp.code === 'SSP2-4.5' ? '#8B6940' : '#6B2A18';
+  const skyBot = ssp && ssp.code === 'SSP1-2.6' ? '#88BBD4' : ssp && ssp.code === 'SSP2-4.5' ? '#C4A070' : '#A04828';
+  const sunColor = ssp && ssp.code === 'SSP1-2.6' ? '#FFE080' : ssp && ssp.code === 'SSP2-4.5' ? '#E89040' : '#D04020';
+  const W = 440, H = 200;
+
+  return (
+    <div style={{ width: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+        <defs>
+          <linearGradient id="co2SkyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={skyTop} stopOpacity={0.35 + smogLevel * 0.5}/>
+            <stop offset="1" stopColor={skyBot} stopOpacity={0.12 + smogLevel * 0.4}/>
+          </linearGradient>
+        </defs>
+        <rect width={W} height={H} fill="url(#co2SkyGrad)" rx="6"/>
+        {smogLevel > 0.1 && [0.3, 0.55, 0.78].map((yFrac, i) => (
+          <ellipse key={i} cx={W/2} cy={H * yFrac}
+            rx={W * (0.45 + i * 0.08)} ry={10 + i * 4}
+            fill={skyBot} opacity={smogLevel * (0.28 - i * 0.06)}/>
+        ))}
+        <circle cx={W * 0.82} cy={H * 0.28} r={20}
+          fill={sunColor} opacity={0.9 - smogLevel * 0.55}/>
+        <text x={W/2} y={H * 0.48} textAnchor="middle"
+          fontFamily="var(--serif)" fontSize="50" fill={fg}>
+          {Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="15" fill={soft}> ppm CO₂</tspan>
+        </text>
+        <text x={W/2} y={H * 0.63} textAnchor="middle"
+          fontFamily="var(--mono)" fontSize="8" letterSpacing="0.18em" fill={soft}>
+          ATMOSPHERIC CONCENTRATION · {year}
+        </text>
+        {[
+          { label: 'WARMING', val: `+${tempPt.val.toFixed(1)}°C`, x: W/2 - 88 },
+          { label: 'SEA RISE', val: `+${Math.round(seaPt.val)} cm`, x: W/2 + 88 },
+        ].map(({ label, val, x }) => (
+          <g key={label}>
+            <rect x={x - 58} y={H * 0.72} width="116" height="44" fill={fg} opacity="0.07" rx="5"/>
+            <text x={x} y={H * 0.72 + 14} textAnchor="middle"
+              fontFamily="var(--mono)" fontSize="8" letterSpacing="0.12em" fill={soft}>{label}</text>
+            <text x={x} y={H * 0.72 + 34} textAnchor="middle"
+              fontFamily="var(--serif)" fontSize="20" fill={color}>{val}</text>
+          </g>
+        ))}
+        <text x={W/2} y={H - 8} textAnchor="middle"
+          fontFamily="var(--mono)" fontSize="7.5" letterSpacing="0.14em" fill={soft} opacity="0.5">
+          {ssp ? `${ssp.code} · ${ssp.name.toUpperCase()} PATHWAY` : 'CMIP6 MPI-ESM1-2-LR'}
+        </text>
+      </svg>
+      <CO2MapViz value={value} year={year} color={color} fg={fg} faint={faint} soft={soft} ssp={ssp}/>
+    </div>
+  );
+}
+
 function CO2MapViz({ value, year, color, fg, faint, soft, ssp }) {
   const [ready, setReady] = React.useState(!!WORLD_TOPO);
   React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
@@ -589,54 +648,79 @@ function wiltSVG(dl, cx, baseY) {
 }
 
 function DroughtViz({ value, year, color, fg, faint, soft, ssp }) {
-  const [ready, setReady] = React.useState(!!WORLD_TOPO);
-  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
+  const sspKey = ssp.code.replace('SSP', '');
+  const tempCurve = generateCurve('temp', sspKey);
+  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
+  const droughtLevel = Math.min(0.95, tempPt.val / 5.2);
 
-  const sspSev = ssp.code === 'SSP5-8.5' ? 0.85 : ssp.code === 'SSP2-4.5' ? 0.55 : 0.22;
-  const droughtLevel = Math.min(0.95, sspSev * ((year - 2025) / 75) + Math.abs(value) * 0.06);
+  const [hoverPlant, setHoverPlant] = React.useState(null);
 
-  const prKey = ssp.code === 'SSP1-2.6' ? 'ssp126' : ssp.code === 'SSP2-4.5' ? 'ssp245' : 'ssp585';
-  const getColor = React.useCallback((cid) => {
-    if (!PR_ANOMALIES || !REGIONAL_TEMP) return faint + '25';
-    const name = REGIONAL_TEMP.countries[String(cid)]?.name;
-    if (!name) return faint + '25';
-    const series = PR_ANOMALIES.regions[name];
-    if (!series || !series[prKey]) return faint + '25';
-    const pt = series[prKey].find(d => d.year === year);
-    if (!pt) return faint + '25';
-    const anom = pt.anomaly;
-    if (anom >= 0) return faint + '20';
-    const sev = Math.min(1, Math.abs(anom) / 6);
-    const r = Math.round(155 + sev * 90), g = Math.round(125 - sev * 90), b = Math.round(55 - sev * 55);
-    return `rgba(${r},${Math.max(0,g)},${Math.max(0,b)},${(0.2 + sev * 0.65).toFixed(2)})`;
-  }, [year, prKey, ready]);
-
-  const PW = 440, PH = 170;
+  const PW = 440, PH = 200;
   const plantXs = [56, 138, 220, 302, 385];
+
   return (
-    <div style={{ width: '100%' }}>
-      <svg viewBox={`0 0 ${PW} ${PH}`} width="100%" height="auto">
-        <rect width={PW} height={PH} fill={faint} opacity="0.06" rx="6"/>
-        <text x="14" y="20" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
-          VEGETATION STRESS · {year}
-        </text>
-        {plantXs.map((px, i) => wiltSVG(Math.max(0, droughtLevel - i * 0.04), px, PH - 18))}
-        <text x="14" y={PH - 6} fontFamily="var(--mono)" fontSize="8" letterSpacing="0.1em" fill={soft} opacity="0.55">
-          DROUGHT INDICATOR · {droughtLevel > 0.6 ? 'SEVERE' : droughtLevel > 0.3 ? 'MODERATE' : 'LOW'}
-        </text>
-      </svg>
-      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.07)" bg={faint + '10'}/>
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em',
-        color: soft, textAlign: 'right', marginTop: 4 }}>
-        PRECIP ANOMALY VS 1995–2014 · CMIP6 MPI-ESM1-2-LR
-      </div>
-    </div>
+    <svg viewBox={`0 0 ${PW} ${PH}`} width="100%" height="auto"
+      onMouseLeave={() => setHoverPlant(null)}>
+      <rect width={PW} height={PH} fill={faint} opacity="0.06" rx="6"/>
+      <text x="14" y="20" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
+        HEAT STRESS ON VEGETATION · {year}
+      </text>
+      {plantXs.map((px, i) => {
+        const plantStress = Math.max(0, droughtLevel - i * 0.04);
+        const stressLabel = plantStress > 0.6 ? 'SEVERE' : plantStress > 0.3 ? 'MODERATE' : plantStress > 0.05 ? 'LOW' : 'NONE';
+        return (
+          <g key={px}
+            onMouseEnter={() => setHoverPlant(i)}
+            style={{ cursor: 'default' }}>
+            {wiltSVG(plantStress, px, PH - 18)}
+            {hoverPlant === i && (() => {
+              const tipW = 118, tipH = 36;
+              const tx = Math.max(tipW / 2 + 4, Math.min(px, PW - tipW / 2 - 4));
+              return (
+                <g pointerEvents="none">
+                  <rect x={tx - tipW/2} y={16} width={tipW} height={tipH}
+                    fill={fg} opacity="0.93" rx="3"/>
+                  <text x={tx} y={30} textAnchor="middle"
+                    fontFamily="var(--mono)" fontSize="8.5" fill={faint} letterSpacing="0.08em">
+                    {stressLabel} STRESS
+                  </text>
+                  <text x={tx} y={44} textAnchor="middle"
+                    fontFamily="var(--mono)" fontSize="8" fill={faint} opacity="0.75">
+                    +{tempPt.val.toFixed(1)}°C · CMIP6
+                  </text>
+                </g>
+              );
+            })()}
+          </g>
+        );
+      })}
+      <text x="14" y={PH - 6} fontFamily="var(--mono)" fontSize="8" letterSpacing="0.1em" fill={soft} opacity="0.55">
+        +{tempPt.val.toFixed(1)}°C ABOVE BASELINE · {droughtLevel > 0.6 ? 'SEVERE' : droughtLevel > 0.3 ? 'MODERATE' : 'LOW'} STRESS
+      </text>
+    </svg>
   );
 }
-function SeaViz({ value, year, color, fg, faint, soft, bg }) {
-  const w = 430, h = 420;
-  const seaY = h - 60 - Math.min(value, 200) * 1.4;
-  const baselineY = h - 60;
+function SeaViz({ value, year, color, fg, faint, soft, bg, ssp }) {
+  const w = 430, h = 320;
+  const seaY = h - 44 - Math.min(value, 200) * 1.1;
+  const baselineY = h - 44;
+
+  const [hover, setHover] = React.useState({ x: 0, y: 0, visible: false });
+  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
+  const tempCurve = generateCurve('temp', sspKey);
+  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
+  const tempAnomaly = tempPt.val;
+  const isHot = tempAnomaly >= 2.0;
+
+
+  const onWaterMove = (e) => {
+    const svg = e.currentTarget.closest('svg');
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (w / rect.width);
+    const y = (e.clientY - rect.top) * (h / rect.height);
+    setHover({ x, y, visible: true });
+  };
+
   return (
     <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto">
       <defs>
@@ -651,7 +735,7 @@ function SeaViz({ value, year, color, fg, faint, soft, bg }) {
       </defs>
       <rect x="0" y="0" width={w} height={h} fill="url(#skyGrad)"/>
       {[0, 50, 100, 150, 200].map(cm => {
-        const y = baselineY - cm * 1.4;
+        const y = baselineY - cm * 1.1;
         return <g key={cm}>
           <line x1="350" y1={y} x2="370" y2={y} stroke={faint} strokeWidth="1"/>
           <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
@@ -677,15 +761,114 @@ function SeaViz({ value, year, color, fg, faint, soft, bg }) {
       </g>
       <line x1="0" y1={baselineY} x2="340" y2={baselineY} stroke={fg} strokeWidth="0.8" opacity="0.35" strokeDasharray="3 3"/>
       <text x="6" y={baselineY - 4} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.12em" fill={soft}>2025 BASELINE</text>
-      <rect x="0" y={seaY} width={340} height={h - seaY} fill="url(#waterGrad)"/>
+      <rect x="0" y={seaY} width={340} height={h - seaY} fill="url(#waterGrad)"
+        style={{ cursor: 'none' }}
+        onMouseMove={onWaterMove}
+        onMouseLeave={() => setHover(prev => ({ ...prev, visible: false }))}/>
       <path d={`M 0 ${seaY} Q 20 ${seaY-3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke={fg} strokeWidth="0.8" fill="none" opacity="0.4"/>
       <text x="6" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
       <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill={fg}>+{Math.round(value)}<tspan fontSize="14" fill={soft}> cm</tspan></text>
+      {hover.visible && (() => {
+        const tx = Math.max(12, Math.min(hover.x, 320));
+        const ty = Math.max(80, Math.min(hover.y, h - 20));
+        const bubX = Math.max(52, Math.min(tx, 288));
+        const bubY = ty - 38;
+        return (
+          <g pointerEvents="none">
+            <rect x={tx - 3} y={ty - 30} width="6" height="18" rx="3" fill={fg} opacity="0.9"/>
+            <circle cx={tx} cy={ty - 8} r="6" fill={isHot ? '#E05020' : color} opacity="0.9"/>
+            {isHot ? (
+              <g>
+                <path d={`M ${bubX-44} ${bubY-28} Q ${bubX-44} ${bubY-44} ${bubX-30} ${bubY-44} L ${bubX+30} ${bubY-44} Q ${bubX+44} ${bubY-44} ${bubX+44} ${bubY-28} Q ${bubX+44} ${bubY-12} ${bubX+30} ${bubY-12} L ${bubX+6} ${bubY-12} L ${bubX} ${bubY-4} L ${bubX-10} ${bubY-12} Q ${bubX-44} ${bubY-12} ${bubX-44} ${bubY-28} Z`}
+                  fill={fg} opacity="0.92"/>
+                <text x={bubX} y={bubY-30} textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" fill={bg} letterSpacing="0.08em">Youch! 🌡️</text>
+                <text x={bubX} y={bubY-17} textAnchor="middle" fontFamily="var(--mono)" fontSize="8" fill={bg} opacity="0.75">+{tempAnomaly.toFixed(1)}°C above baseline</text>
+              </g>
+            ) : (
+              <g>
+                <rect x={bubX-42} y={bubY-28} width="84" height="20" fill={fg} opacity="0.88" rx="4"/>
+                <text x={bubX} y={bubY-14} textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" fill={bg}>+{tempAnomaly.toFixed(1)}°C above 1995–2014</text>
+              </g>
+            )}
+          </g>
+        );
+      })()}
     </svg>
   );
 }
 
-const METRIC_VIZ = { temp: ThermometerViz, co2: CO2MapViz, sea: SeaViz, precip: DroughtViz };
+function IceCapsViz({ year, color, fg, faint, soft, ssp }) {
+  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
+  const tempCurve = generateCurve('temp', sspKey);
+  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
+  const tempAnomaly = tempPt.val;
+  const iceExtent = Math.max(0.05, 1 - tempAnomaly / 3.8);
+
+  // Landscape: 560×200 so rendered height stays ~200px at full column width
+  const W = 560, H = 200;
+  const CX = 100, CY = 100, MAX_R = 88;
+
+  const ICE_ANGLES = Array.from({ length: 24 }, (_, i) => ({
+    angle: (i / 24) * Math.PI * 2,
+    wobble: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2),
+  }));
+
+  const iceOuter = ICE_ANGLES.map(({ angle, wobble }) => {
+    const r = MAX_R * iceExtent * wobble;
+    return `${(CX + Math.cos(angle) * r).toFixed(1)},${(CY + Math.sin(angle) * r).toFixed(1)}`;
+  }).join(' ');
+
+  const iceInner = ICE_ANGLES.map(({ angle, wobble }) => {
+    const r = MAX_R * iceExtent * wobble * 0.6;
+    return `${(CX + Math.cos(angle) * r).toFixed(1)},${(CY + Math.sin(angle) * r).toFixed(1)}`;
+  }).join(' ');
+
+  const extentMk = (4.7 * iceExtent).toFixed(1);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      <circle cx={CX} cy={CY} r={MAX_R} fill="#12304A"/>
+      {[1/3, 2/3, 1].map((frac, i) => (
+        <circle key={i} cx={CX} cy={CY} r={MAX_R * frac}
+          fill="none" stroke={faint} strokeWidth="0.5" strokeDasharray="3 4" opacity="0.3"/>
+      ))}
+      <circle cx={CX} cy={CY} r={MAX_R * 0.88}
+        fill="none" stroke={soft} strokeWidth="0.8" strokeDasharray="4 6" opacity="0.3"/>
+      <text x={CX + MAX_R * 0.88 + 3} y={CY - 1}
+        fontFamily="var(--mono)" fontSize="6" fill={soft} opacity="0.4">1980</text>
+      <polygon points={iceOuter} fill="#DAEAF5" opacity="0.92"/>
+      <polygon points={iceInner} fill="white" opacity="0.4"/>
+      <circle cx={CX} cy={CY} r={MAX_R} fill="none" stroke={faint} strokeWidth="1.5" opacity="0.6"/>
+      <circle cx={CX} cy={CY} r="3" fill={soft} opacity="0.5"/>
+      {/* Labels in the right-hand space */}
+      <text x="208" y="22" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
+        ARCTIC SEA ICE · SEPTEMBER MINIMUM · {year}
+      </text>
+      <text x="208" y="70" fontFamily="var(--serif)" fontSize="32" fill={color}>
+        {extentMk}
+      </text>
+      <text x="208" y="86" fontFamily="var(--mono)" fontSize="10" fill={soft}>million km²</text>
+      <text x="208" y="110" fontFamily="var(--mono)" fontSize="8" letterSpacing="0.05em" fill={soft} opacity="0.55" style={{ maxWidth: 300 }}>
+        estimated · cmip6 temperature · mpi-esm1-2-lr
+      </text>
+      <text x="208" y="128" fontFamily="var(--mono)" fontSize="8" fill={soft} opacity="0.55">
+        {ssp ? ssp.code : ''} · +{tempAnomaly.toFixed(1)}°C above 1995–2014
+      </text>
+    </svg>
+  );
+}
+
+function SeaComboViz(props) {
+  return (
+    <div style={{ width: '100%' }}>
+      <IceCapsViz {...props}/>
+      <div style={{ marginTop: 10 }}/>
+      <SeaViz {...props}/>
+    </div>
+  );
+}
+
+const METRIC_VIZ = { temp: ThermometerViz, co2: CarbonSummaryCard, sea: SeaComboViz, precip: DroughtViz };
 
 function historicalCurve(metric) {
   const anchors = {
@@ -848,6 +1031,48 @@ function MetricMiniChart({ metric, year, ssp, theme, onSeek }) {
 }
 
 
+function NarrativeBubble({ children, color, faint }) {
+  return (
+    <div style={{
+      borderLeft: `2px solid ${color}`,
+      paddingLeft: 12,
+      marginTop: 14,
+      marginBottom: 2,
+      fontFamily: 'var(--mono)',
+      fontSize: 11,
+      letterSpacing: '0.05em',
+      lineHeight: 1.65,
+      color: faint,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function getBubble(metric, value, tempValue) {
+  if (metric === 'co2') {
+    if (value >= 700) return 'The ocean has absorbed 30% of all CO₂ ever emitted. Its pH has dropped 0.1 units — a 26% increase in acidity.';
+    if (value >= 560) return 'We\'ve doubled the pre-industrial atmospheric baseline.';
+    if (value >= 450) return 'The last time CO₂ was this high, forests grew in Antarctica.';
+  }
+  if (metric === 'temp') {
+    if (value >= 3.5) return 'Permafrost covers 25% of the Northern Hemisphere\'s land surface. At this temperature, it\'s releasing carbon, not storing it.';
+    if (value >= 2.0) return 'At this temperature, 37% of the global population is exposed to at least one severe heatwave per year.';
+    if (value >= 1.5) return 'The Paris Agreement\'s aspirational ceiling. Passed.';
+  }
+  if (metric === 'sea') {
+    if (value >= 100) return 'Over 600 million people live within 10 meters of sea level.';
+    if (value >= 50) return 'Tuvalu, Kiribati, and the Marshall Islands have begun legal proceedings over national territory submerged by rising seas.';
+    if (value >= 20) return 'South Florida\'s drainage system starts running in reverse during storm surges.';
+  }
+  if (metric === 'precip') {
+    if (tempValue >= 4.0) return 'At this level of warming, the Amazon rainforest begins converting to savanna — releasing its stored carbon.';
+    if (tempValue >= 2.5) return 'The Ganges, Colorado, and Yellow Rivers are projected to lose 10–30% of annual flow.';
+    if (tempValue >= 1.5) return 'The area in severe drought has roughly doubled globally since 2000.';
+  }
+  return null;
+}
+
 // ── MetricBlock ──
 function MetricBlock({ id, ssp, idx }) {
   const theme = METRIC_THEMES[id];
@@ -884,6 +1109,10 @@ function MetricBlock({ id, ssp, idx }) {
   const activeBeat = [...beats].reverse().find(b => b.year <= year) || beats[0];
   const Viz = METRIC_VIZ[id];
 
+  const tempCurveForBubble = generateCurve('temp', sspKey);
+  const tempPtForBubble = tempCurveForBubble.find(d => d.year === year) || { val: 0 };
+  const bubble = getBubble(id, value, tempPtForBubble.val);
+
   return (
     <div className="metric-block" data-screen-label={`04${String.fromCharCode(65+idx)} ${theme.title}`} ref={blockRef} style={{ background: theme.bg, color: theme.fg }}>
       <div className="metric-scroller">
@@ -895,6 +1124,7 @@ function MetricBlock({ id, ssp, idx }) {
               <div className="metric-year" style={{ color: theme.accent }}>{year}</div>
               <h3 style={{ color: theme.fg }}>{activeBeat.title}</h3>
               <p style={{ color: theme.soft }}>{activeBeat.body}</p>
+              {bubble && <NarrativeBubble color={theme.accent} faint={theme.soft}>{bubble}</NarrativeBubble>}
               <div className="metric-pathway-tag" style={{ color: theme.soft }}>
                 Your pathway · <span style={{ color: ssp.swatch }}>{ssp.code}</span> · {ssp.name}
               </div>
@@ -923,7 +1153,7 @@ function TimelineSection({ ssp }) {
           <h2>This is the world<br/>your framework builds.</h2>
           <p className="lede">
             Scroll forward in time, from 2025 to 2100, through four lenses: how hot it gets,
-            how much carbon we leave in the sky, how high the seas rise, and how the rains shift.
+            how much carbon we leave in the sky, how high the seas rise, and how the water moves.
             Your pathway is highlighted. Watch how much it diverges from the others.
           </p>
           <p style={{ fontSize: 14, fontFamily: 'var(--mono)', letterSpacing: '0.1em', color: 'var(--ink-soft)', marginTop: 20 }}>
