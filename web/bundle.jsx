@@ -200,6 +200,32 @@ function syntheticCurve(metric, ssp) {
 
 // CLIMATE is populated once data loads; components re-render via React state
 let CLIMATE = null;
+let WORLD_TOPO = null;
+let REGIONAL_TEMP = null;
+let PR_ANOMALIES = null;
+let WORLD_PATHS_CACHE = null;
+const TOPO_CBS = [];
+function onTopoReady(cb) {
+  if (WORLD_TOPO) cb(); else TOPO_CBS.push(cb);
+}
+function fireTopoReady() {
+  TOPO_CBS.forEach(cb => cb());
+  TOPO_CBS.length = 0;
+}
+function buildWorldPaths() {
+  if (WORLD_PATHS_CACHE || !WORLD_TOPO) return WORLD_PATHS_CACHE;
+  const d3 = window.d3, topo = window.topojson;
+  const proj = d3.geoNaturalEarth1().scale(153).translate([480, 250]);
+  const pathFn = d3.geoPath().projection(proj);
+  const countries = topo.feature(WORLD_TOPO, WORLD_TOPO.objects.countries);
+  const borders = topo.mesh(WORLD_TOPO, WORLD_TOPO.objects.countries, (a, b) => a !== b);
+  WORLD_PATHS_CACHE = {
+    countries: countries.features.map(f => ({ id: +f.id, d: pathFn(f) || '' })),
+    borders: pathFn(borders) || '',
+    sphere: pathFn({ type: 'Sphere' }) || '',
+  };
+  return WORLD_PATHS_CACHE;
+}
 
 function generateCurve(metric, ssp) {
   if (CLIMATE && CLIMATE.metrics[metric] && CLIMATE.metrics[metric][ssp]) {
@@ -298,10 +324,10 @@ const METRICS = [
 ];
 
 const METRIC_THEMES = {
-  temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · A', title: 'The Heat',        icon: 'temp',   img: '../images/smoggy_sun.png' },
-  co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',              unit: 'ppm', chapter: 'Three · B', title: 'The Atmosphere',  icon: 'co2',    img: '../images/urban_air_pollution.png' },
+  co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',                   unit: 'ppm', chapter: 'Three · A', title: 'The Atmosphere',  icon: 'co2',    img: '../images/urban_air_pollution.png' },
+  temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · B', title: 'The Heat',        icon: 'temp',   img: '../images/smoggy_sun.png' },
   sea:    { bg: '#2E4A35', fg: '#ECE6CE', accent: '#82A78A', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Sea level rise',        unit: 'cm',  chapter: 'Three · C', title: 'The Rising Sea',  icon: 'sea',    img: '../images/coastal_flooding.png' },
-  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Rains',       icon: 'precip', img: '../images/typhoon.png' },
+  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Drought',     icon: 'precip', img: '../images/typhoon.png' },
 };
 
 // ── Narrative beats (verbatim from design handoff) ──
@@ -376,80 +402,239 @@ const METRIC_BEATS = {
   },
 };
 
+// ── Shared world map (D3 Natural Earth, country paths cached) ──
+function WorldMap({ getColor, borderColor = 'rgba(255,255,255,0.1)', bg = null }) {
+  const W = 960, H = 500;
+  const [paths, setPaths] = React.useState(() => buildWorldPaths());
+  React.useEffect(() => {
+    if (!paths) onTopoReady(() => setPaths(buildWorldPaths()));
+  }, []);
+  if (!paths) return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      <text x={W/2} y={H/2} textAnchor="middle" fill="rgba(255,255,255,0.2)"
+        fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em">LOADING MAP…</text>
+    </svg>
+  );
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      {bg && <path d={paths.sphere} fill={bg}/>}
+      {paths.countries.map(c => (
+        <path key={c.id} d={c.d} fill={getColor(c.id)} stroke={borderColor} strokeWidth="0.4"/>
+      ))}
+      <path d={paths.borders} fill="none" stroke={borderColor} strokeWidth="0.4"/>
+    </svg>
+  );
+}
+
+// % of national land in Low Elevation Coastal Zone (<10m) · Source: CIESIN LECZ Database
+const LECZ_SHARE = {
+  462:1.0, 798:1.0, 584:1.0, 296:1.0, 520:0.98, 585:0.85, 882:0.75, 548:0.5,
+  90:0.35, 626:0.3, 528:0.26, 740:0.22, 116:0.11, 328:0.15, 704:0.12,
+  764:0.09, 392:0.09, 608:0.07, 104:0.08, 50:0.06, 702:0.06, 196:0.06,
+  818:0.04, 566:0.04, 360:0.04, 840:0.05, 156:0.03, 356:0.03, 586:0.02,
+  288:0.03, 404:0.02, 710:0.02, 716:0.01,
+};
+
 // ── Metric visualizations ──
 
-function TempViz({ value, year, color, fg, faint }) {
-  const intensity = Math.max(0, Math.min(1, (value - 0.8) / 5.0));
-  const orbColor = `oklch(${0.78 - intensity*0.32} ${0.06 + intensity*0.12} ${50 - intensity*15})`;
-  const haloColor = `oklch(${0.6 - intensity*0.25} ${0.08 + intensity*0.14} ${50 - intensity*15})`;
+function ThermometerViz({ value, year, color, fg, faint, soft, curve, beats }) {
+  const TMAX = 5.5;
+  const W = 400, H = 420;
+  const tx = 88, tw = 22, tt = 20, tb = 360;
+  const bulbCx = tx + tw / 2, bulbCy = tb + 34, bulbR = 26;
+  const yFor = t => tb - Math.max(0, Math.min(1, t / TMAX)) * (tb - tt);
+  const mercY = yFor(value);
+
+  const zones = [
+    { lo: 0,    hi: 1.5,  fill: '#4CAF6F', label: '< 1.5°  SAFE'     },
+    { lo: 1.5,  hi: 2.0,  fill: '#F5C842', label: '1.5–2°  CAUTION'  },
+    { lo: 2.0,  hi: 3.0,  fill: '#E08D5C', label: '2–3°  WARNING'    },
+    { lo: 3.0,  hi: TMAX, fill: '#D95828', label: '> 3°  CRITICAL'   },
+  ];
+
+  const beatMarkers = (curve && beats)
+    ? beats.map(b => { const pt = curve.find(d => d.year === b.year); return pt ? { year: b.year, temp: pt.val } : null; }).filter(Boolean)
+    : [];
 
   return (
-    <svg viewBox="0 0 400 400" width="100%" height="auto">
-      <defs>
-        <radialGradient id="heatGrad">
-          <stop offset="0%" stopColor={orbColor} stopOpacity="0.9"/>
-          <stop offset="60%" stopColor={haloColor} stopOpacity="0.4"/>
-          <stop offset="100%" stopColor={haloColor} stopOpacity="0"/>
-        </radialGradient>
-      </defs>
-      <circle cx="200" cy="200" r={120 + intensity * 40} fill="url(#heatGrad)"/>
-      <circle cx="200" cy="200" r="175" fill="none" stroke={faint} strokeWidth="1"/>
-      {Array.from({ length: 76 }).map((_, i) => {
-        const ang = (i / 75) * Math.PI * 2 - Math.PI / 2;
-        const isMile = (2025 + i) % 10 === 0;
-        const r1 = 170, r2 = isMile ? 180 : 176;
-        return <line key={i}
-          x1={200 + r1 * Math.cos(ang)} y1={200 + r1 * Math.sin(ang)}
-          x2={200 + r2 * Math.cos(ang)} y2={200 + r2 * Math.sin(ang)}
-          stroke={faint} strokeWidth={isMile ? 1.5 : 1}/>;
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      {zones.map((z, i) => {
+        const y1 = yFor(z.hi), y2 = yFor(z.lo);
+        return <g key={i}>
+          <rect x={tx-3} y={y1} width={tw+6} height={Math.max(1, y2-y1)} fill={z.fill} opacity="0.18" rx="2"/>
+          <text x={tx+tw+10} y={(y1+y2)/2+3} fontSize="8" fontFamily="var(--mono)"
+            fill={z.fill} opacity="0.6" letterSpacing="0.08em">{z.label}</text>
+        </g>;
       })}
-      <path
-        d={`M ${200 + 175 * Math.cos(-Math.PI/2)} ${200 + 175 * Math.sin(-Math.PI/2)} A 175 175 0 ${((year-2025)/75) > 0.5 ? 1 : 0} 1 ${200 + 175 * Math.cos(-Math.PI/2 + (year-2025)/75 * Math.PI*2)} ${200 + 175 * Math.sin(-Math.PI/2 + (year-2025)/75 * Math.PI*2)}`}
-        stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round"
-      />
-      {(() => {
-        const ang = -Math.PI/2 + (year-2025)/75 * Math.PI*2;
-        return <circle cx={200 + 175 * Math.cos(ang)} cy={200 + 175 * Math.sin(ang)} r="6" fill={color}/>;
-      })()}
-      <circle cx="200" cy="200" r="80" fill={orbColor}/>
-      <circle cx="200" cy="200" r="80" fill="none" stroke={fg} strokeWidth="1.5" opacity="0.3"/>
-      <text x="200" y="195" textAnchor="middle" fontFamily="var(--serif)" fontSize="54" fill={fg}>+{value.toFixed(1)}</text>
-      <text x="200" y="222" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.2em" fill={fg} opacity="0.7">°C ANOMALY</text>
-      <text x="200" y="14" textAnchor="middle" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.16em" fill={fg} opacity="0.55">2025</text>
-      <text x="394" y="204" textAnchor="end" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.16em" fill={fg} opacity="0.55">2050</text>
-      <text x="200" y="396" textAnchor="middle" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.16em" fill={fg} opacity="0.55">2075</text>
-      <text x="6" y="204" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.16em" fill={fg} opacity="0.55">2100</text>
+      <rect x={tx} y={tt} width={tw} height={tb-tt} fill={faint} opacity="0.3" rx={tw/2}/>
+      <rect x={tx+2} y={mercY} width={tw-4} height={Math.max(0, tb-mercY)} fill={color} rx={(tw-4)/2}/>
+      <circle cx={bulbCx} cy={bulbCy} r={bulbR} fill={faint} opacity="0.3"/>
+      <circle cx={bulbCx} cy={bulbCy} r={bulbR-3} fill={color}/>
+      {[0,1,2,3,4,5].map(t => {
+        const y = yFor(t);
+        return <g key={t}>
+          <line x1={tx-6} y1={y} x2={tx} y2={y} stroke={soft} strokeWidth="1" opacity="0.5"/>
+          <text x={tx-9} y={y+3.5} textAnchor="end" fontSize="9" fontFamily="var(--mono)"
+            fill={soft} opacity="0.6">{t}°</text>
+        </g>;
+      })}
+      {beatMarkers.map((b, i) => {
+        const y = yFor(b.temp);
+        return <g key={i}>
+          <line x1={tx} y1={y} x2={tx+tw} y2={y} stroke={fg} strokeWidth="1" opacity="0.25" strokeDasharray="2 3"/>
+          <text x={tx-9} y={y-4} textAnchor="end" fontSize="7" fontFamily="var(--mono)"
+            fill={fg} opacity="0.45">{b.year}</text>
+        </g>;
+      })}
+      <text x={W-16} y={75} textAnchor="end" fontFamily="var(--serif)"
+        fontSize="52" fill={color}>+{value.toFixed(1)}</text>
+      <text x={W-16} y={95} textAnchor="end" fontFamily="var(--mono)"
+        fontSize="9" fill={soft} letterSpacing="0.14em">°C SURFACE ANOMALY</text>
+      <text x={W-16} y={111} textAnchor="end" fontFamily="var(--mono)"
+        fontSize="9" fill={soft} letterSpacing="0.14em">IN {year}</text>
     </svg>
   );
 }
 
-function CO2Viz({ value, year, color, fg, faint, soft }) {
-  const cells = 900;
-  const filled = Math.round(((value - 280) / 600) * cells);
-  const baselineFilled = 140;
-  const cellSize = 11, gap = 1;
-  const dots = [];
-  for (let i = 0; i < cells; i++) {
-    const r = Math.floor(i / 30), c = i % 30;
-    const x = 20 + c * (cellSize + gap), y = 30 + r * (cellSize + gap);
-    let kind = i < baselineFilled ? 'baseline' : i < filled ? 'added' : 'empty';
-    dots.push({ x, y, kind });
-  }
+function CO2MapViz({ value, year, color, fg, faint, soft, ssp }) {
+  const [ready, setReady] = React.useState(!!WORLD_TOPO);
+  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
+  const rtKey = ssp.code === 'SSP1-2.6' ? '126' : ssp.code === 'SSP2-4.5' ? '245' : '585';
+
+  const getColor = React.useCallback((cid) => {
+    if (!REGIONAL_TEMP) return faint + '30';
+    const country = REGIONAL_TEMP.countries[String(cid)];
+    if (!country || !country[rtKey]) return faint + '30';
+    const idx = Math.max(0, Math.min(75, year - 2025));
+    const anom = country[rtKey][idx] || 0;
+    const t = Math.max(0, Math.min(1, anom / 5.5));
+    const r = Math.round(120 + t * 130), g = Math.round(110 - t * 100), b = Math.round(70 - t * 70);
+    return `rgba(${r},${Math.max(0,g)},${Math.max(0,b)},${(0.25 + t * 0.7).toFixed(2)})`;
+  }, [year, rtKey, ready]);
+
   return (
-    <svg viewBox="0 0 400 420" width="100%" height="auto">
-      <text x="20" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>EACH DOT ≈ 1 PPM CO₂</text>
-      {dots.map((d, i) => d.kind === 'empty'
-        ? <rect key={i} x={d.x} y={d.y} width={cellSize} height={cellSize} fill="none" stroke={faint} strokeWidth="0.6" rx="1"/>
-        : <rect key={i} x={d.x} y={d.y} width={cellSize} height={cellSize} fill={d.kind === 'baseline' ? soft : color} rx="1.5"/>
-      )}
-      <text x="20" y="412" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>1750 BASELINE 280 PPM</text>
-      <text x="380" y="412" textAnchor="end" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={color}>{year} · {Math.round(value)} PPM</text>
-    </svg>
+    <div style={{ width: '100%' }}>
+      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.08)" bg={faint + '18'}/>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6,
+        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', color: soft }}>
+        <span>REGIONAL WARMING · CMIP6 MPI-ESM1-2-LR</span>
+        <span>CO₂ {Math.round(value)} PPM · {year}</span>
+      </div>
+    </div>
   );
 }
 
+function SeaMapViz({ value, year, color, fg, faint, soft }) {
+  const [ready, setReady] = React.useState(!!WORLD_TOPO);
+  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
+  const riseNorm = Math.max(0, Math.min(1, value / 150));
+
+  const getColor = React.useCallback((cid) => {
+    const share = LECZ_SHARE[cid] || 0;
+    const intensity = share * riseNorm;
+    if (intensity < 0.02) return faint + '25';
+    const r = Math.round(20 + intensity * 10);
+    const g = Math.round(80 + intensity * 90);
+    const b = Math.round(190 + intensity * 55);
+    return `rgba(${r},${Math.min(255,g)},${Math.min(255,b)},${(0.2 + intensity * 0.7).toFixed(2)})`;
+  }, [riseNorm, ready]);
+
+  return (
+    <div style={{ width: '100%' }}>
+      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.08)" bg={faint + '18'}/>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6,
+        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', color: soft }}>
+        <span>COASTAL VULNERABILITY · CIESIN LECZ DATA</span>
+        <span>+{Math.round(value)} CM RISE · {year}</span>
+      </div>
+    </div>
+  );
+}
+
+function wiltSVG(dl, cx, baseY) {
+  dl = Math.max(0, Math.min(1, dl));
+  const potH = 26, potW = 42;
+  const potTop = baseY - potH;
+  const sR = Math.round(60 + dl * 80), sG = Math.round(115 - dl * 70), sB = 30;
+  const stemColor = `rgb(${sR},${Math.max(0,sG)},${sB})`;
+  const leafColor = `rgb(${Math.round(50+dl*110)},${Math.max(0,Math.round(145-dl*105))},${sB})`;
+  const droop = dl * 38;
+  const stemH = 80;
+  const sx = cx + droop * 0.3, sy = potTop - stemH;
+  const cpX = cx + droop * 0.75, cpY = potTop - stemH * 0.55;
+  const lmX = cx + droop * 0.5, lmY = potTop - stemH * 0.5;
+  const ang = (-40 + dl * 115) * Math.PI / 180;
+  const ll = 26;
+  const rx = lmX + Math.cos(ang) * ll, ry = lmY + Math.sin(ang) * ll;
+  const lx = lmX - Math.cos(ang) * ll, ly = lmY + Math.sin(Math.abs(ang)) * ll;
+  return (
+    <g key={cx}>
+      <path d={`M ${cx-potW/2} ${potTop} L ${cx-potW*0.38} ${baseY} L ${cx+potW*0.38} ${baseY} L ${cx+potW/2} ${potTop} Z`}
+        fill={`rgb(${130+Math.round(dl*25)},${90-Math.round(dl*20)},50)`} opacity="0.85"/>
+      <ellipse cx={cx} cy={potTop} rx={potW*0.44} ry={5}
+        fill={`rgb(${105+Math.round(dl*45)},${72-Math.round(dl*28)},38)`} opacity="0.9"/>
+      {dl > 0.25 && <g opacity={Math.min(1,(dl-0.25)*2.5)}>
+        <line x1={cx-7} y1={potTop} x2={cx-3} y2={potTop+3} stroke="rgb(75,52,28)" strokeWidth="0.7"/>
+        <line x1={cx+4} y1={potTop} x2={cx+2} y2={potTop+4} stroke="rgb(75,52,28)" strokeWidth="0.7"/>
+      </g>}
+      <path d={`M ${cx} ${potTop-2} Q ${cpX} ${cpY} ${sx} ${sy}`}
+        stroke={stemColor} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+      <path d={`M ${lmX} ${lmY} Q ${(lmX+lx)/2-6} ${(lmY+ly)/2} ${lx} ${ly}`}
+        fill={leafColor} stroke={leafColor} strokeWidth="1.5" opacity="0.85"/>
+      <path d={`M ${lmX} ${lmY} Q ${(lmX+rx)/2+6} ${(lmY+ry)/2} ${rx} ${ry}`}
+        fill={leafColor} stroke={leafColor} strokeWidth="1.5" opacity="0.85"/>
+      {dl < 0.9 && <circle cx={sx} cy={sy} r={Math.max(1, 5.5-dl*4)} fill={leafColor} opacity={1-dl*0.4}/>}
+    </g>
+  );
+}
+
+function DroughtViz({ value, year, color, fg, faint, soft, ssp }) {
+  const [ready, setReady] = React.useState(!!WORLD_TOPO);
+  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
+
+  const sspSev = ssp.code === 'SSP5-8.5' ? 0.85 : ssp.code === 'SSP2-4.5' ? 0.55 : 0.22;
+  const droughtLevel = Math.min(0.95, sspSev * ((year - 2025) / 75) + Math.abs(value) * 0.06);
+
+  const prKey = ssp.code === 'SSP1-2.6' ? 'ssp126' : ssp.code === 'SSP2-4.5' ? 'ssp245' : 'ssp585';
+  const getColor = React.useCallback((cid) => {
+    if (!PR_ANOMALIES || !REGIONAL_TEMP) return faint + '25';
+    const name = REGIONAL_TEMP.countries[String(cid)]?.name;
+    if (!name) return faint + '25';
+    const series = PR_ANOMALIES.regions[name];
+    if (!series || !series[prKey]) return faint + '25';
+    const pt = series[prKey].find(d => d.year === year);
+    if (!pt) return faint + '25';
+    const anom = pt.anomaly;
+    if (anom >= 0) return faint + '20';
+    const sev = Math.min(1, Math.abs(anom) / 6);
+    const r = Math.round(155 + sev * 90), g = Math.round(125 - sev * 90), b = Math.round(55 - sev * 55);
+    return `rgba(${r},${Math.max(0,g)},${Math.max(0,b)},${(0.2 + sev * 0.65).toFixed(2)})`;
+  }, [year, prKey, ready]);
+
+  const PW = 440, PH = 170;
+  const plantXs = [56, 138, 220, 302, 385];
+  return (
+    <div style={{ width: '100%' }}>
+      <svg viewBox={`0 0 ${PW} ${PH}`} width="100%" height="auto">
+        <rect width={PW} height={PH} fill={faint} opacity="0.06" rx="6"/>
+        <text x="14" y="20" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
+          VEGETATION STRESS · {year}
+        </text>
+        {plantXs.map((px, i) => wiltSVG(Math.max(0, droughtLevel - i * 0.04), px, PH - 18))}
+        <text x="14" y={PH - 6} fontFamily="var(--mono)" fontSize="8" letterSpacing="0.1em" fill={soft} opacity="0.55">
+          DROUGHT INDICATOR · {droughtLevel > 0.6 ? 'SEVERE' : droughtLevel > 0.3 ? 'MODERATE' : 'LOW'}
+        </text>
+      </svg>
+      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.07)" bg={faint + '10'}/>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em',
+        color: soft, textAlign: 'right', marginTop: 4 }}>
+        PRECIP ANOMALY VS 1995–2014 · CMIP6 MPI-ESM1-2-LR
+      </div>
+    </div>
+  );
+}
 function SeaViz({ value, year, color, fg, faint, soft, bg }) {
-  const w = 400, h = 420;
+  const w = 430, h = 420;
   const seaY = h - 60 - Math.min(value, 200) * 1.4;
   const baselineY = h - 60;
   return (
@@ -500,44 +685,7 @@ function SeaViz({ value, year, color, fg, faint, soft, bg }) {
   );
 }
 
-function PrecipViz({ value, year, color, fg, faint, soft }) {
-  const w = 400, h = 420;
-  // value is % anomaly vs 2025, range ~0-3% for this model
-  // Show both global change and contextual extremes
-  const absVal = Math.abs(value);
-  const droughtFrac = 0.40 + absVal * 0.025;
-  const numDrops = Math.round(80 + absVal * 15);
-  const drops = [];
-  for (let i = 0; i < numDrops; i++) {
-    const seed = (i * 9973) % 1000 / 1000, seed2 = (i * 1597) % 1000 / 1000;
-    drops.push({ x: 20 + seed * 360, y: 240 + seed2 * 150, len: 4 + ((i * 31) % 100) / 100 * 6 });
-  }
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto">
-      <g>
-        <rect x="20" y="20" width="360" height="190" fill={faint} rx="6"/>
-        <text x="32" y="42" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>DROUGHT SHARE OF LAND AREA</text>
-        <text x="32" y="100" fontFamily="var(--serif)" fontSize="48" fill={fg}>{Math.round(droughtFrac * 100)}<tspan fontSize="16" fill={soft}>%</tspan></text>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <g key={i}>
-            <path d={`M ${50 + i * 40} 130 L ${60 + i * 40} 150 L ${50 + i * 40} 170 L ${65 + i * 40} 190`} stroke={color} strokeWidth="1.2" fill="none" opacity={0.4 + absVal*0.06}/>
-            <path d={`M ${36 + i * 40} 145 L ${44 + i * 40} 165`} stroke={color} strokeWidth="0.8" fill="none" opacity={0.25 + absVal*0.04}/>
-          </g>
-        ))}
-      </g>
-      <g>
-        <rect x="20" y="220" width="360" height="190" fill="none" stroke={faint} strokeWidth="1" rx="6"/>
-        <text x="32" y="242" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>EXTREME-RAINFALL DAYS / YR</text>
-        <text x="32" y="300" fontFamily="var(--serif)" fontSize="48" fill={fg}>{Math.round(10 + absVal * 3)}<tspan fontSize="16" fill={soft}> days</tspan></text>
-        {drops.map((d, i) => <line key={i} x1={d.x} y1={d.y} x2={d.x - 2} y2={d.y + d.len} stroke={color} strokeWidth="1" opacity="0.65"/>)}
-      </g>
-      <text x="32" y="416" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.18em" fill={soft}>{year} · GLOBAL ANOMALY {value >= 0 ? '+' : ''}{value.toFixed(1)}% VS 2025</text>
-      <text x="380" y="416" textAnchor="end" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em" fill={soft} opacity="0.6">MPI-ESM1-2-LR</text>
-    </svg>
-  );
-}
-
-const METRIC_VIZ = { temp: TempViz, co2: CO2Viz, sea: SeaViz, precip: PrecipViz };
+const METRIC_VIZ = { temp: ThermometerViz, co2: CO2MapViz, sea: SeaViz, precip: DroughtViz };
 
 function historicalCurve(metric) {
   const anchors = {
@@ -560,7 +708,7 @@ function historicalCurve(metric) {
 }
 
 // ── Mini chart ──
-function MetricMiniChart({ metric, year, ssp, theme }) {
+function MetricMiniChart({ metric, year, ssp, theme, onSeek }) {
   const SSPS_L = [
     { id: '1-2.6', color: '#82A78A' },
     { id: '2-4.5', color: '#C49B5E' },
@@ -610,8 +758,21 @@ function MetricMiniChart({ metric, year, ssp, theme }) {
   const fmtVal = v => `${showSign && v >= 0 ? '+' : ''}${isInt ? Math.round(v) : v.toFixed(1)}`;
   const unitLabel = metric === 'temp' ? '°C' : metric === 'co2' ? 'ppm' : metric === 'sea' ? 'cm' : '%';
 
+  const [hoverYear, setHoverYear] = React.useState(null);
+
+  const svgYearFromEvent = (e) => {
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    const svgX = (e.clientX - rect.left) * (W / rect.width);
+    const raw = 1900 + (svgX - pad.l) / (W - pad.l - pad.r) * 200;
+    return Math.max(2025, Math.min(2100, Math.round(raw)));
+  };
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" style={{ cursor: 'crosshair' }}
+      onMouseMove={e => { if (e.clientX) setHoverYear(svgYearFromEvent(e)); }}
+      onMouseLeave={() => setHoverYear(null)}
+      onClick={e => { const yr = svgYearFromEvent(e); if (onSeek) onSeek(yr); }}>
       {ticks.map(tick => (
         <g key={tick}>
           <line x1={pad.l} y1={yScale(tick)} x2={W-pad.r} y2={yScale(tick)}
@@ -643,7 +804,7 @@ function MetricMiniChart({ metric, year, ssp, theme }) {
       {year > 2025 && <line x1={xScale(year)} y1={pad.t} x2={xScale(year)} y2={H-pad.b}
         stroke={theme.accent} strokeWidth="1" strokeDasharray="3 4" opacity="0.4"/>}
       <text x={pad.l} y={20} fontSize="9" fill={theme.soft} fontFamily="var(--mono)" letterSpacing="0.16em">
-        {theme.label.toUpperCase()} · 1900 → 2100
+        {theme.label.toUpperCase()} · 1900 → 2100 · CLICK TO SEEK
       </text>
       <text x={W-pad.r} y={28} fontSize="30" textAnchor="end" fill={theme.accent}
         fontFamily="var(--serif)" letterSpacing="-0.02em">
@@ -651,6 +812,37 @@ function MetricMiniChart({ metric, year, ssp, theme }) {
       </text>
       <text x={W-pad.r} y={44} fontSize="8" textAnchor="end" fill={theme.soft}
         fontFamily="var(--mono)" letterSpacing="0.14em">IN {year}</text>
+      {hoverYear && hoverYear >= 2025 && (() => {
+        const hx = xScale(hoverYear);
+        const tipX = hx + 8;
+        const tipW = 96, tipH = 16 + projCurves.length * 13;
+        const ax = tipX + tipW > W - pad.r ? hx - tipW - 8 : tipX;
+        return (
+          <g pointerEvents="none">
+            <line x1={hx} y1={pad.t} x2={hx} y2={H-pad.b}
+              stroke={theme.fg} strokeWidth="1" opacity="0.3" strokeDasharray="3 3"/>
+            <rect x={ax} y={pad.t+2} width={tipW} height={tipH}
+              fill={theme.bg} stroke={theme.faint} strokeWidth="0.8" rx="3" opacity="0.95"/>
+            <text x={ax+6} y={pad.t+13} fontFamily="var(--mono)" fontSize="8"
+              fill={theme.accent} letterSpacing="0.1em">{hoverYear}</text>
+            {projCurves.map((c, i) => {
+              const hpt = c.data.find(d => d.year === hoverYear);
+              if (!hpt) return null;
+              return <text key={c.id} x={ax+6} y={pad.t+13+(i+1)*13}
+                fontFamily="var(--mono)" fontSize="8"
+                fill={c.id === sspKey ? theme.accent : c.color}
+                opacity={c.id === sspKey ? 1 : 0.65} letterSpacing="0.04em">
+                {fmtVal(hpt.val)} {unitLabel}
+              </text>;
+            })}
+            {(() => {
+              const hp = activeCurve.data.find(d => d.year === hoverYear);
+              return hp ? <circle cx={hx} cy={yScale(hp.val)} r="4"
+                fill={theme.accent} stroke={theme.bg} strokeWidth="1.5"/> : null;
+            })()}
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -677,6 +869,14 @@ function MetricBlock({ id, ssp, idx }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const handleChartSeek = React.useCallback((seekYear) => {
+    const el = blockRef.current;
+    if (!el) return;
+    const frac = (seekYear - 2025) / 75;
+    const total = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: el.offsetTop + frac * total, behavior: 'smooth' });
+  }, []);
+
   const curve = generateCurve(id, sspKey);
   const point = curve.find(d => d.year === year) || curve[0];
   const value = point.val;
@@ -700,11 +900,11 @@ function MetricBlock({ id, ssp, idx }) {
               </div>
             </div>
             <div className="metric-viz">
-              <Viz value={value} year={year} color={theme.accent} fg={theme.fg} faint={theme.faint} soft={theme.soft} bg={theme.bg}/>
+              <Viz value={value} year={year} color={theme.accent} fg={theme.fg} faint={theme.faint} soft={theme.soft} bg={theme.bg} ssp={ssp} curve={curve} beats={beats}/>
             </div>
           </div>
           <div className="metric-chart" style={{ borderColor: theme.faint, color: theme.fg }}>
-            <MetricMiniChart metric={id} year={year} ssp={ssp} theme={theme}/>
+            <MetricMiniChart metric={id} year={year} ssp={ssp} theme={theme} onSeek={handleChartSeek}/>
           </div>
         </div>
         {[0,1,2,3,4].map(i => <div key={i} className="metric-frame"/>)}
@@ -731,8 +931,8 @@ function TimelineSection({ ssp }) {
           </p>
         </div>
       </div>
-      <MetricBlock id="temp"   ssp={ssp} idx={0}/>
-      <MetricBlock id="co2"    ssp={ssp} idx={1}/>
+      <MetricBlock id="co2"    ssp={ssp} idx={0}/>
+      <MetricBlock id="temp"   ssp={ssp} idx={1}/>
       <MetricBlock id="sea"    ssp={ssp} idx={2}/>
       <MetricBlock id="precip" ssp={ssp} idx={3}/>
     </>
@@ -1263,14 +1463,23 @@ function App() {
   React.useEffect(() => {
     fetch('/data/climate-data.json')
       .then(r => r.json())
-      .then(data => {
-        CLIMATE = data;
-        setDataReady(true);
-      })
-      .catch(err => {
-        console.warn('[app] climate-data.json load failed, using synthetic fallback:', err);
-        setDataReady(true);
-      });
+      .then(data => { CLIMATE = data; setDataReady(true); })
+      .catch(err => { console.warn('[app] climate-data.json load failed:', err); setDataReady(true); });
+
+    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+      .then(r => r.json())
+      .then(d => { WORLD_TOPO = d; buildWorldPaths(); fireTopoReady(); })
+      .catch(err => console.warn('[app] world-atlas load failed:', err));
+
+    fetch('/data/regional-temp.json')
+      .then(r => r.json())
+      .then(d => { REGIONAL_TEMP = d; })
+      .catch(err => console.warn('[app] regional-temp.json load failed:', err));
+
+    fetch('/data/pr_anomalies.json')
+      .then(r => r.json())
+      .then(d => { PR_ANOMALIES = d; })
+      .catch(err => console.warn('[app] pr_anomalies.json load failed:', err));
   }, []);
 
   // Scroll tracking

@@ -153,15 +153,15 @@ a { color: var(--forest-deep); }
 /* === Section scaffolding === */
 section {
   position: relative;
-  padding: 6vh 40px;
+  padding: 6vh 8vw;
   max-width: 100%;
 }
 .wrap {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
 }
 .wrap--narrow {
-  max-width: 720px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
@@ -171,7 +171,7 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding: 0 40px 56px;
+  padding: 0 8vw 56px;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
@@ -192,11 +192,11 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0 40px;
+  padding: 0 8vw;
   background: var(--bg);
   position: relative;
 }
-.hero-desc-inner { max-width: 680px; }
+.hero-desc-inner { max-width: 600px; }
 .hero-desc-lede {
   font-size: clamp(20px, 2.1vw, 26px);
   line-height: 1.6;
@@ -226,7 +226,7 @@ section {
 
 .scroll-hint {
   position: absolute;
-  left: 40px; bottom: 32px;
+  left: 8vw; bottom: 32px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -529,7 +529,7 @@ section {
 
 /* === Character select screen === */
 .char-select {
-  padding: 8vh 40px 8vh;
+  padding: 8vh 8vw 8vh;
   background: var(--bg-2);
 }
 .char-select h2 {
@@ -628,7 +628,7 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 5vh 40px;
+  padding: 5vh 8vw;
   background: var(--bg-2);
 }
 .policy-back-btn {
@@ -1993,7 +1993,7 @@ section {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 52px 6vw 28px;
+  padding: 52px 8vw 28px;
   gap: 14px;
 }
 .metric-row {
@@ -2044,9 +2044,10 @@ section {
 
 .metric-viz {
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: center;
-  max-width: 440px;
+  align-items: stretch;
+  max-width: 560px;
   width: 100%;
   justify-self: end;
   min-height: 0;
