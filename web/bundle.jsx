@@ -739,33 +739,32 @@ function TimelineSection({ ssp }) {
   );
 }
 
-// ── Intro ──
-function Intro() {
-  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const [rot, setRot] = React.useState(0);
-  React.useEffect(() => {
-    if (prefersReduced) return;
-    let raf;
-    const tick = () => { setRot(r => r + 0.0015); raf = requestAnimationFrame(tick); };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+// ── Hero ──
+function HeroTitle() {
   return (
     <section className="hero" data-screen-label="01 Intro">
-      <div className="left">
-        <div className="eyebrow" style={{ marginBottom: 22 }}>An interactive story · 75 years of choices</div>
-        <h1>Degrees of<br/><span className="acc">Consequence</span></h1>
-        <p className="lede">Somewhere in the next few years, the decisions that shape the next century will be made. Not by nature. Not by accident. By people: in votes, in boardrooms, in budgets. Pick a seat at the table and see what your choices leave behind.</p>
-        <div className="meta">
+      <div className="eyebrow">An interactive story · 75 years of choices</div>
+      <h1>Degrees of<br/><span className="acc">Consequence</span></h1>
+      <div className="scroll-hint"><span>Scroll to begin</span><span className="bar"/></div>
+    </section>
+  );
+}
+
+// ── Hero description slide ──
+function HeroDesc() {
+  return (
+    <section className="hero-desc" data-screen-label="01 About">
+      <div className="hero-desc-inner">
+        <p className="hero-desc-lede">
+          Somewhere in the next few years, the decisions that shape the next century will be made. Not by nature. Not by accident. By people — in votes, in boardrooms, in budgets. Pick a seat at the table and see what your choices leave behind.
+        </p>
+        <div className="hero-desc-meta">
           <div>Reading time<span>~ 6 minutes</span></div>
           <div>Dataset<span>CMIP6 · SSPs</span></div>
           <div>Issue<span>Vol. 01 · 2026</span></div>
         </div>
       </div>
-      <div className="right">
-        <div className="halftone-globe"><HalftoneGlobe size={560} rotation={rot} density={28}/></div>
-      </div>
-      <div className="scroll-hint"><span>Scroll to begin</span><span className="bar"/></div>
+      <div className="scroll-hint"><span>Continue</span><span className="bar"/></div>
     </section>
   );
 }
@@ -1333,7 +1332,8 @@ function App() {
           <a href="writeup.html" className="topbar-writeup">Write-up</a>
         </div>
       </div>
-      <Intro/>
+      <HeroTitle/>
+      <HeroDesc/>
       <ChoiceSection values={values} setValues={setValues} persona={persona} setPersona={setPersona} onSubmit={onSubmit}/>
       {submitted && !timeJumpDone && <TimeJump onComplete={handleTimeJumpComplete}/>}
       {timeJumpDone && <TimelineSection ssp={ssp}/>}
