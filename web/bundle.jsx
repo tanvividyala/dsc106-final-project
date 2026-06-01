@@ -334,7 +334,7 @@ const METRIC_BEATS = {
   temp: {
     '1-2.6': [
       { year: 2030, title: 'The rate bends', body: 'Hot summers still set records. But for the first time in decades, the rate of warming starts to ease. Not enough to feel yet, butenough to show in the data.' },
-      { year: 2050, title: 'A plateau', body: 'The anomaly holds near +1.3°C. Heatwaves intensify regionally. But the worst of what the models projected,the runaway scenarios,are off the table.' },
+      { year: 2050, title: 'A plateau', body: 'The anomaly holds near +1.3°C. Heatwaves intensify regionally. But the worst of what the models projected, the runaway scenarios, are off the table.' },
       { year: 2080, title: 'Held', body: 'Under 1.5°C. Coral systems are stressed but largely intact. The Arctic thins but doesn\'t disappear in summer. It\'s a warmer world. But it\'s one people can navigate.' },
     ],
     '2-4.5': [
@@ -357,7 +357,7 @@ const METRIC_BEATS = {
     '2-4.5': [
       { year: 2030, title: 'Slowing, not stopping', body: 'Emissions flatten as renewables scale, but the fossil infrastructure is too entrenched to retreat quickly. The concentration keeps climbing, just not as fast.' },
       { year: 2050, title: 'Half-measures compound', body: 'Emissions finally start to fall. CO₂ has already passed 520 ppm, a level the atmosphere hasn\'t seen in three million years. The descent will be slow.' },
-      { year: 2080, title: 'What didn\'t happen', body: 'The concentration holds near 565 ppm,roughly double the pre-industrial baseline. The world is stable. It\'s just a different world than the one that was possible.' },
+      { year: 2080, title: 'What didn\'t happen', body: 'The concentration holds near 565 ppm, roughly double the pre-industrial baseline. The world is stable. It\'s just a different world than the one that was possible.' },
     ],
     '5-8.5': [
       { year: 2030, title: 'All throttle', body: 'New coal and gas plants outpace retirements worldwide. The concentration climbs faster than at any point in human history.' },
@@ -372,7 +372,7 @@ const METRIC_BEATS = {
       { year: 2090, title: '35 centimeters', body: 'Difficult. But adaptable. The cities that prepared in the 2030s are the ones still standing.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet is now a meaningful contributor. The rise accelerates. Insurance markets in low-lying regions begin to buckle,first the private market, then the public backstop.' },
+      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet is now a meaningful contributor. The rise accelerates. Insurance markets in low-lying regions begin to buckle: first the private market, then the public backstop.' },
       { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. The question is no longer whether to retreat, but who pays for it.' },
       { year: 2090, title: '75 centimeters', body: 'Climate-driven migration is reshaping borders. The word \'coastal\' is being redefined.' },
     ],
@@ -384,13 +384,13 @@ const METRIC_BEATS = {
   },
   precip: {
     '1-2.6': [
-      { year: 2040, title: 'A slow redistribution', body: 'Wet regions get slightly wetter. Dry ones, slightly drier. The global mean rises a little. The bigger story is regional,watch the map.' },
+      { year: 2040, title: 'A slow redistribution', body: 'Wet regions get slightly wetter. Dry ones, slightly drier. The global mean rises a little. The bigger story is regional. Watch the map.' },
       { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move north by 200 to 400 km. The transitions are mostly orderly. Some regions gain arable land. Others lose it.' },
       { year: 2090, title: 'Manageable variance', body: 'The hydrology is changed but not broken. Flood and drought frequencies stay within the range that infrastructure was built to handle.' },
     ],
     '2-4.5': [
       { year: 2040, title: 'The global mean is misleading', body: 'The average precipitation change looks modest. What it hides: intensifying monsoons in some places, the Colorado and Ganges running low in others.' },
-      { year: 2070, title: 'Regional divergence', body: 'Wet regions amplify. Dry regions dry further. The map is where the story is,the global number tells you almost nothing.' },
+      { year: 2070, title: 'Regional divergence', body: 'Wet regions amplify. Dry regions dry further. The map is where the story is. The global number tells you almost nothing.' },
       { year: 2090, title: 'Whiplash', body: 'Drying in the subtropics. Flooding in the tropics. The average stays near zero. The extremes are anything but.' },
     ],
     '5-8.5': [
@@ -1051,7 +1051,7 @@ function NarrativeBubble({ children, color, faint }) {
 
 function getBubble(metric, value, tempValue) {
   if (metric === 'co2') {
-    if (value >= 700) return 'The ocean has absorbed 30% of all CO₂ ever emitted. Its pH has dropped 0.1 units,a 26% increase in acidity.';
+    if (value >= 700) return 'The ocean has absorbed 30% of all CO₂ ever emitted. Its pH has dropped 0.1 units, a 26% increase in acidity.';
     if (value >= 560) return 'We\'ve doubled the pre-industrial atmospheric baseline.';
     if (value >= 450) return 'The last time CO₂ was this high, forests grew in Antarctica.';
   }
@@ -1066,7 +1066,7 @@ function getBubble(metric, value, tempValue) {
     if (value >= 20) return 'South Florida\'s drainage system starts running in reverse during storm surges.';
   }
   if (metric === 'precip') {
-    if (tempValue >= 4.0) return 'At this level of warming, the Amazon rainforest begins converting to savanna,releasing its stored carbon.';
+    if (tempValue >= 4.0) return 'At this level of warming, the Amazon rainforest begins converting to savanna, releasing its stored carbon.';
     if (tempValue >= 2.5) return 'The Ganges, Colorado, and Yellow Rivers are projected to lose 10–30% of annual flow.';
     if (tempValue >= 1.5) return 'The area in severe drought has roughly doubled globally since 2000.';
   }
@@ -1186,7 +1186,7 @@ function HeroDesc() {
     <section className="hero-desc" data-screen-label="01 About">
       <div className="hero-desc-inner">
         <p className="hero-desc-lede">
-          Somewhere in the next few years, the decisions that shape the next century will be made. Not by nature. Not by accident. By people,in votes, in boardrooms, in budgets. Pick a seat at the table and see what your choices leave behind.
+          Somewhere in the next few years, the decisions that shape the next century will be made. Not by nature. Not by accident. By people, in votes, in boardrooms, in budgets. Pick a seat at the table and see what your choices leave behind.
         </p>
         <div className="hero-desc-meta">
           <div>Reading time<span>~ 6 minutes</span></div>
