@@ -1,13 +1,5 @@
 /* === Degrees of Consequence — stylesheet === */
 
-@font-face {
-  font-family: 'Cooper Md BT';
-  src: url('fonts/CooperMdBT.ttf') format('truetype');
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   --bg: #F0EDE2;          /* bright warm white */
   --bg-2: #E6E2D5;        /* slightly darker */
@@ -21,7 +13,7 @@
   --vivid: #B5F033;        /* lime chartreuse accent */
   --shadow: 0 1px 0 rgba(14,26,11,0.08), 0 12px 32px -16px rgba(14,26,11,0.3);
 
-  --serif: 'Cooper Md BT', 'Instrument Serif', 'Rasputin', Georgia, serif;
+  --serif: 'Bricolage Grotesque', 'Instrument Serif', Georgia, serif;
   --sans:  'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
   --mono:  'JetBrains Mono', ui-monospace, monospace;
 }
