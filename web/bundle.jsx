@@ -1691,7 +1691,7 @@ function App() {
 
   // Load real CMIP6 data
   React.useEffect(() => {
-    fetch('/data/climate-data.json')
+    fetch('../data/climate-data.json')
       .then(r => r.json())
       .then(data => { CLIMATE = data; setDataReady(true); })
       .catch(err => { console.warn('[app] climate-data.json load failed:', err); setDataReady(true); });
@@ -1701,12 +1701,12 @@ function App() {
       .then(d => { WORLD_TOPO = d; buildWorldPaths(); fireTopoReady(); })
       .catch(err => console.warn('[app] world-atlas load failed:', err));
 
-    fetch('/data/regional-temp.json')
+    fetch('../data/regional-temp.json')
       .then(r => r.json())
       .then(d => { REGIONAL_TEMP = d; })
       .catch(err => console.warn('[app] regional-temp.json load failed:', err));
 
-    fetch('/data/pr_anomalies.json')
+    fetch('../data/pr_anomalies.json')
       .then(r => r.json())
       .then(d => { PR_ANOMALIES = d; })
       .catch(err => console.warn('[app] pr_anomalies.json load failed:', err));
