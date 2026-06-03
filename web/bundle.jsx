@@ -357,7 +357,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
   // Inline legend
   const legY = H - 16, swSz = 7;
   const legend = (
-    <g fontFamily="var(--mono)" fontSize="9" letterSpacing="0.07em">
+    <g fontFamily="var(--mono)" fontSize="11" letterSpacing="0.07em">
       <rect x={padX} y={legY-7} width={swSz} height={swSz} rx="1" fill={baseC} />
       <text x={padX+swSz+4} y={legY} fill={`rgba(${fg},0.45)`}>PRE-INDUSTRIAL</text>
       <rect x={padX+130} y={legY-7} width={swSz} height={swSz} rx="1" fill={carbonExcessColor(310)} />
@@ -368,13 +368,13 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
       onMouseMove={onMouseMove} onMouseLeave={onLeave} style={{ cursor: 'crosshair' }}>
-      <text x={padX} y="24" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em"
+      <text x={padX} y="24" fontFamily="var(--mono)" fontSize="14" letterSpacing="0.14em"
         fill={`rgba(${fg},0.62)`}>EACH CELL = 1 PPM CO₂</text>
       {cells}
       {highlight}
       {tip}
       {legend}
-      <text x={W-padX} y={H-16} textAnchor="end" fontFamily="var(--mono)" fontSize="11"
+      <text x={W-padX} y={H-16} textAnchor="end" fontFamily="var(--mono)" fontSize="13"
         letterSpacing="0.1em" fill={`rgba(${fg},0.72)`}>{year} · {ppm} PPM</text>
     </svg>
   );
@@ -447,23 +447,23 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
   return (
     <div className="chart-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
-        <text x={pad.l} y={12} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
+        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
           {metricChartTitle} · {SSP_NAMES[activeKey]} pathway
         </text>
-        <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.45)`}
+        <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${chartMidY})`}>{unit}</text>
         {yticks.map((v, i) =>
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
-            <text x={pad.l - 8} y={ys(v) + 3.5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
+            <text x={pad.l - 8} y={ys(v) + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
           </g>
         )}
         {xticks.map(t =>
-          <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{t}</text>
+          <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{t}</text>
         )}
-        <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
+        <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
         <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.32)`} strokeWidth="1" strokeDasharray="3 3" />
-        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
+        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
         <path d={seg(X0, 2025)} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2" strokeLinecap="round" />
         <path d={seg(2025, X1)} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="1.5" opacity="0.3" />
         <path d={seg(2025, Math.min(2100, year))} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="3" strokeLinecap="round" />
@@ -553,22 +553,22 @@ function MultiLineChart({ metric, dark, dom, unit, fmt }) {
     <div className="chart-wrap" style={{ position: 'relative' }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: 'auto' }}
         onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
-        <text x={pad.l} y={12} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
+        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
           {metricChartTitle2} · all three pathways
         </text>
-        <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.45)`}
+        <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${multiMidY})`}>{unit}</text>
         {yticks.map((v, i) => (
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.09)`} strokeWidth="1" />
-            <text x={pad.l - 8} y={ys(v) + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
+            <text x={pad.l - 8} y={ys(v) + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
           </g>
         ))}
         {xticks.map(t => (
-          <text key={t} x={xs(t)} y={H - pad.b + 20} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.5)`}>{t}</text>
+          <text key={t} x={xs(t)} y={H - pad.b + 20} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{t}</text>
         ))}
         <line x1={xs(2025)} y1={pad.t - 4} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.3)`} strokeWidth="1.5" strokeDasharray="4 3" />
-        <text x={xs(2025)} y={pad.t - 8} textAnchor="middle" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.1em" fill={`rgba(${fg},0.45)`}>2025</text>
+        <text x={xs(2025)} y={pad.t - 8} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.45)`}>2025</text>
         {/* Historical — grey, single path */}
         <path d={histSeg} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2.5" strokeLinecap="round" />
         {/* Projections — one per SSP */}
@@ -588,17 +588,18 @@ function MultiLineChart({ metric, dark, dom, unit, fmt }) {
         {SSPS.map((k, i) => (
           <g key={k} transform={`translate(${W - 200}, ${pad.t + i * 22})`}>
             <rect x="0" y="-7" width="22" height="4" rx="2" fill={SSP_COLORS[k]} />
-            <text x="30" y="0" fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.7)`}>{SSP_LABELS[k]}</text>
+            <text x="30" y="0" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.7)`}>{SSP_LABELS[k]}</text>
           </g>
         ))}
       </svg>
       {/* Hover values tooltip */}
       {hoverYear != null && (
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(250,249,247,0.97)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 8, padding: '6px 10px', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 4 }}>{hoverYear}</div>
+        <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(250,249,247,0.98)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 10, padding: '10px 16px', pointerEvents: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 8 }}>{hoverYear}</div>
           {SSPS.map(k => (
-            <div key={k} style={{ fontFamily: 'var(--mono)', fontSize: 10, color: SSP_COLORS[k], marginBottom: 2 }}>
-              {SSP_LABELS[k]}: {fmt(valOf(k, hoverYear))} {unit}
+            <div key={k} style={{ display: 'flex', gap: 16, justifyContent: 'space-between', minWidth: 210, marginBottom: 4, alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'rgba(42,51,36,0.55)' }}>{SSP_LABELS[k]}</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 13, color: SSP_COLORS[k], fontWeight: 600 }}>{fmt(valOf(k, hoverYear))} {unit}</span>
             </div>
           ))}
         </div>
@@ -631,11 +632,11 @@ function Thermometer({ value, dark }) {
         const major = Number.isInteger(t);
         return <g key={t}>
           <line x1={cx + tubeW / 2 + 2} y1={yFor(t)} x2={cx + tubeW / 2 + (major ? 12 : 7)} y2={yFor(t)} stroke={`rgba(${fg},0.5)`} strokeWidth="1" />
-          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 3.5} fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.6)`}>{t}°</text>}
+          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 4} fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.6)`}>{t}°</text>}
         </g>;
       })}
       <line x1={cx - tubeW / 2 - 14} y1={mercY} x2={cx - tubeW / 2 - 2} y2={mercY} stroke={red} strokeWidth="2" />
-      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="12" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
+      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="15" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
     </svg>
   );
 }
@@ -704,7 +705,7 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
           const y = baselineY - cm * 1.1;
           return <g key={cm}>
             <line x1="350" y1={y} x2="370" y2={y} stroke={faint} strokeWidth="1" />
-            <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
+            <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="11" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
           </g>;
         })}
         <path d={`M 0 ${baselineY} L 60 ${baselineY} L 80 ${baselineY - 4} L 140 ${baselineY - 4} L 170 ${baselineY - 30} L 230 ${baselineY - 30} L 250 ${baselineY - 12} L 340 ${baselineY - 12} L 340 ${h} L 0 ${h} Z`} fill={`rgba(${fg},0.16)`} />
@@ -728,15 +729,15 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
         {/* visible 2025 baseline */}
         <line x1="0" y1={baselineY} x2="340" y2={baselineY} stroke="#E08D5C" strokeWidth="2" opacity="0.85" strokeDasharray="5 3" />
         <rect x="0" y={baselineY - 16} width="88" height="14" rx="3" fill="#E08D5C" opacity="0.85" />
-        <text x="6" y={baselineY - 5} fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
+        <text x="6" y={baselineY - 4} fontFamily="var(--mono)" fontSize="10" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
         {/* interactive water area */}
         <rect x="0" y={seaY} width="340" height={h - seaY} fill="url(#seaG2)"
           onMouseMove={onWaterMove} onMouseLeave={() => setShowWaterTip(false)} style={{ cursor: 'crosshair' }} />
         <path d={`M 0 ${seaY} Q 20 ${seaY - 3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke="#fff" strokeWidth="0.8" fill="none" opacity="0.45" style={{ pointerEvents: 'none' }} />
-        <text x="6" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
+        <text x="6" y="22" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
         <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill="#0E1A0B">+{Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="14" fill={soft}> cm</tspan></text>
         {/* thermometer sst indicator */}
-        <text x="6" y="76" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
+        <text x="6" y="76" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
       </svg>
       {showWaterTip && (
         <div className="sea-water-tip" style={{ left: `${(tipPos.x / w) * 100}%`, top: `${(tipPos.y / h) * 100}%` }}>
@@ -765,7 +766,7 @@ function IceCaps({ tempValue, year = 2025, dark }) {
   const extentMk = (4.7 * iceExtent).toFixed(1);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      <text x={CX} y="16" textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
+      <text x={CX} y="17" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
       <circle cx={CX} cy={CY} r={MAX_R} fill="#12304A" />
       {[1/3, 2/3, 1].map((f, i) => <circle key={i} cx={CX} cy={CY} r={MAX_R * f} fill="none" stroke="rgba(218,234,245,0.45)" strokeWidth="0.6" strokeDasharray="3 4" opacity="0.5" />)}
       <polygon points={poly(1)} fill="#DAEAF5" opacity="0.94" />
@@ -773,8 +774,8 @@ function IceCaps({ tempValue, year = 2025, dark }) {
       <circle cx={CX} cy={CY} r={MAX_R} fill="none" stroke="rgba(218,234,245,0.4)" strokeWidth="1.5" />
       <circle cx={CX} cy={CY} r="3" fill="rgba(218,234,245,0.6)" />
       <text x={CX} y="264" textAnchor="middle" fontFamily="var(--serif)" fontSize="46" fill="#0E1A0B">{extentMk}</text>
-      <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
-      <text x={CX} y="311" textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
+      <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
+      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
     </svg>
   );
 }
@@ -819,12 +820,12 @@ function GrassField({ tempValue = 1.2 }) {
         {blades.map((b, i) =>
           <path key={i} d={`M ${b.x.toFixed(1)} ${baseY} Q ${b.cpX.toFixed(1)} ${b.cpY.toFixed(1)} ${b.tipX.toFixed(1)} ${b.tipY.toFixed(1)}`} stroke={b.col} strokeWidth={b.wdt.toFixed(1)} fill="none" strokeLinecap="round" />
         )}
-        <text x="6" y="20" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.14em" fill={`rgba(${fg},0.55)`}>VEGETATION HEALTH</text>
-        <text x="6" y="36" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={stressColor}>HEAT STRESS: {stressLabel} · {Math.round((1 - dry) * 100)}% HEALTHY COVER</text>
+        <text x="6" y="20" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.14em" fill={`rgba(${fg},0.55)`}>VEGETATION HEALTH</text>
+        <text x="6" y="37" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={stressColor}>HEAT STRESS: {stressLabel} · {Math.round((1 - dry) * 100)}% HEALTHY COVER</text>
         {/* stress bar */}
-        <rect x="6" y="44" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
-        <rect x="6" y="44" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
-        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="8.5" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
+        <rect x="6" y="46" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
+        <rect x="6" y="46" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
+        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
       </svg>
       {hovering && (
         <div className="grass-tip">
