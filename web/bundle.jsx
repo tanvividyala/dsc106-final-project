@@ -902,7 +902,7 @@ function SmokeClouds({ co2Value = 420 }) {
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const all = [];
     for (let i = 0; i < 24; i++) {
-      const baseOp = 0.14 + rnd() * 0.12;
+      const baseOp = 0.65 + rnd() * 0.25;
       all.push({
         x: 80 + rnd() * (W - 160),
         y: 80 + rnd() * (H - 100),
@@ -924,17 +924,12 @@ function SmokeClouds({ co2Value = 420 }) {
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
       opacity: intensity, transition: 'opacity 1.8s ease' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <filter id="smokeBlur" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="30" />
-          </filter>
-        </defs>
+        <defs />
         {clouds.map((c, i) => (
           <ellipse key={i} cx={c.x} cy={c.y} rx={c.rx} ry={c.ry}
-            fill={c.dark ? 'rgba(30,30,30,1)' : 'rgba(90,90,90,1)'}
-            filter="url(#smokeBlur)">
+            fill={c.dark ? 'rgba(140,140,140,1)' : 'rgba(190,190,190,1)'}>
             <animate attributeName="opacity"
-              values={`${c.baseOp.toFixed(3)};${Math.min(0.75,c.baseOp*1.4).toFixed(3)};${(c.baseOp*0.7).toFixed(3)};${c.baseOp.toFixed(3)}`}
+              values={`${c.baseOp.toFixed(3)};${Math.min(0.95,c.baseOp*1.1).toFixed(3)};${(c.baseOp*0.85).toFixed(3)};${c.baseOp.toFixed(3)}`}
               dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
             <animateTransform attributeName="transform" type="translate"
               values={`0,0; ${c.dx},${c.dy}; 0,0`}
