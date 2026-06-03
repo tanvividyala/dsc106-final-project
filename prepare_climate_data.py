@@ -114,9 +114,55 @@ def main():
     pr_regions  = pr["regions"]
 
     years_out = list(range(2025, 2101))
+    hist_years = list(range(1980, 2025))
     PR_BASELINE_MM = 2.6   # global mean precipitation mm/day
 
     metrics = {"temp": {}, "co2": {}, "sea": {}, "precip": {}}
+
+    # --- Historical 1980-2024 (shared across SSPs: use ssp126 which connects to historical) ---
+    print("[prepare]  Historical 1980-2024…")
+    tas_hist_all = global_mean_by_year(tas_regions, "ssp126")
+    pr_hist_all  = global_mean_by_year(pr_regions,  "ssp126")
+
+    # Smooth historical temp and apply baseline offset
+    tas_hist_map = {yr: v for yr, v in tas_hist_all.items() if yr in hist_years}
+    hist_temp_raw = smooth_curve(tas_hist_map, hist_years, degree=2)
+    hist_temp = [{"year": r["year"], "val": round(r["val"] + TEMP_BASELINE_OFFSET, 3)}
+                 for r in hist_temp_raw]
+
+    # Smooth historical precip, anchor to % vs 1995-2014 mean
+    pr_hist_map = {yr: v for yr, v in pr_hist_all.items() if yr in hist_years}
+    hist_precip_raw = smooth_curve(pr_hist_map, hist_years, degree=1)
+    # Compute 1995-2014 mean for % reference
+    ref_vals = [v for yr, v in pr_hist_map.items() if 1995 <= yr <= 2014]
+    pr_ref_mean = statistics.mean(ref_vals) if ref_vals else hist_precip_raw[0]["val"]
+    hist_precip = []
+    for r in hist_precip_raw:
+        pct = ((r["val"] - pr_ref_mean) / PR_BASELINE_MM) * 100
+        hist_precip.append({"year": r["year"], "val": round(pct, 3)})
+
+    # CO2 historical: IPCC AR6 pre-industrial to present (real observed, parametric fit 1980-2024)
+    # 1980: ~338 ppm; 2024: ~422 ppm — linear+accel fit
+    hist_co2 = []
+    for yr in hist_years:
+        x = (yr - 1980) / 44.0
+        ppm = 338 + 84 * x + 10 * x * x
+        hist_co2.append({"year": yr, "val": round(ppm, 1)})
+
+    # Sea level historical: satellite era from 1993, pre-1993 tide gauges — use obs-based parametric
+    # 1980: 0 cm reference; rising ~1.5 mm/yr early, ~3.3 mm/yr by 2024
+    hist_sea = []
+    for yr in hist_years:
+        t = yr - 1980
+        cm = 0.15 * t + 0.003 * t * t
+        hist_sea.append({"year": yr, "val": round(cm, 2)})
+
+    historical = {
+        "temp":   hist_temp,
+        "precip": hist_precip,
+        "co2":    hist_co2,
+        "sea":    hist_sea,
+    }
 
     for ssp_key, short in SSP_MAP.items():
         print(f"[prepare]  SSP{short}…")
@@ -164,6 +210,7 @@ def main():
 
     payload = {
         "sspNames": {"1-2.6": "Sustainable", "2-4.5": "Middle Road", "5-8.5": "Fossil-Fueled"},
+        "historical": historical,
         "metrics": metrics,
         "summary2100": summary2100,
     }

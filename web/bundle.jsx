@@ -1,1546 +1,1088 @@
 // ============================================================
-// bundle.jsx,Degrees of Consequence
+// bundle.jsx — Degrees of Consequence
 // Real CMIP6 data from MPI-ESM1-2-LR via NOAA/Google Cloud.
-// Temp: global country-mean anomaly vs 1850-1900 baseline.
-// Precip: global linear trend, re-anchored to 2025.
-// CO₂ + sea level: IPCC AR6-consistent parametric curves.
+// Historical 1980-2024 from CMIP6 historical experiment.
+// Projections 2025-2100: SSP1-2.6, SSP2-4.5, SSP5-8.5.
+// CO2 + sea level: IPCC AR6-consistent parametric curves.
 // ============================================================
 
-// ── Continent polygons (lat/lon) for the halftone globe ──
-const CONTINENTS = [
-  [[72,-156],[72,-100],[60,-60],[45,-55],[35,-75],[25,-80],[15,-92],[18,-105],[28,-115],[40,-125],[60,-140],[72,-156]],
-  [[18,-92],[15,-88],[10,-83],[8,-78],[12,-72],[18,-92]],
-  [[12,-72],[8,-58],[5,-50],[-5,-35],[-23,-40],[-35,-56],[-55,-67],[-50,-75],[-20,-78],[-5,-78],[8,-78],[12,-72]],
-  [[35,-10],[35,12],[32,22],[30,33],[12,42],[10,51],[-12,40],[-26,33],[-35,18],[-22,12],[-5,8],[8,-10],[20,-17],[30,-12],[35,-10]],
-  [[70,-10],[70,30],[60,30],[55,12],[42,9],[36,-9],[50,-9],[70,-10]],
-  [[70,30],[75,100],[72,140],[60,165],[50,160],[40,140],[30,125],[20,110],[10,100],[8,78],[20,68],[35,55],[42,50],[55,42],[60,55],[68,55],[70,30]],
-  [[5,95],[2,105],[-5,118],[-8,135],[-3,140],[5,130],[5,95]],
-  [[-12,135],[-15,145],[-25,153],[-38,148],[-37,140],[-32,118],[-20,115],[-12,128],[-12,135]],
-  [[-66,-180],[-66,-90],[-70,0],[-66,90],[-66,180],[-90,180],[-90,-180],[-66,-180]],
-  [[83,-30],[78,-15],[60,-42],[70,-55],[83,-30]],
-];
-
-function pointInPoly(lat, lon, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [yi, xi] = poly[i]; const [yj, xj] = poly[j];
-    const intersect = ((yi > lat) !== (yj > lat)) &&
-      (lon < (xj - xi) * (lat - yi) / ((yj - yi) || 1e-9) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-
-function isLand(lat, lon) {
-  for (const poly of CONTINENTS) if (pointInPoly(lat, lon, poly)) return true;
-  return false;
-}
-
-// ── Halftone globe ──
-function HalftoneGlobe({ size = 480, rotation = 0, density = 38, color = '#2A3324' }) {
-  const r = size / 2 - 4;
-  const cx = size / 2, cy = size / 2;
-  const dots = [];
-  const N = density * density;
-  const tilt = 0.32;
-  const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
-
-  for (let i = 0; i < N; i++) {
-    const phi = Math.acos(1 - 2 * (i + 0.5) / N);
-    const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
-    const lat = 90 - (phi * 180 / Math.PI);
-    let lon = ((theta * 180 / Math.PI + rotation * 180 / Math.PI) % 360);
-    if (lon > 180) lon -= 360; if (lon < -180) lon += 360;
-    const latR = lat * Math.PI / 180, lonR = lon * Math.PI / 180;
-    let x = Math.cos(latR) * Math.sin(lonR);
-    let y = -Math.sin(latR);
-    let z = Math.cos(latR) * Math.cos(lonR);
-    const ty = y * cosT - z * sinT; const tz = y * sinT + z * cosT;
-    y = ty; z = tz;
-    if (z < -0.05) continue;
-    const land = isLand(lat, lon);
-    const px = cx + x * r, py = cy + y * r;
-    const baseSz = land ? 2.4 : 1.1;
-    const sz = baseSz * (0.55 + (z + 1) * 0.32);
-    const op = land ? 0.55 + Math.max(0, z) * 0.45 : 0.18 + Math.max(0, z) * 0.18;
-    dots.push({ px, py, sz, op });
-  }
-
-  return (
-    <svg viewBox={`0 0 ${size} ${size}`}>
-      <defs><clipPath id="globe-clip"><circle cx={cx} cy={cy} r={r}/></clipPath></defs>
-      <g clipPath="url(#globe-clip)">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeOpacity="0.12" strokeWidth="1"/>
-        {dots.map((d, i) => <circle key={i} cx={d.px} cy={d.py} r={d.sz} fill={color} opacity={d.op}/>)}
-      </g>
-    </svg>
-  );
-}
-
-// ── Knob ──
-function Knob({ value, onChange, color = '#4E7558', label, img }) {
-  const ref = React.useRef(null);
-  const dragRef = React.useRef(null);
-
-  const handleDown = (e) => {
-    e.preventDefault();
-    const startY = e.touches ? e.touches[0].clientY : e.clientY;
-    dragRef.current = { startY, startVal: value };
-    const onMove = (ev) => {
-      const y = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      const delta = (dragRef.current.startY - y) * 0.8;
-      onChange(Math.max(0, Math.min(100, Math.round(dragRef.current.startVal + delta))));
-    };
-    const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
-    };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onUp);
-  };
-
-  const minA = -135, maxA = 135;
-  const angle = minA + (value / 100) * (maxA - minA);
-  const cx = 60, cy = 60, r = 46;
-  const a0 = (minA - 90) * Math.PI / 180;
-  const a1 = (angle - 90) * Math.PI / 180;
-  const a2 = (maxA - 90) * Math.PI / 180;
-  const arc = (start, end) => {
-    const sx = cx + r * Math.cos(start), sy = cy + r * Math.sin(start);
-    const ex = cx + r * Math.cos(end), ey = cy + r * Math.sin(end);
-    const large = (end - start) > Math.PI ? 1 : 0;
-    return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
-  };
-
-  const ticks = [];
-  for (let i = 0; i <= 10; i++) {
-    const t = minA + (i / 10) * (maxA - minA);
-    const rad = (t - 90) * Math.PI / 180;
-    ticks.push(
-      <line key={i}
-        x1={cx + 50 * Math.cos(rad)} y1={cy + 50 * Math.sin(rad)}
-        x2={cx + 56 * Math.cos(rad)} y2={cy + 56 * Math.sin(rad)}
-        stroke="currentColor" strokeWidth="1" opacity={i % 5 === 0 ? 0.7 : 0.3}
-      />
-    );
-  }
-
-  return (
-    <div className="knob">
-      {img && <img src={img} alt="" className="knob-img"/>}
-      <div className="knob-dial" ref={ref} onMouseDown={handleDown} onTouchStart={handleDown} aria-label={label}>
-        <svg viewBox="0 0 120 120">
-          <path d={arc(a0, a2)} stroke="rgba(42,51,36,0.18)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-          <path d={arc(a0, a1)} stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-          <g style={{ color: '#2A3324' }}>{ticks}</g>
-          <circle cx={cx} cy={cy} r={32} fill="#ECE6CE" stroke="#2A3324" strokeWidth="1.25"/>
-          <g transform={`rotate(${angle} ${cx} ${cy})`}>
-            <line x1={cx} y1={cy - 8} x2={cx} y2={cy - 26} stroke="#2A3324" strokeWidth="2" strokeLinecap="round"/>
-            <circle cx={cx} cy={cy - 28} r="3" fill={color}/>
-          </g>
-        </svg>
-      </div>
-      <div className="knob-label">{label}</div>
-      <div className="knob-value">{value.toString().padStart(2, '0')} / 100</div>
-    </div>
-  );
-}
-
-// ── Persona icons ──
-function PersonaIcon({ kind }) {
-  const p = { width: 36, height: 36, viewBox: '0 0 36 36', fill: 'none', stroke: 'currentColor', strokeWidth: 1.4, strokeLinecap: 'round', strokeLinejoin: 'round' };
-  switch (kind) {
-    case 'tycoon': return <svg {...p}><rect x="6" y="14" width="24" height="16" rx="1.5"/><path d="M 10 14 L 10 8 L 22 8 L 22 14"/><path d="M 14 20 L 14 24 M 18 20 L 18 24 M 22 20 L 22 24"/></svg>;
-    case 'politician': return <svg {...p}><circle cx="18" cy="12" r="4.5"/><path d="M 8 30 Q 8 20 18 20 Q 28 20 28 30"/><path d="M 13 15 L 23 15"/></svg>;
-    case 'scientist': return <svg {...p}><path d="M 14 6 L 14 14 L 8 28 Q 8 30 10 30 L 26 30 Q 28 30 28 28 L 22 14 L 22 6"/><path d="M 12 6 L 24 6"/><circle cx="15" cy="22" r="1"/><circle cx="20" cy="25" r="1"/></svg>;
-    case 'custom': return <svg {...p}><circle cx="18" cy="18" r="10"/><path d="M 18 12 L 18 18 L 22 22"/><path d="M 8 8 L 11 11 M 28 8 L 25 11 M 8 28 L 11 25 M 28 28 L 25 25"/></svg>;
-    default: return null;
-  }
-}
-
-function ArrowIcon() {
-  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="2" y1="8" x2="14" y2="8"/><polyline points="10 4 14 8 10 12"/></svg>;
-}
-
-function DotsDecoration() {
-  const dots = [];
-  for (let i = 0; i < 18; i++) {
-    for (let j = 0; j < 18; j++) {
-      const dx = i - 8.5, dy = j - 8.5;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if (d < 9) dots.push(<circle key={`${i}-${j}`} cx={i*16+8} cy={j*16+8} r={Math.max(0.5, 3.5 - d*0.25)} fill="currentColor"/>);
-    }
-  }
-  return <svg viewBox="0 0 300 300" className="dots-bg"><g>{dots}</g></svg>;
-}
-
 // ============================================================
-// Data layer,loaded from climate-data.json
+// ── SECTION 1: DATA
 // ============================================================
 
-// Fallback synthetic curves used during data loading
-function syntheticCurve(metric, ssp) {
-  const params = {
-    temp:   { '1-2.6': x => 1.1 + 0.2*x + 0.1*x*x, '2-4.5': x => 1.1 + 1.62*x, '5-8.5': x => 1.1 + 1.8*x + 2.1*x*x },
-    co2:    { '1-2.6': x => 420 + 40*x - 50*x*x,     '2-4.5': x => 420 + 170*x - 25*x*x, '5-8.5': x => 420 + 240*x + 210*x*x },
-    sea:    { '1-2.6': x => 5 + 30*x,                 '2-4.5': x => 5 + 50*x + 20*x*x,    '5-8.5': x => 5 + 65*x + 65*x*x },
-    precip: { '1-2.6': x => 2.38*x,                   '2-4.5': x => 1.58*x,                '5-8.5': x => 2.88*x },
-  };
-  const result = [];
-  for (let yr = 2025; yr <= 2100; yr++) {
-    const x = (yr - 2025) / 75;
-    result.push({ year: yr, val: params[metric][ssp](x) });
-  }
-  return result;
-}
+const SSP_NAMES = { '1-2.6': 'Sustainable', '2-4.5': 'Middle Road', '5-8.5': 'Fossil-Fueled' };
 
-// CLIMATE is populated once data loads; components re-render via React state
-let CLIMATE = null;
-let WORLD_TOPO = null;
-let REGIONAL_TEMP = null;
-let PR_ANOMALIES = null;
-let WORLD_PATHS_CACHE = null;
-const TOPO_CBS = [];
-function onTopoReady(cb) {
-  if (WORLD_TOPO) cb(); else TOPO_CBS.push(cb);
-}
-function fireTopoReady() {
-  TOPO_CBS.forEach(cb => cb());
-  TOPO_CBS.length = 0;
-}
-function buildWorldPaths() {
-  if (WORLD_PATHS_CACHE || !WORLD_TOPO) return WORLD_PATHS_CACHE;
-  const d3 = window.d3, topo = window.topojson;
-  const proj = d3.geoNaturalEarth1().scale(153).translate([480, 250]);
-  const pathFn = d3.geoPath().projection(proj);
-  const countries = topo.feature(WORLD_TOPO, WORLD_TOPO.objects.countries);
-  const borders = topo.mesh(WORLD_TOPO, WORLD_TOPO.objects.countries, (a, b) => a !== b);
-  WORLD_PATHS_CACHE = {
-    countries: countries.features.map(f => ({ id: +f.id, d: pathFn(f) || '' })),
-    borders: pathFn(borders) || '',
-    sphere: pathFn({ type: 'Sphere' }) || '',
-  };
-  return WORLD_PATHS_CACHE;
-}
-
-function generateCurve(metric, ssp) {
-  if (CLIMATE && CLIMATE.metrics[metric] && CLIMATE.metrics[metric][ssp]) {
-    return CLIMATE.metrics[metric][ssp];
-  }
-  return syntheticCurve(metric, ssp);
-}
-
-// ============================================================
-// Data-driven constants (updated to match real CMIP6 output)
-// MPI-ESM1-2-LR single-model ensemble member r1i1p1f1
-// ============================================================
-
-// Real values from prepare_climate_data.py summary2100:
-//   SSP1-2.6: temp +1.27°C, co2 410 ppm, sea 35 cm, precip +2.38%
-//   SSP2-4.5: temp +2.73°C, co2 565 ppm, sea 75 cm, precip +1.58%
-//   SSP5-8.5: temp +4.99°C, co2 870 ppm, sea 135 cm, precip +2.88%
-// NOTE: SSP1-2.6 temp is lower than multi-model mean (+1.8°C) because this model
-// has modest ECS. SSP5-8.5 is higher (+5.0°C) reflecting its high-end response.
-// Precip values are smaller than multi-model means (single-model natural variability).
-
-function getSSPData(sspShort) {
-  if (CLIMATE && CLIMATE.summary2100 && CLIMATE.summary2100[sspShort]) {
-    return CLIMATE.summary2100[sspShort];
-  }
-  const fallback = {
-    '1-2.6': { temp: { val: 1.27 }, co2: { val: 410 }, sea: { val: 35 }, precip: { val: 2.38 } },
-    '2-4.5': { temp: { val: 2.73 }, co2: { val: 565 }, sea: { val: 75 }, precip: { val: 1.58 } },
-    '5-8.5': { temp: { val: 4.99 }, co2: { val: 870 }, sea: { val: 135 }, precip: { val: 2.88 } },
-  };
-  return fallback[sspShort];
-}
-
-// ── Knob / persona definitions ──
 const KNOB_DEFS = [
-  { id: 'fossil',  label: 'Fossil-fuel\ninvestment',   shortLabel: 'Fossil fuel',    description: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.', color: '#B4633A', invert: true, img: '../images/coal_mine_cart.png' },
-  { id: 'renew',   label: 'Renewable\nbuildout',        shortLabel: 'Renewables',     description: 'How fast new wind, solar, and clean energy gets built and funded.',                        color: '#4E7558',               img: '../images/solar_panel.png' },
-  { id: 'carbon',  label: 'Carbon\npricing',            shortLabel: 'Carbon pricing', description: 'Whether burning carbon costs money, and how much.',                                       color: '#4E7558',               img: '../images/capitol_building.png' },
-  { id: 'forest',  label: 'Forest &\nland protection',  shortLabel: 'Forests & land', description: 'How much land gets protected from deforestation and degradation.',                          color: '#82A78A',               img: '../images/rainforest.png' },
-  { id: 'coop',    label: 'International\ncooperation', shortLabel: 'Cooperation',    description: 'Whether countries work together or compete when it comes to climate action.',               color: '#82A78A',               img: '../images/handshake.png' },
-  { id: 'consume', label: 'Consumption\nreduction',     shortLabel: 'Consumption',    description: 'How much the framework tries to reduce overall demand for energy and goods.',              color: '#82A78A',               img: '../images/recycling.png' },
+  { id: 'fossil',  short: 'Fossil fuel',    color: '#B4633A', img: '../images/coal_mine_cart.png',   desc: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.' },
+  { id: 'renew',   short: 'Renewables',     color: '#4E7558', img: '../images/solar_panel.png',      desc: 'How fast new wind, solar, and clean energy gets built and funded.' },
+  { id: 'carbon',  short: 'Carbon pricing', color: '#4E7558', img: '../images/capitol_building.png', desc: 'Whether burning carbon costs money, and how much.' },
+  { id: 'forest',  short: 'Forests & land', color: '#82A78A', img: '../images/rainforest.png',       desc: 'How much land gets protected from deforestation and degradation.' },
+  { id: 'coop',    short: 'Cooperation',    color: '#82A78A', img: '../images/handshake.png',        desc: 'Whether countries work together or compete on climate action.' },
+  { id: 'consume', short: 'Consumption',    color: '#82A78A', img: '../images/recycling.png',        desc: 'How much the framework tries to reduce overall demand for energy and goods.' },
 ];
 
 const PERSONAS = [
-  { id: 'tycoon',     keywords: 'ENERGY · EXTRACTION · GROWTH',      name: 'The Oil Tycoon',        label: 'Drill, baby, drill',    tag: 'Oil built the modern world, and he plans to keep it that way. Future costs are someone else\'s problem.',       img: '../images/oil_baron_floating.png',  values: { fossil: 92, renew: 12, carbon: 6,  forest: 18, coop: 18, consume: 8  } },
-  { id: 'politician', keywords: 'POLITICS · COMPROMISE · OPTICS',    name: 'The Politician',        label: 'Split the difference',  tag: 'He talks green and votes convenient. Every choice is filtered through the next election.',      img: '../images/parliament_debate.png',   values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
-  { id: 'scientist',  keywords: 'PATHWAY · PROJECTION · EVIDENCE',   name: 'The Climate Scientist', label: 'Follow the data',       tag: 'The IPCC curves are her north star. Decarbonize by 2050 or the math does not work.',            img: '../images/stressed_researcher.png', values: { fossil: 8,  renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
+  { id: 'tycoon', keywords: 'ENERGY · EXTRACTION · GROWTH', name: 'The Oil Tycoon', label: 'Drill, baby, drill',
+    tag: 'Oil built the modern world, and he plans to keep it that way. Future costs are someone else\'s problem.',
+    img: '../images/oil_baron_floating.png',
+    values: { fossil: 92, renew: 12, carbon: 6, forest: 18, coop: 18, consume: 8 } },
+  { id: 'politician', keywords: 'POLITICS · COMPROMISE · OPTICS', name: 'The Politician', label: 'Split the difference',
+    tag: 'He talks green and votes convenient. Every choice is filtered through the next election.',
+    img: '../images/parliament_debate.png',
+    values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
+  { id: 'scientist', keywords: 'PATHWAY · PROJECTION · EVIDENCE', name: 'The Climate Scientist', label: 'Follow the data',
+    tag: 'The IPCC curves are her north star. Decarbonize by 2050 or the math does not work.',
+    img: '../images/stressed_researcher.png',
+    values: { fossil: 8, renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
 ];
 
 const PERSONA_THOUGHTS = {
   tycoon: {
-    fossil:  'In this framework, oil and gas are not optional; they are civilization\'s scaffolding. Expansion continues, and any phase-out is treated as a problem for a later decade.',
-    renew:   'Renewables are a supplement, not a replacement. They get funded where politically unavoidable, then quietly deprioritized.',
-    carbon:  'There is no carbon tax in this framework. That conversation ends before it begins.',
-    forest:  'Protected areas get lip service. Where they conflict with extraction rights, extraction wins.',
-    coop:    'International agreements are PR exercises. Real decisions happen at home, for domestic benefit.',
+    fossil: 'Oil and gas are not optional here; they are civilization\'s scaffolding. Any phase-out is a problem for a later decade.',
+    renew: 'Renewables are a supplement, not a replacement — funded where unavoidable, then quietly deprioritized.',
+    carbon: 'There is no carbon tax in this framework. That conversation ends before it begins.',
+    forest: 'Protected areas get lip service. Where they conflict with extraction rights, extraction wins.',
+    coop: 'International agreements are PR exercises. Real decisions happen at home, for domestic benefit.',
     consume: 'Asking people to consume less is political suicide. Demand is allowed to grow unchecked.',
   },
   politician: {
-    fossil:  'Fossil fuels cannot be killed overnight, not without losing the next election. This framework manages the decline slowly enough that no one constituency feels the pain all at once.',
-    renew:   'Renewables get funded, because the optics are good and the costs have come down. But the pace is calibrated to the news cycle, not the atmosphere.',
-    carbon:  'A carbon price gets discussed, watered down, and passed in a form that satisfies no one. Progress on paper.',
-    forest:  'Conservation gets announced in election years. Enforcement is inconsistent.',
-    coop:    'International climate summits get attended, agreements get signed, and targets get set for 2050. Someone else\'s problem.',
+    fossil: 'Fossil fuels can\'t be killed overnight without losing the next election. The decline is managed slowly.',
+    renew: 'Renewables get funded — the optics are good and costs have come down. But the pace tracks the news cycle, not the atmosphere.',
+    carbon: 'A carbon price gets discussed, watered down, and passed in a form that satisfies no one. Progress on paper.',
+    forest: 'Conservation gets announced in election years. Enforcement is inconsistent.',
+    coop: 'Summits get attended, agreements get signed, targets get set for 2050. Someone else\'s problem.',
     consume: 'Consumption reduction does not poll well. It gets quietly dropped from every platform.',
   },
   scientist: {
-    fossil:  'New extraction halts this decade. Existing wells phase out on a schedule the IEA has already drawn. There is no pathway to 1.5 degrees C that includes new oil.',
-    renew:   'The grid can run on renewables by 2035. Not as an aspiration, but as an engineering reality. This framework funds it accordingly.',
-    carbon:  'A price on carbon is the most powerful lever in the toolkit. Every tonne costs something. Revenue gets rebated to households.',
-    forest:  'Tropical forests sequester 2.6 billion tonnes of CO2 per year. This framework treats every hectare as load-bearing infrastructure.',
-    coop:    'The Paris Agreement is the floor, not the ceiling. Technology transfer, shared grids, and common carbon markets are the actual mechanisms.',
-    consume: 'Absolute material consumption must decline in wealthy countries. Efficiency is necessary but not sufficient. Demand must also fall.',
+    fossil: 'New extraction halts this decade; existing wells phase out on a set schedule. No 1.5°C pathway includes new oil.',
+    renew: 'The grid can run on renewables by 2035 — an engineering reality, not an aspiration. This framework funds it.',
+    carbon: 'A price on carbon is the most powerful lever in the toolkit. Every tonne costs something; revenue is rebated.',
+    forest: 'Tropical forests sequester 2.6 Gt of CO₂ a year. Every hectare is treated as load-bearing infrastructure.',
+    coop: 'The Paris Agreement is the floor, not the ceiling. Shared grids and common carbon markets are the mechanisms.',
+    consume: 'Absolute consumption must decline in wealthy countries. Efficiency is necessary but not sufficient.',
+  },
+};
+
+const METRICS = [
+  { id: 'co2',    label: 'CO₂',          unit: 'ppm', dark: false, chapter: 'Chapter Three · A', title: 'The atmosphere',
+    blurb: 'Every tonne we emit lingers for centuries. The sky keeps a perfect ledger.',
+    fmt: v => Math.round(v), dom: [300, 900] },
+  { id: 'temp',   label: 'Temperature',  unit: '°C',  dark: true,  chapter: 'Chapter Three · B', title: 'The heat',
+    blurb: 'A few degrees of average is the difference between a warm world and an unlivable one.',
+    fmt: v => (v >= 0 ? '+' : '') + v.toFixed(1), dom: [-0.2, 5.5] },
+  { id: 'sea',    label: 'Sea level',    unit: 'cm',  dark: false, chapter: 'Chapter Three · C', title: 'The rising sea',
+    blurb: 'Warm water expands and ice melts. Coastlines are quietly redrawn.',
+    fmt: v => (v >= 0 ? '+' : '') + Math.round(v), dom: [0, 150] },
+  { id: 'precip', label: 'Precipitation', unit: '%',  dark: false, chapter: 'Chapter Three · D', title: 'The water',
+    blurb: 'The global average barely moves. The map underneath it does not.',
+    fmt: v => (v >= 0 ? '+' : '') + v.toFixed(1), dom: [-2.5, 3.5] },
+];
+
+const BEATS = {
+  co2: {
+    '1-2.6': [
+      { year: 2030, title: 'The curve bends', body: 'Three climate bills and a decade of market pressure. The CO₂ curve crests — not enough to erase what\'s up there, but enough to change where this goes.', note: 'Concentration peaks near 428 ppm.' },
+      { year: 2055, title: 'Zeroed out', body: 'Net-zero. The grid runs on wind and solar. Atmospheric concentration plateaus and starts, slowly, to fall.', note: 'First sustained decline since 1850.' },
+      { year: 2100, title: 'The air starts to clear', body: 'For the first time since the Industrial Revolution, humanity pulls more carbon out of the air than it puts in. A slow exhale, 150 years in the making.', note: '≈ 410 ppm · and falling.' },
+    ],
+    '2-4.5': [
+      { year: 2030, title: 'Slowing, not stopping', body: 'Emissions flatten as renewables scale, but fossil infrastructure is too entrenched to retreat quickly. The concentration keeps climbing.', note: 'Past 430 ppm.' },
+      { year: 2055, title: 'Half-measures compound', body: 'Emissions finally start to fall — after CO₂ passes a level the atmosphere hasn\'t seen in three million years. The descent will be slow.', note: 'Past 500 ppm.' },
+      { year: 2100, title: 'A different world', body: 'The concentration holds near 565 ppm, roughly double the pre-industrial baseline. Stable. Just not the world that was possible.', note: '≈ 565 ppm · holding.' },
+    ],
+    '5-8.5': [
+      { year: 2030, title: 'All throttle', body: 'New coal and gas plants outpace retirements worldwide. The concentration climbs faster than at any point in human history.', note: 'Past 437 ppm, accelerating.' },
+      { year: 2055, title: 'Uncharted air', body: 'Earth hasn\'t seen an atmosphere like this in 50 million years. The forests and oceans are straining to keep up.', note: 'Past 600 ppm.' },
+      { year: 2100, title: 'The sinks give out', body: 'The Amazon and Arctic tundra have stopped absorbing carbon and started releasing it. The feedback loops are no longer a projection — they\'re the weather.', note: '≈ 870 ppm · rising.' },
+    ],
+  },
+  temp: {
+    '1-2.6': [
+      { year: 2030, title: 'The rate bends', body: 'Hot summers still set records. But for the first time in decades, the rate of warming starts to ease — not enough to feel, but enough to show in the data.', note: 'Anomaly near +1.4°C.' },
+      { year: 2055, title: 'A plateau', body: 'The anomaly holds near +1.5°C. Heatwaves intensify regionally, but the runaway scenarios are off the table.', note: 'Peak warming, then decline.' },
+      { year: 2100, title: 'Held', body: 'Coral systems are stressed but largely intact. The Arctic thins but doesn\'t vanish in summer. A warmer world — one people can navigate.', note: '≈ +1.3°C · stabilized.' },
+    ],
+    '2-4.5': [
+      { year: 2030, title: 'Records keep falling', body: 'Each decade sets new heat records. Adaptation becomes a permanent budget line: seawalls, cooling centers, crop adjustments.', note: 'Anomaly near +1.3°C.' },
+      { year: 2055, title: 'Chronic heat', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time. Outdoor labor gets legally restricted.', note: 'Past +1.8°C.' },
+      { year: 2100, title: 'Locked in', body: 'Air conditioning is infrastructure, not comfort. Insurance markets have abandoned whole coastlines. The warming will persist for centuries.', note: '≈ +2.7°C · climbing.' },
+    ],
+    '5-8.5': [
+      { year: 2030, title: 'Vertical', body: 'No abatement. Each summer eclipses the last. Wildfires double across the boreal north. The thermometer does not plateau.', note: 'Anomaly near +1.3°C, steepening.' },
+      { year: 2055, title: 'The survivability line', body: 'Multiple regions exceed 35°C wet-bulb for weeks. At that threshold, the human body cannot cool itself outdoors, even in shade.', note: 'Past +2.3°C.' },
+      { year: 2100, title: 'Near +5°C', body: 'Permafrost thaw is now releasing its own carbon. The feedback loops have engaged. The question is no longer whether this accelerates — it\'s how fast.', note: '≈ +5.0°C · accelerating.' },
+    ],
+  },
+  sea: {
+    '1-2.6': [
+      { year: 2040, title: 'A steady climb', body: 'Sea level rises about 4 mm a year — slow enough that cities can plan. Seawalls get funded; managed retreat begins in the most exposed neighborhoods.', note: '≈ 11 cm above 2025.' },
+      { year: 2070, title: 'Adaptation holds', body: 'Most large coastal cities are protected. Some low-lying communities have relocated inland. The ice caps thin, feeding what comes next.', note: '≈ 23 cm.' },
+      { year: 2100, title: 'Thirty-five centimeters', body: 'Difficult, but adaptable. The cities that prepared in the 2030s are the ones still standing.', note: '≈ +35 cm.' },
+    ],
+    '2-4.5': [
+      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet becomes a meaningful contributor. Insurance markets in low-lying regions begin to buckle — first the private market, then the public backstop.', note: '≈ 16 cm.' },
+      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. The question is no longer whether to retreat, but who pays for it.', note: '≈ 42 cm.' },
+      { year: 2100, title: 'Seventy-five centimeters', body: 'Climate-driven migration is reshaping borders. The word "coastal" is being redefined.', note: '≈ +75 cm.' },
+    ],
+    '5-8.5': [
+      { year: 2040, title: 'The Antarctic wakes', body: 'The West Antarctic ice sheet enters runaway melt. The rate of rise doubles. What was a planning problem becomes an emergency.', note: '≈ 21 cm.' },
+      { year: 2070, title: 'Coastlines erased', body: 'Multiple island nations have ceased to exist as legal territories. Cumulative rise approaches 90 cm.', note: '≈ 67 cm.' },
+      { year: 2100, title: 'Past a meter', body: '135 centimeters of rise. Sea level is now one of the primary forces reshaping where people can live. It will not stop in 2100.', note: '≈ +135 cm · rising.' },
+    ],
+  },
+  precip: {
+    '1-2.6': [
+      { year: 2040, title: 'A slow redistribution', body: 'Wet regions get a little wetter, dry ones a little drier. The global mean rises slightly. The bigger story is regional.', note: 'Global mean +0.5%.' },
+      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move north by 200–400 km. The transitions are mostly orderly. Some regions gain arable land; others lose it.', note: 'Global mean +1.4%.' },
+      { year: 2100, title: 'Manageable variance', body: 'The hydrology is changed but not broken. Flood and drought frequencies stay within the range infrastructure was built to handle.', note: '≈ +2.4%.' },
+    ],
+    '2-4.5': [
+      { year: 2040, title: 'The mean misleads', body: 'Average precipitation change looks modest. What it hides: intensifying monsoons in some places, the Colorado and Ganges running low in others.', note: 'Global mean +0.3%.' },
+      { year: 2070, title: 'Regional divergence', body: 'Wet regions amplify, dry regions dry further. The map is the story. The global number tells you almost nothing.', note: 'Global mean +1.0%.' },
+      { year: 2100, title: 'Whiplash', body: 'Drying in the subtropics, flooding in the tropics. The average stays near zero. The extremes are anything but.', note: '≈ +1.6%.' },
+    ],
+    '5-8.5': [
+      { year: 2040, title: 'Oscillating', body: 'Extreme floods and extreme droughts begin alternating in the same river basins. The Amazon shows early tipping signals.', note: 'Global mean +0.6%.' },
+      { year: 2070, title: 'More moisture, more violence', body: 'A warmer atmosphere holds more water vapor. When it rains, it deluges. When it doesn\'t, the soil bakes.', note: 'Global mean +1.7%.' },
+      { year: 2100, title: 'The cycle, stressed', body: '+2.9% globally. Behind it: agricultural collapse in parts of West Africa, catastrophic flooding across South Asia. The average is not the story.', note: '≈ +2.9%.' },
+    ],
   },
 };
 
 function computeScore(v) {
   return Math.round(((100 - v.fossil) + v.renew + v.carbon + v.forest + v.coop + v.consume) / 6);
 }
-
 function classify(score) {
-  const d = getSSPData;
-  if (score >= 65) return { code: 'SSP1-2.6', name: 'Sustainable',    delta: +(d('1-2.6').temp.val).toFixed(1), swatch: '#82A78A' };
-  if (score >= 35) return { code: 'SSP2-4.5', name: 'Middle Road',    delta: +(d('2-4.5').temp.val).toFixed(1), swatch: '#C49B5E' };
-  return                   { code: 'SSP5-8.5', name: 'Fossil-Fueled', delta: +(d('5-8.5').temp.val).toFixed(1), swatch: '#B4633A' };
+  if (score >= 65) return { code: 'SSP1-2.6', key: '1-2.6', name: 'Sustainable',   delta: 1.3, swatch: 'var(--tw-low)' };
+  if (score >= 35) return { code: 'SSP2-4.5', key: '2-4.5', name: 'Middle Road',   delta: 2.7, swatch: 'var(--tw-mid)' };
+  return               { code: 'SSP5-8.5', key: '5-8.5', name: 'Fossil-Fueled', delta: 5.0, swatch: 'var(--tw-high)' };
 }
 
-// ── CMIP scenario cards,values from real data ──
-// Ranges from IPCC AR6 multi-model uncertainty bands
+// Raw climate-data.json is populated after fetch
+let _CLIMATE = null;
+const _FULL_CACHE = {};
 
-const METRICS = [
-  { id: 'temp',   label: 'Temperature',   unit: '°C',  short: 'Surface anomaly' },
-  { id: 'co2',    label: 'CO₂',           unit: 'ppm', short: 'Atmospheric concentration' },
-  { id: 'sea',    label: 'Sea level',     unit: 'cm',  short: 'Cumulative rise' },
-  { id: 'precip', label: 'Precipitation', unit: '%',   short: 'Anomaly vs. 2025' },
-];
+function generateFullCurve(metric, ssp) {
+  const key = metric + ssp;
+  if (_FULL_CACHE[key]) return _FULL_CACHE[key];
+  if (!_CLIMATE) return [];
 
-const METRIC_THEMES = {
-  co2:    { bg: '#ECE6CE', fg: '#2A3324', accent: '#2A3324', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'CO₂',                   unit: 'ppm', chapter: 'Three · A', title: 'The Atmosphere',  icon: 'co2',    img: '../images/urban_air_pollution.png' },
-  temp:   { bg: '#2A3324', fg: '#ECE6CE', accent: '#E08D5C', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Temperature',           unit: '°C',  chapter: 'Three · B', title: 'The Heat',        icon: 'temp',   img: '../images/smoggy_sun.png' },
-  sea:    { bg: '#2E4A35', fg: '#ECE6CE', accent: '#82A78A', soft: 'rgba(236,230,206,0.6)',  faint: 'rgba(236,230,206,0.15)', label: 'Sea level rise',        unit: 'cm',  chapter: 'Three · C', title: 'The Rising Sea',  icon: 'sea',    img: '../images/coastal_flooding.png' },
-  precip: { bg: '#D4D2BB', fg: '#2A3324', accent: '#4E7558', soft: 'rgba(42,51,36,0.6)',      faint: 'rgba(42,51,36,0.15)',    label: 'Precipitation anomaly', unit: '%',   chapter: 'Three · D', title: 'The Water',       icon: 'precip', img: '../images/typhoon.png' },
-};
-
-const METRIC_BEATS = {
-  temp: {
-    '1-2.6': [
-      { year: 2030, title: 'The rate bends', body: 'Hot summers still set records. But for the first time in decades, the rate of warming starts to ease. Not enough to feel yet, butenough to show in the data.' },
-      { year: 2050, title: 'A plateau', body: 'The anomaly holds near +1.3°C. Heatwaves intensify regionally. But the worst of what the models projected, the runaway scenarios, are off the table.' },
-      { year: 2080, title: 'Held', body: 'Under 1.5°C. Coral systems are stressed but largely intact. The Arctic thins but doesn\'t disappear in summer. It\'s a warmer world. But it\'s one people can navigate.' },
-    ],
-    '2-4.5': [
-      { year: 2030, title: 'The records keep falling', body: 'Each decade sets new heat records. Climate adaptation becomes a permanent budget line: seawalls, cooling centers, crop adjustments.' },
-      { year: 2050, title: 'Chronic heat', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time. Outdoor labor becomes legally restricted in dozens of countries.' },
-      { year: 2080, title: 'Locked in', body: 'The anomaly approaches +2.7°C. Air conditioning is infrastructure, not comfort. Insurance markets have abandoned the Gulf Coast. The warming will persist for centuries.' },
-    ],
-    '5-8.5': [
-      { year: 2030, title: 'Vertical', body: 'No abatement. Each summer eclipses the last. Wildfires double across the boreal north. The thermometer does not plateau.' },
-      { year: 2050, title: 'The survivability line', body: 'Multiple regions exceed 35°C wet-bulb for weeks at a stretch. At that threshold, the human body cannot cool itself outdoors, even in the shade.' },
-      { year: 2080, title: 'Near +5°C', body: 'Permafrost thaw is now releasing its own carbon. The feedback loops have engaged. The question is no longer whether this accelerates. It\'s how fast.' },
-    ],
-  },
-  co2: {
-    '1-2.6': [
-      { year: 2030, title: 'The curve bends', body: 'It took three consecutive climate bills and a decade of market pressure to get here. The CO₂ curve crests. Not enough to erase what\'s already in the air, butenough to change where this goes.' },
-      { year: 2050, title: 'Zeroed out', body: 'Net-zero. The machines running the grid are wind and solar. Atmospheric concentration plateaus near 430 ppm and starts, slowly, to fall.' },
-      { year: 2080, title: 'The air starts to clear', body: 'For the first time since the Industrial Revolution, humanity pulls more carbon out of the air than it puts in. A slow exhale, 150 years in the making. The heat is still here, butit stops compounding.' },
-    ],
-    '2-4.5': [
-      { year: 2030, title: 'Slowing, not stopping', body: 'Emissions flatten as renewables scale, but the fossil infrastructure is too entrenched to retreat quickly. The concentration keeps climbing, just not as fast.' },
-      { year: 2050, title: 'Half-measures compound', body: 'Emissions finally start to fall. CO₂ has already passed 520 ppm, a level the atmosphere hasn\'t seen in three million years. The descent will be slow.' },
-      { year: 2080, title: 'What didn\'t happen', body: 'The concentration holds near 565 ppm, roughly double the pre-industrial baseline. The world is stable. It\'s just a different world than the one that was possible.' },
-    ],
-    '5-8.5': [
-      { year: 2030, title: 'All throttle', body: 'New coal and gas plants outpace retirements worldwide. The concentration climbs faster than at any point in human history.' },
-      { year: 2050, title: 'Uncharted air', body: '630 ppm. Earth hasn\'t seen an atmosphere like this in 50 million years. The carbon sinks, the forests and oceans, are straining to keep up.' },
-      { year: 2080, title: 'The sinks give out', body: '870 ppm. The Amazon and Arctic tundra have stopped absorbing carbon and started releasing it. The feedback loops are no longer a projection. They\'re the weather.' },
-    ],
-  },
-  sea: {
-    '1-2.6': [
-      { year: 2040, title: 'A steady climb', body: 'Sea level rises at roughly 4 mm per year, slow enough that cities can plan. Seawalls get funded. Managed retreat begins in the most exposed neighborhoods.' },
-      { year: 2070, title: 'Adaptation holds', body: 'Most large coastal cities are protected. Some low-lying communities have relocated inland. The ice caps are thinning, contributing to what comes next.' },
-      { year: 2090, title: '35 centimeters', body: 'Difficult. But adaptable. The cities that prepared in the 2030s are the ones still standing.' },
-    ],
-    '2-4.5': [
-      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet is now a meaningful contributor. The rise accelerates. Insurance markets in low-lying regions begin to buckle: first the private market, then the public backstop.' },
-      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. The question is no longer whether to retreat, but who pays for it.' },
-      { year: 2090, title: '75 centimeters', body: 'Climate-driven migration is reshaping borders. The word \'coastal\' is being redefined.' },
-    ],
-    '5-8.5': [
-      { year: 2040, title: 'The Antarctic wakes up', body: 'The West Antarctic ice sheet enters runaway melt. The rate of rise doubles. What was a planning problem becomes an emergency.' },
-      { year: 2070, title: 'Coastlines erased', body: 'Multiple island nations have ceased to exist as legal territories. Cumulative rise approaches 90 cm.' },
-      { year: 2090, title: 'Past a meter', body: '135 centimeters of rise. Sea level is now one of the primary forces reshaping where people can live. It will not stop in 2100.' },
-    ],
-  },
-  precip: {
-    '1-2.6': [
-      { year: 2040, title: 'A slow redistribution', body: 'Wet regions get slightly wetter. Dry ones, slightly drier. The global mean rises a little. The bigger story is regional. Watch the map.' },
-      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move north by 200 to 400 km. The transitions are mostly orderly. Some regions gain arable land. Others lose it.' },
-      { year: 2090, title: 'Manageable variance', body: 'The hydrology is changed but not broken. Flood and drought frequencies stay within the range that infrastructure was built to handle.' },
-    ],
-    '2-4.5': [
-      { year: 2040, title: 'The global mean is misleading', body: 'The average precipitation change looks modest. What it hides: intensifying monsoons in some places, the Colorado and Ganges running low in others.' },
-      { year: 2070, title: 'Regional divergence', body: 'Wet regions amplify. Dry regions dry further. The map is where the story is. The global number tells you almost nothing.' },
-      { year: 2090, title: 'Whiplash', body: 'Drying in the subtropics. Flooding in the tropics. The average stays near zero. The extremes are anything but.' },
-    ],
-    '5-8.5': [
-      { year: 2040, title: 'Oscillating', body: 'Extreme floods and extreme droughts begin alternating in the same river basins. The Amazon is already showing early tipping signals.' },
-      { year: 2070, title: 'More moisture, more violence', body: 'A warmer atmosphere holds more water vapor. When it rains, it deluges. When it doesn\'t, the soil bakes. The global mean tells you little about what\'s happening on the ground.' },
-      { year: 2090, title: 'The cycle, stressed', body: '+2.9% globally. Behind that number: agricultural collapse in parts of West Africa and Central America, catastrophic flooding in South and Southeast Asia. The average is not the story.' },
-    ],
-  },
-};
-
-// ── Shared world map (D3 Natural Earth, country paths cached) ──
-function WorldMap({ getColor, borderColor = 'rgba(255,255,255,0.1)', bg = null }) {
-  const W = 960, H = 500;
-  const [paths, setPaths] = React.useState(() => buildWorldPaths());
-  React.useEffect(() => {
-    if (!paths) onTopoReady(() => setPaths(buildWorldPaths()));
-  }, []);
-  if (!paths) return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      <text x={W/2} y={H/2} textAnchor="middle" fill="rgba(255,255,255,0.2)"
-        fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em">LOADING MAP…</text>
-    </svg>
-  );
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      {bg && <path d={paths.sphere} fill={bg}/>}
-      {paths.countries.map(c => (
-        <path key={c.id} d={c.d} fill={getColor(c.id)} stroke={borderColor} strokeWidth="0.4"/>
-      ))}
-      <path d={paths.borders} fill="none" stroke={borderColor} strokeWidth="0.4"/>
-    </svg>
-  );
-}
-
-// % of national land in Low Elevation Coastal Zone (<10m) · Source: CIESIN LECZ Database
-const LECZ_SHARE = {
-  462:1.0, 798:1.0, 584:1.0, 296:1.0, 520:0.98, 585:0.85, 882:0.75, 548:0.5,
-  90:0.35, 626:0.3, 528:0.26, 740:0.22, 116:0.11, 328:0.15, 704:0.12,
-  764:0.09, 392:0.09, 608:0.07, 104:0.08, 50:0.06, 702:0.06, 196:0.06,
-  818:0.04, 566:0.04, 360:0.04, 840:0.05, 156:0.03, 356:0.03, 586:0.02,
-  288:0.03, 404:0.02, 710:0.02, 716:0.01,
-};
-
-// ── Metric visualizations ──
-
-function ThermometerViz({ value, year, color, fg, faint, soft, curve, beats }) {
-  const TMAX = 5.5;
-  const W = 400, H = 420;
-  const tx = 88, tw = 22, tt = 20, tb = 360;
-  const bulbCx = tx + tw / 2, bulbCy = tb + 34, bulbR = 26;
-  const yFor = t => tb - Math.max(0, Math.min(1, t / TMAX)) * (tb - tt);
-  const mercY = yFor(value);
-
-  const zones = [
-    { lo: 0,    hi: 1.5,  fill: '#4CAF6F', label: '< 1.5°  SAFE'     },
-    { lo: 1.5,  hi: 2.0,  fill: '#F5C842', label: '1.5–2°  CAUTION'  },
-    { lo: 2.0,  hi: 3.0,  fill: '#E08D5C', label: '2–3°  WARNING'    },
-    { lo: 3.0,  hi: TMAX, fill: '#D95828', label: '> 3°  CRITICAL'   },
-  ];
-
-  const beatMarkers = (curve && beats)
-    ? beats.map(b => { const pt = curve.find(d => d.year === b.year); return pt ? { year: b.year, temp: pt.val } : null; }).filter(Boolean)
-    : [];
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      {zones.map((z, i) => {
-        const y1 = yFor(z.hi), y2 = yFor(z.lo);
-        return <g key={i}>
-          <rect x={tx-3} y={y1} width={tw+6} height={Math.max(1, y2-y1)} fill={z.fill} opacity="0.18" rx="2"/>
-          <text x={tx+tw+10} y={(y1+y2)/2+3} fontSize="8" fontFamily="var(--mono)"
-            fill={z.fill} opacity="0.6" letterSpacing="0.08em">{z.label}</text>
-        </g>;
-      })}
-      <rect x={tx} y={tt} width={tw} height={tb-tt} fill={faint} opacity="0.3" rx={tw/2}/>
-      <rect x={tx+2} y={mercY} width={tw-4} height={Math.max(0, tb-mercY)} fill={color} rx={(tw-4)/2}/>
-      <circle cx={bulbCx} cy={bulbCy} r={bulbR} fill={faint} opacity="0.3"/>
-      <circle cx={bulbCx} cy={bulbCy} r={bulbR-3} fill={color}/>
-      {[0,1,2,3,4,5].map(t => {
-        const y = yFor(t);
-        return <g key={t}>
-          <line x1={tx-6} y1={y} x2={tx} y2={y} stroke={soft} strokeWidth="1" opacity="0.5"/>
-          <text x={tx-9} y={y+3.5} textAnchor="end" fontSize="9" fontFamily="var(--mono)"
-            fill={soft} opacity="0.6">{t}°</text>
-        </g>;
-      })}
-      {beatMarkers.map((b, i) => {
-        const y = yFor(b.temp);
-        return <g key={i}>
-          <line x1={tx} y1={y} x2={tx+tw} y2={y} stroke={fg} strokeWidth="1" opacity="0.25" strokeDasharray="2 3"/>
-          <text x={tx-9} y={y-4} textAnchor="end" fontSize="7" fontFamily="var(--mono)"
-            fill={fg} opacity="0.45">{b.year}</text>
-        </g>;
-      })}
-      <text x={W-16} y={75} textAnchor="end" fontFamily="var(--serif)"
-        fontSize="52" fill={color}>+{value.toFixed(1)}</text>
-      <text x={W-16} y={95} textAnchor="end" fontFamily="var(--mono)"
-        fontSize="9" fill={soft} letterSpacing="0.14em">°C SURFACE ANOMALY</text>
-      <text x={W-16} y={111} textAnchor="end" fontFamily="var(--mono)"
-        fontSize="9" fill={soft} letterSpacing="0.14em">IN {year}</text>
-    </svg>
-  );
-}
-
-function CarbonSummaryCard({ value, year, color, fg, faint, soft, bg, ssp }) {
-  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
-  const tempCurve = generateCurve('temp', sspKey);
-  const seaCurve = generateCurve('sea', sspKey);
-  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
-  const seaPt = seaCurve.find(d => d.year === year) || { val: 0 };
-
-  const smogLevel = Math.max(0, Math.min(1, (value - 420) / 450));
-  const skyTop = ssp && ssp.code === 'SSP1-2.6' ? '#4A7A9B' : ssp && ssp.code === 'SSP2-4.5' ? '#8B6940' : '#6B2A18';
-  const skyBot = ssp && ssp.code === 'SSP1-2.6' ? '#88BBD4' : ssp && ssp.code === 'SSP2-4.5' ? '#C4A070' : '#A04828';
-  const sunColor = ssp && ssp.code === 'SSP1-2.6' ? '#FFE080' : ssp && ssp.code === 'SSP2-4.5' ? '#E89040' : '#D04020';
-  const W = 440, H = 200;
-
-  return (
-    <div style={{ width: '100%' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-        <defs>
-          <linearGradient id="co2SkyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={skyTop} stopOpacity={0.35 + smogLevel * 0.5}/>
-            <stop offset="1" stopColor={skyBot} stopOpacity={0.12 + smogLevel * 0.4}/>
-          </linearGradient>
-        </defs>
-        <rect width={W} height={H} fill="url(#co2SkyGrad)" rx="6"/>
-        {smogLevel > 0.1 && [0.3, 0.55, 0.78].map((yFrac, i) => (
-          <ellipse key={i} cx={W/2} cy={H * yFrac}
-            rx={W * (0.45 + i * 0.08)} ry={10 + i * 4}
-            fill={skyBot} opacity={smogLevel * (0.28 - i * 0.06)}/>
-        ))}
-        <circle cx={W * 0.82} cy={H * 0.28} r={20}
-          fill={sunColor} opacity={0.9 - smogLevel * 0.55}/>
-        <text x={W/2} y={H * 0.48} textAnchor="middle"
-          fontFamily="var(--serif)" fontSize="50" fill={fg}>
-          {Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="15" fill={soft}> ppm CO₂</tspan>
-        </text>
-        <text x={W/2} y={H * 0.63} textAnchor="middle"
-          fontFamily="var(--mono)" fontSize="8" letterSpacing="0.18em" fill={soft}>
-          ATMOSPHERIC CONCENTRATION · {year}
-        </text>
-        {[
-          { label: 'WARMING', val: `+${tempPt.val.toFixed(1)}°C`, x: W/2 - 88 },
-          { label: 'SEA RISE', val: `+${Math.round(seaPt.val)} cm`, x: W/2 + 88 },
-        ].map(({ label, val, x }) => (
-          <g key={label}>
-            <rect x={x - 58} y={H * 0.72} width="116" height="44" fill={fg} opacity="0.07" rx="5"/>
-            <text x={x} y={H * 0.72 + 14} textAnchor="middle"
-              fontFamily="var(--mono)" fontSize="8" letterSpacing="0.12em" fill={soft}>{label}</text>
-            <text x={x} y={H * 0.72 + 34} textAnchor="middle"
-              fontFamily="var(--serif)" fontSize="20" fill={color}>{val}</text>
-          </g>
-        ))}
-        <text x={W/2} y={H - 8} textAnchor="middle"
-          fontFamily="var(--mono)" fontSize="7.5" letterSpacing="0.14em" fill={soft} opacity="0.5">
-          {ssp ? `${ssp.code} · ${ssp.name.toUpperCase()} PATHWAY` : 'CMIP6 MPI-ESM1-2-LR'}
-        </text>
-      </svg>
-      <CO2MapViz value={value} year={year} color={color} fg={fg} faint={faint} soft={soft} ssp={ssp}/>
-    </div>
-  );
-}
-
-function CO2MapViz({ value, year, color, fg, faint, soft, ssp }) {
-  const [ready, setReady] = React.useState(!!WORLD_TOPO);
-  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
-  const rtKey = ssp.code === 'SSP1-2.6' ? '126' : ssp.code === 'SSP2-4.5' ? '245' : '585';
-
-  const getColor = React.useCallback((cid) => {
-    if (!REGIONAL_TEMP) return faint + '30';
-    const country = REGIONAL_TEMP.countries[String(cid)];
-    if (!country || !country[rtKey]) return faint + '30';
-    const idx = Math.max(0, Math.min(75, year - 2025));
-    const anom = country[rtKey][idx] || 0;
-    const t = Math.max(0, Math.min(1, anom / 5.5));
-    const r = Math.round(120 + t * 130), g = Math.round(110 - t * 100), b = Math.round(70 - t * 70);
-    return `rgba(${r},${Math.max(0,g)},${Math.max(0,b)},${(0.25 + t * 0.7).toFixed(2)})`;
-  }, [year, rtKey, ready]);
-
-  return (
-    <div style={{ width: '100%' }}>
-      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.08)" bg={faint + '18'}/>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6,
-        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', color: soft }}>
-        <span>REGIONAL WARMING · CMIP6 MPI-ESM1-2-LR</span>
-        <span>CO₂ {Math.round(value)} PPM · {year}</span>
-      </div>
-    </div>
-  );
-}
-
-function SeaMapViz({ value, year, color, fg, faint, soft }) {
-  const [ready, setReady] = React.useState(!!WORLD_TOPO);
-  React.useEffect(() => { if (!ready) onTopoReady(() => setReady(true)); }, []);
-  const riseNorm = Math.max(0, Math.min(1, value / 150));
-
-  const getColor = React.useCallback((cid) => {
-    const share = LECZ_SHARE[cid] || 0;
-    const intensity = share * riseNorm;
-    if (intensity < 0.02) return faint + '25';
-    const r = Math.round(20 + intensity * 10);
-    const g = Math.round(80 + intensity * 90);
-    const b = Math.round(190 + intensity * 55);
-    return `rgba(${r},${Math.min(255,g)},${Math.min(255,b)},${(0.2 + intensity * 0.7).toFixed(2)})`;
-  }, [riseNorm, ready]);
-
-  return (
-    <div style={{ width: '100%' }}>
-      <WorldMap getColor={getColor} borderColor="rgba(255,255,255,0.08)" bg={faint + '18'}/>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6,
-        fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.1em', color: soft }}>
-        <span>COASTAL VULNERABILITY · CIESIN LECZ DATA</span>
-        <span>+{Math.round(value)} CM RISE · {year}</span>
-      </div>
-    </div>
-  );
-}
-
-function wiltSVG(dl, cx, baseY) {
-  dl = Math.max(0, Math.min(1, dl));
-  const potH = 26, potW = 42;
-  const potTop = baseY - potH;
-  const sR = Math.round(60 + dl * 80), sG = Math.round(115 - dl * 70), sB = 30;
-  const stemColor = `rgb(${sR},${Math.max(0,sG)},${sB})`;
-  const leafColor = `rgb(${Math.round(50+dl*110)},${Math.max(0,Math.round(145-dl*105))},${sB})`;
-  const droop = dl * 38;
-  const stemH = 80;
-  const sx = cx + droop * 0.3, sy = potTop - stemH;
-  const cpX = cx + droop * 0.75, cpY = potTop - stemH * 0.55;
-  const lmX = cx + droop * 0.5, lmY = potTop - stemH * 0.5;
-  const ang = (-40 + dl * 115) * Math.PI / 180;
-  const ll = 26;
-  const rx = lmX + Math.cos(ang) * ll, ry = lmY + Math.sin(ang) * ll;
-  const lx = lmX - Math.cos(ang) * ll, ly = lmY + Math.sin(Math.abs(ang)) * ll;
-  return (
-    <g key={cx}>
-      <path d={`M ${cx-potW/2} ${potTop} L ${cx-potW*0.38} ${baseY} L ${cx+potW*0.38} ${baseY} L ${cx+potW/2} ${potTop} Z`}
-        fill={`rgb(${130+Math.round(dl*25)},${90-Math.round(dl*20)},50)`} opacity="0.85"/>
-      <ellipse cx={cx} cy={potTop} rx={potW*0.44} ry={5}
-        fill={`rgb(${105+Math.round(dl*45)},${72-Math.round(dl*28)},38)`} opacity="0.9"/>
-      {dl > 0.25 && <g opacity={Math.min(1,(dl-0.25)*2.5)}>
-        <line x1={cx-7} y1={potTop} x2={cx-3} y2={potTop+3} stroke="rgb(75,52,28)" strokeWidth="0.7"/>
-        <line x1={cx+4} y1={potTop} x2={cx+2} y2={potTop+4} stroke="rgb(75,52,28)" strokeWidth="0.7"/>
-      </g>}
-      <path d={`M ${cx} ${potTop-2} Q ${cpX} ${cpY} ${sx} ${sy}`}
-        stroke={stemColor} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <path d={`M ${lmX} ${lmY} Q ${(lmX+lx)/2-6} ${(lmY+ly)/2} ${lx} ${ly}`}
-        fill={leafColor} stroke={leafColor} strokeWidth="1.5" opacity="0.85"/>
-      <path d={`M ${lmX} ${lmY} Q ${(lmX+rx)/2+6} ${(lmY+ry)/2} ${rx} ${ry}`}
-        fill={leafColor} stroke={leafColor} strokeWidth="1.5" opacity="0.85"/>
-      {dl < 0.9 && <circle cx={sx} cy={sy} r={Math.max(1, 5.5-dl*4)} fill={leafColor} opacity={1-dl*0.4}/>}
-    </g>
-  );
-}
-
-function DroughtViz({ value, year, color, fg, faint, soft, ssp }) {
-  const sspKey = ssp.code.replace('SSP', '');
-  const tempCurve = generateCurve('temp', sspKey);
-  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
-  const droughtLevel = Math.min(0.95, tempPt.val / 5.2);
-
-  const [hoverPlant, setHoverPlant] = React.useState(null);
-
-  const PW = 440, PH = 200;
-  const plantXs = [56, 138, 220, 302, 385];
-
-  return (
-    <svg viewBox={`0 0 ${PW} ${PH}`} width="100%" height="auto"
-      onMouseLeave={() => setHoverPlant(null)}>
-      <rect width={PW} height={PH} fill={faint} opacity="0.06" rx="6"/>
-      <text x="14" y="20" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
-        HEAT STRESS ON VEGETATION · {year}
-      </text>
-      {plantXs.map((px, i) => {
-        const plantStress = Math.max(0, droughtLevel - i * 0.04);
-        const stressLabel = plantStress > 0.6 ? 'SEVERE' : plantStress > 0.3 ? 'MODERATE' : plantStress > 0.05 ? 'LOW' : 'NONE';
-        return (
-          <g key={px}
-            onMouseEnter={() => setHoverPlant(i)}
-            style={{ cursor: 'default' }}>
-            {wiltSVG(plantStress, px, PH - 18)}
-            {hoverPlant === i && (() => {
-              const tipW = 118, tipH = 36;
-              const tx = Math.max(tipW / 2 + 4, Math.min(px, PW - tipW / 2 - 4));
-              return (
-                <g pointerEvents="none">
-                  <rect x={tx - tipW/2} y={16} width={tipW} height={tipH}
-                    fill={fg} opacity="0.93" rx="3"/>
-                  <text x={tx} y={30} textAnchor="middle"
-                    fontFamily="var(--mono)" fontSize="8.5" fill={faint} letterSpacing="0.08em">
-                    {stressLabel} STRESS
-                  </text>
-                  <text x={tx} y={44} textAnchor="middle"
-                    fontFamily="var(--mono)" fontSize="8" fill={faint} opacity="0.75">
-                    +{tempPt.val.toFixed(1)}°C · CMIP6
-                  </text>
-                </g>
-              );
-            })()}
-          </g>
-        );
-      })}
-      <text x="14" y={PH - 6} fontFamily="var(--mono)" fontSize="8" letterSpacing="0.1em" fill={soft} opacity="0.55">
-        +{tempPt.val.toFixed(1)}°C ABOVE BASELINE · {droughtLevel > 0.6 ? 'SEVERE' : droughtLevel > 0.3 ? 'MODERATE' : 'LOW'} STRESS
-      </text>
-    </svg>
-  );
-}
-function SeaViz({ value, year, color, fg, faint, soft, bg, ssp }) {
-  const w = 430, h = 320;
-  const seaY = h - 44 - Math.min(value, 200) * 1.1;
-  const baselineY = h - 44;
-
-  const [hover, setHover] = React.useState({ x: 0, y: 0, visible: false });
-  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
-  const tempCurve = generateCurve('temp', sspKey);
-  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
-  const tempAnomaly = tempPt.val;
-  const isHot = tempAnomaly >= 2.0;
-
-
-  const onWaterMove = (e) => {
-    const svg = e.currentTarget.closest('svg');
-    const rect = svg.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (w / rect.width);
-    const y = (e.clientY - rect.top) * (h / rect.height);
-    setHover({ x, y, visible: true });
-  };
-
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto">
-      <defs>
-        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={fg} stopOpacity="0.08"/>
-          <stop offset="1" stopColor={fg} stopOpacity="0"/>
-        </linearGradient>
-        <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={color} stopOpacity="0.85"/>
-          <stop offset="1" stopColor={color} stopOpacity="1"/>
-        </linearGradient>
-      </defs>
-      <rect x="0" y="0" width={w} height={h} fill="url(#skyGrad)"/>
-      {[0, 50, 100, 150, 200].map(cm => {
-        const y = baselineY - cm * 1.1;
-        return <g key={cm}>
-          <line x1="350" y1={y} x2="370" y2={y} stroke={faint} strokeWidth="1"/>
-          <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
-        </g>;
-      })}
-      <path d={`M 0 ${baselineY} L 60 ${baselineY} L 80 ${baselineY - 4} L 140 ${baselineY - 4} L 170 ${baselineY - 30} L 230 ${baselineY - 30} L 250 ${baselineY - 12} L 340 ${baselineY - 12} L 340 ${h} L 0 ${h} Z`} fill={fg} opacity="0.18"/>
-      <g transform={`translate(190 ${baselineY - 30})`}>
-        <path d="M -6 0 L 6 0 L 4 -52 L -4 -52 Z" fill={fg} opacity="0.9"/>
-        <rect x="-7" y="-58" width="14" height="6" fill={fg} opacity="0.9"/>
-        <circle cx="0" cy="-66" r="4" fill={color}/>
-      </g>
-      <g transform={`translate(80 ${baselineY - 4})`}>
-        <rect x="0" y="-44" width="22" height="44" fill={fg} opacity="0.85"/>
-        {[[4,-38],[14,-38],[4,-26],[14,-26],[4,-14],[14,-14]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="4" height="4" fill={bg}/>)}
-      </g>
-      <g transform={`translate(110 ${baselineY - 4})`}>
-        <rect x="0" y="-28" width="18" height="28" fill={fg} opacity="0.75"/>
-        {[[3,-22],[12,-22],[3,-10],[12,-10]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="3" height="4" fill={bg}/>)}
-      </g>
-      <g transform={`translate(260 ${baselineY - 12})`}>
-        <rect x="0" y="-32" width="20" height="32" fill={fg} opacity="0.85"/>
-        {[[3,-26],[13,-26],[3,-14],[13,-14]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="4" height="4" fill={bg}/>)}
-      </g>
-      <line x1="0" y1={baselineY} x2="340" y2={baselineY} stroke={fg} strokeWidth="0.8" opacity="0.35" strokeDasharray="3 3"/>
-      <text x="6" y={baselineY - 4} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.12em" fill={soft}>2025 BASELINE</text>
-      <rect x="0" y={seaY} width={340} height={h - seaY} fill="url(#waterGrad)"
-        style={{ cursor: 'none' }}
-        onMouseMove={onWaterMove}
-        onMouseLeave={() => setHover(prev => ({ ...prev, visible: false }))}/>
-      <path d={`M 0 ${seaY} Q 20 ${seaY-3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke={fg} strokeWidth="0.8" fill="none" opacity="0.4"/>
-      <text x="6" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
-      <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill={fg}>+{Math.round(value)}<tspan fontSize="14" fill={soft}> cm</tspan></text>
-      {hover.visible && (() => {
-        const tx = Math.max(12, Math.min(hover.x, 320));
-        const ty = Math.max(80, Math.min(hover.y, h - 20));
-        const bubX = Math.max(52, Math.min(tx, 288));
-        const bubY = ty - 38;
-        return (
-          <g pointerEvents="none">
-            <rect x={tx - 3} y={ty - 30} width="6" height="18" rx="3" fill={fg} opacity="0.9"/>
-            <circle cx={tx} cy={ty - 8} r="6" fill={isHot ? '#E05020' : color} opacity="0.9"/>
-            {isHot ? (
-              <g>
-                <path d={`M ${bubX-44} ${bubY-28} Q ${bubX-44} ${bubY-44} ${bubX-30} ${bubY-44} L ${bubX+30} ${bubY-44} Q ${bubX+44} ${bubY-44} ${bubX+44} ${bubY-28} Q ${bubX+44} ${bubY-12} ${bubX+30} ${bubY-12} L ${bubX+6} ${bubY-12} L ${bubX} ${bubY-4} L ${bubX-10} ${bubY-12} Q ${bubX-44} ${bubY-12} ${bubX-44} ${bubY-28} Z`}
-                  fill={fg} opacity="0.92"/>
-                <text x={bubX} y={bubY-30} textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" fill={bg} letterSpacing="0.08em">Youch! 🌡️</text>
-                <text x={bubX} y={bubY-17} textAnchor="middle" fontFamily="var(--mono)" fontSize="8" fill={bg} opacity="0.75">+{tempAnomaly.toFixed(1)}°C above baseline</text>
-              </g>
-            ) : (
-              <g>
-                <rect x={bubX-42} y={bubY-28} width="84" height="20" fill={fg} opacity="0.88" rx="4"/>
-                <text x={bubX} y={bubY-14} textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" fill={bg}>+{tempAnomaly.toFixed(1)}°C above 1995–2014</text>
-              </g>
-            )}
-          </g>
-        );
-      })()}
-    </svg>
-  );
-}
-
-function IceCapsViz({ year, color, fg, faint, soft, ssp }) {
-  const sspKey = ssp ? ssp.code.replace('SSP', '') : '2-4.5';
-  const tempCurve = generateCurve('temp', sspKey);
-  const tempPt = tempCurve.find(d => d.year === year) || { val: 0 };
-  const tempAnomaly = tempPt.val;
-  const iceExtent = Math.max(0.05, 1 - tempAnomaly / 3.8);
-
-  // Landscape: 560×200 so rendered height stays ~200px at full column width
-  const W = 560, H = 200;
-  const CX = 100, CY = 100, MAX_R = 88;
-
-  const ICE_ANGLES = Array.from({ length: 24 }, (_, i) => ({
-    angle: (i / 24) * Math.PI * 2,
-    wobble: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2),
-  }));
-
-  const iceOuter = ICE_ANGLES.map(({ angle, wobble }) => {
-    const r = MAX_R * iceExtent * wobble;
-    return `${(CX + Math.cos(angle) * r).toFixed(1)},${(CY + Math.sin(angle) * r).toFixed(1)}`;
-  }).join(' ');
-
-  const iceInner = ICE_ANGLES.map(({ angle, wobble }) => {
-    const r = MAX_R * iceExtent * wobble * 0.6;
-    return `${(CX + Math.cos(angle) * r).toFixed(1)},${(CY + Math.sin(angle) * r).toFixed(1)}`;
-  }).join(' ');
-
-  const extentMk = (4.7 * iceExtent).toFixed(1);
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      <circle cx={CX} cy={CY} r={MAX_R} fill="#12304A"/>
-      {[1/3, 2/3, 1].map((frac, i) => (
-        <circle key={i} cx={CX} cy={CY} r={MAX_R * frac}
-          fill="none" stroke={faint} strokeWidth="0.5" strokeDasharray="3 4" opacity="0.3"/>
-      ))}
-      <circle cx={CX} cy={CY} r={MAX_R * 0.88}
-        fill="none" stroke={soft} strokeWidth="0.8" strokeDasharray="4 6" opacity="0.3"/>
-      <text x={CX + MAX_R * 0.88 + 3} y={CY - 1}
-        fontFamily="var(--mono)" fontSize="6" fill={soft} opacity="0.4">1980</text>
-      <polygon points={iceOuter} fill="#DAEAF5" opacity="0.92"/>
-      <polygon points={iceInner} fill="white" opacity="0.4"/>
-      <circle cx={CX} cy={CY} r={MAX_R} fill="none" stroke={faint} strokeWidth="1.5" opacity="0.6"/>
-      <circle cx={CX} cy={CY} r="3" fill={soft} opacity="0.5"/>
-      {/* Labels in the right-hand space */}
-      <text x="208" y="22" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.14em" fill={soft}>
-        ARCTIC SEA ICE · SEPTEMBER MINIMUM · {year}
-      </text>
-      <text x="208" y="70" fontFamily="var(--serif)" fontSize="32" fill={color}>
-        {extentMk}
-      </text>
-      <text x="208" y="86" fontFamily="var(--mono)" fontSize="10" fill={soft}>million km²</text>
-      <text x="208" y="110" fontFamily="var(--mono)" fontSize="8" letterSpacing="0.05em" fill={soft} opacity="0.55" style={{ maxWidth: 300 }}>
-        estimated · cmip6 temperature · mpi-esm1-2-lr
-      </text>
-      <text x="208" y="128" fontFamily="var(--mono)" fontSize="8" fill={soft} opacity="0.55">
-        {ssp ? ssp.code : ''} · +{tempAnomaly.toFixed(1)}°C above 1995–2014
-      </text>
-    </svg>
-  );
-}
-
-function SeaComboViz(props) {
-  return (
-    <div style={{ width: '100%' }}>
-      <IceCapsViz {...props}/>
-      <div style={{ marginTop: 10 }}/>
-      <SeaViz {...props}/>
-    </div>
-  );
-}
-
-const METRIC_VIZ = { temp: ThermometerViz, co2: CarbonSummaryCard, sea: SeaComboViz, precip: DroughtViz };
-
-function historicalCurve(metric) {
-  const anchors = {
-    temp:   [[1900,0],[1940,0.2],[1960,0.1],[1975,0.25],[1985,0.4],[1995,0.55],[2005,0.8],[2015,1.0],[2025,1.12]],
-    co2:    [[1900,296],[1950,311],[1960,317],[1970,325],[1980,338],[1990,354],[2000,369],[2010,389],[2020,413],[2025,420]],
-    sea:    [[1900,0],[1950,2],[1980,3.2],[2000,4],[2015,4.7],[2025,5]],
-    precip: [[1900,0],[2025,0]],
-  };
-  const pts = anchors[metric];
-  const out = [];
-  for (let yr = 1900; yr <= 2025; yr++) {
-    let lo = pts[0], hi = pts[pts.length-1];
-    for (let i = 0; i < pts.length-1; i++) {
-      if (yr >= pts[i][0] && yr <= pts[i+1][0]) { lo = pts[i]; hi = pts[i+1]; break; }
-    }
-    const t = lo[0] === hi[0] ? 0 : (yr - lo[0]) / (hi[0] - lo[0]);
-    out.push({ year: yr, val: lo[1] + t*(hi[1]-lo[1]) });
-  }
+  const hist = _CLIMATE.historical[metric] || [];
+  const proj = (_CLIMATE.metrics[metric] || {})[ssp] || [];
+  const out = [...hist, ...proj];
+  _FULL_CACHE[key] = out;
   return out;
 }
 
-// ── Mini chart ──
-function MetricMiniChart({ metric, year, ssp, theme, onSeek }) {
-  const SSPS_L = [
-    { id: '1-2.6', color: '#82A78A' },
-    { id: '2-4.5', color: '#C49B5E' },
-    { id: '5-8.5', color: '#B4633A' },
-  ];
-  const W = 1000, H = 220;
-  const pad = { l: 56, r: 28, t: 60, b: 32 };
+function valAt(metric, ssp, year) {
+  const curve = generateFullCurve(metric, ssp);
+  if (!curve.length) return 0;
+  const pt = curve.find(d => d.year === year);
+  if (pt) return pt.val;
+  return curve[curve.length - 1].val;
+}
 
-  const hist = historicalCurve(metric);
-  const projCurves = SSPS_L.map(s => ({ ...s, data: generateCurve(metric, s.id) }));
-  const allProj = projCurves.flatMap(c => c.data.map(d => d.val));
+function initDOC(climateData) {
+  _CLIMATE = climateData;
+  Object.keys(_FULL_CACHE).forEach(k => delete _FULL_CACHE[k]);
+  window.DOC = { SSP_NAMES, PERSONAS, KNOB_DEFS, PERSONA_THOUGHTS, METRICS, BEATS,
+    computeScore, classify, generateFullCurve, valAt };
+}
 
-  const RANGE = {
-    temp:   { min: 0,    max: Math.max(...allProj) + 0.3 },
-    co2:    { min: 280,  max: Math.max(...allProj) + 20  },
-    sea:    { min: 0,    max: Math.max(...allProj) + 5   },
-    precip: { min: -0.5, max: Math.max(...allProj) + 0.3 },
+// ============================================================
+// ── SECTION 2: VIZ
+// ============================================================
+
+const PATH_VARS = { '1-2.6': 'var(--tw-low)', '2-4.5': 'var(--tw-mid)', '5-8.5': 'var(--tw-high)' };
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// ── Read-only policy dial ───────────────────────────────────
+function Dial({ value, color = '#E08D5C', active }) {
+  const minA = -135, maxA = 135;
+  const angle = minA + value / 100 * (maxA - minA);
+  const cx = 60, cy = 60, r = 44;
+  const pol = (a) => [cx + r * Math.cos((a - 90) * Math.PI / 180), cy + r * Math.sin((a - 90) * Math.PI / 180)];
+  const arc = (s, e) => {
+    const [sx, sy] = pol(s), [ex, ey] = pol(e);
+    const large = e - s > 180 ? 1 : 0;
+    return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
   };
-  const TICKS = {
-    temp:   [0,1,2,3,4,5],
-    co2:    [300,400,500,600,700,800,900],
-    sea:    [0,25,50,75,100,125],
-    precip: [0,1,2,3],
-  };
-
-  const { min: minV, max: maxV } = RANGE[metric];
-  const ticks = TICKS[metric].filter(t => t >= minV && t <= maxV);
-
-  const xScale = yr => pad.l + ((yr - 1900) / 200) * (W - pad.l - pad.r);
-  const yScale = v => pad.t + (1 - (v - minV) / (maxV - minV)) * (H - pad.t - pad.b);
-
-  const sspKey = ssp.code.replace('SSP', '');
-  const activeCurve = projCurves.find(c => c.id === sspKey);
-  const pt = activeCurve.data.find(d => d.year === year) || activeCurve.data[activeCurve.data.length-1];
-
-  const histPath = hist.map((d,i) => `${i===0?'M':'L'} ${xScale(d.year).toFixed(1)} ${yScale(d.val).toFixed(1)}`).join(' ');
-  const projPath = (data, upto) => data.filter(d => d.year <= upto).map((d,i) => `${i===0?'M':'L'} ${xScale(d.year).toFixed(1)} ${yScale(d.val).toFixed(1)}`).join(' ');
-
-  const visProj = activeCurve.data.filter(d => d.year <= year);
-  const areaPath = visProj.length >= 2 ? (() => {
-    const top = visProj.map((d,i) => `${i===0?'M':'L'} ${xScale(d.year).toFixed(1)} ${yScale(d.val).toFixed(1)}`).join(' ');
-    return `${top} L ${xScale(visProj[visProj.length-1].year).toFixed(1)} ${yScale(minV).toFixed(1)} L ${xScale(2025).toFixed(1)} ${yScale(minV).toFixed(1)} Z`;
-  })() : '';
-
-  const showSign = metric !== 'co2';
-  const isInt = metric === 'co2' || metric === 'sea';
-  const fmtVal = v => `${showSign && v >= 0 ? '+' : ''}${isInt ? Math.round(v) : v.toFixed(1)}`;
-  const unitLabel = metric === 'temp' ? '°C' : metric === 'co2' ? 'ppm' : metric === 'sea' ? 'cm' : '%';
-
-  const [hoverYear, setHoverYear] = React.useState(null);
-
-  const svgYearFromEvent = (e) => {
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    const svgX = (e.clientX - rect.left) * (W / rect.width);
-    const raw = 1900 + (svgX - pad.l) / (W - pad.l - pad.r) * 200;
-    return Math.max(2025, Math.min(2100, Math.round(raw)));
-  };
-
+  const ticks = [];
+  for (let i = 0; i <= 10; i++) {
+    const a = (minA + i / 10 * (maxA - minA) - 90) * Math.PI / 180;
+    ticks.push(<line key={i} x1={cx + 50 * Math.cos(a)} y1={cy + 50 * Math.sin(a)}
+      x2={cx + 55 * Math.cos(a)} y2={cy + 55 * Math.sin(a)}
+      stroke="rgba(236,230,206,0.5)" strokeWidth="1" opacity={i % 5 === 0 ? 0.8 : 0.35} />);
+  }
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" style={{ cursor: 'crosshair' }}
-      onMouseMove={e => { if (e.clientX) setHoverYear(svgYearFromEvent(e)); }}
-      onMouseLeave={() => setHoverYear(null)}
-      onClick={e => { const yr = svgYearFromEvent(e); if (onSeek) onSeek(yr); }}>
-      {ticks.map(tick => (
-        <g key={tick}>
-          <line x1={pad.l} y1={yScale(tick)} x2={W-pad.r} y2={yScale(tick)}
-            stroke={theme.faint} strokeWidth="1" strokeDasharray="3 5"/>
-          <text x={pad.l-8} y={yScale(tick)+3.5} fontSize="9" textAnchor="end"
-            fill={theme.soft} fontFamily="var(--mono)" letterSpacing="0.06em">
-            {tick}{metric==='temp'?'°':metric==='precip'?'%':''}
-          </text>
-        </g>
-      ))}
-      <line x1={pad.l} y1={H-pad.b} x2={W-pad.r} y2={H-pad.b} stroke={theme.faint} strokeWidth="1"/>
-      {[1900,1950,2000,2025,2050,2075,2100].map(yr => (
-        <text key={yr} x={xScale(yr)} y={H-8} fontSize="9" textAnchor="middle"
-          fill={yr===2025?theme.accent:theme.soft} fontFamily="var(--mono)" letterSpacing="0.1em">
-          {yr}
-        </text>
-      ))}
-      <path d={histPath} stroke={theme.soft} strokeWidth="1.5" fill="none" opacity="0.6"/>
-      <line x1={xScale(2025)} y1={pad.t-20} x2={xScale(2025)} y2={H-pad.b}
-        stroke={theme.faint} strokeWidth="1" strokeDasharray="4 4"/>
-      <text x={xScale(2025)+8} y={pad.t-8} fontSize="8" fill={theme.soft}
-        fontFamily="var(--mono)" letterSpacing="0.12em">2025 · PROJECTION</text>
-      {projCurves.filter(c => c.id !== sspKey).map(c => (
-        <path key={c.id} d={projPath(c.data, 2100)} stroke={c.color} strokeWidth="1" fill="none" opacity="0.25"/>
-      ))}
-      {areaPath && <path d={areaPath} fill={theme.accent} opacity="0.10"/>}
-      <path d={projPath(activeCurve.data, year)} stroke={theme.accent} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <circle cx={xScale(pt.year)} cy={yScale(pt.val)} r="4.5" fill={theme.accent} stroke={theme.bg} strokeWidth="2"/>
-      {year > 2025 && <line x1={xScale(year)} y1={pad.t} x2={xScale(year)} y2={H-pad.b}
-        stroke={theme.accent} strokeWidth="1" strokeDasharray="3 4" opacity="0.4"/>}
-      <text x={pad.l} y={20} fontSize="9" fill={theme.soft} fontFamily="var(--mono)" letterSpacing="0.16em">
-        {theme.label.toUpperCase()} · 1900 → 2100 · CLICK TO SEEK
-      </text>
-      <text x={W-pad.r} y={28} fontSize="30" textAnchor="end" fill={theme.accent}
-        fontFamily="var(--serif)" letterSpacing="-0.02em">
-        {fmtVal(pt.val)}<tspan fontSize="13" fill={theme.soft}> {unitLabel}</tspan>
-      </text>
-      <text x={W-pad.r} y={44} fontSize="8" textAnchor="end" fill={theme.soft}
-        fontFamily="var(--mono)" letterSpacing="0.14em">IN {year}</text>
-      {hoverYear && hoverYear >= 2025 && (() => {
-        const hx = xScale(hoverYear);
-        const tipX = hx + 8;
-        const tipW = 96, tipH = 16 + projCurves.length * 13;
-        const ax = tipX + tipW > W - pad.r ? hx - tipW - 8 : tipX;
-        return (
-          <g pointerEvents="none">
-            <line x1={hx} y1={pad.t} x2={hx} y2={H-pad.b}
-              stroke={theme.fg} strokeWidth="1" opacity="0.3" strokeDasharray="3 3"/>
-            <rect x={ax} y={pad.t+2} width={tipW} height={tipH}
-              fill={theme.bg} stroke={theme.faint} strokeWidth="0.8" rx="3" opacity="0.95"/>
-            <text x={ax+6} y={pad.t+13} fontFamily="var(--mono)" fontSize="8"
-              fill={theme.accent} letterSpacing="0.1em">{hoverYear}</text>
-            {projCurves.map((c, i) => {
-              const hpt = c.data.find(d => d.year === hoverYear);
-              if (!hpt) return null;
-              return <text key={c.id} x={ax+6} y={pad.t+13+(i+1)*13}
-                fontFamily="var(--mono)" fontSize="8"
-                fill={c.id === sspKey ? theme.accent : c.color}
-                opacity={c.id === sspKey ? 1 : 0.65} letterSpacing="0.04em">
-                {fmtVal(hpt.val)} {unitLabel}
-              </text>;
-            })}
-            {(() => {
-              const hp = activeCurve.data.find(d => d.year === hoverYear);
-              return hp ? <circle cx={hx} cy={yScale(hp.val)} r="4"
-                fill={theme.accent} stroke={theme.bg} strokeWidth="1.5"/> : null;
-            })()}
-          </g>
-        );
-      })()}
+    <svg viewBox="0 0 120 120">
+      <path d={arc(minA, maxA)} stroke="rgba(236,230,206,0.12)" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d={arc(minA, angle)} stroke={color} strokeWidth="3" fill="none" strokeLinecap="round" />
+      {ticks}
+      <circle cx={cx} cy={cy} r={33} fill="rgba(7,18,10,0.9)" stroke={active ? color : 'rgba(236,230,206,0.18)'} strokeWidth="1.25" />
+      <g transform={`rotate(${angle} ${cx} ${cy})`}>
+        <line x1={cx} y1={cy - 6} x2={cx} y2={cy - 25} stroke="rgba(236,230,206,0.92)" strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx={cx} cy={cy - 28} r="3" fill={color} />
+      </g>
     </svg>
   );
 }
 
-
-function NarrativeBubble({ children, color, faint }) {
+// ── Carbon blocks — one cell per ppm CO₂ ───────────────────
+function CarbonBlocks({ value = 420, year = 2025 }) {
+  const { useMemo } = React;
+  const COLS = 40, ROWS = 34, BASE = 280;
+  const W = 480, padX = 22, top = 42, bot = 50;
+  const cell = (W - padX * 2) / COLS;
+  const H = top + ROWS * cell + bot;
+  const ppm = Math.round(value);
+  const fg = '42,51,36';
+  const empty = `rgba(${fg},0.05)`, border = `rgba(${fg},0.16)`;
+  const baseC = '#A7AB8C', excessC = '#33421F';
+  const cells = useMemo(() => {
+    const out = [];
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const col = i % COLS, row = Math.floor(i / COLS);
+      const x = padX + col * cell, y = top + row * cell, sz = cell - 1.7;
+      const filled = i < ppm;
+      const fill = filled ? (i < BASE ? baseC : excessC) : empty;
+      out.push(<rect key={i} x={x.toFixed(1)} y={y.toFixed(1)} width={sz.toFixed(1)} height={sz.toFixed(1)} rx="1" fill={fill} stroke={border} strokeWidth="0.7" />);
+    }
+    return out;
+  }, [ppm]);
   return (
-    <div style={{
-      borderLeft: `2px solid ${color}`,
-      paddingLeft: 12,
-      marginTop: 14,
-      marginBottom: 2,
-      fontFamily: 'var(--mono)',
-      fontSize: 11,
-      letterSpacing: '0.05em',
-      lineHeight: 1.65,
-      color: faint,
-    }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      <text x={padX} y="24" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em" fill={`rgba(${fg},0.62)`}>EACH CELL = 1 PPM CO₂</text>
+      {cells}
+      <text x={padX} y={H - 16} fontFamily="var(--mono)" fontSize="11" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>1750 BASELINE 280 PPM</text>
+      <text x={W - padX} y={H - 16} textAnchor="end" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.1em" fill={`rgba(${fg},0.72)`}>{year} · {ppm} PPM</text>
+    </svg>
+  );
+}
+
+// ── Line chart 1980–2100 with info-dense tooltip ────────────
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
+  const { useState, useRef, useMemo, useCallback } = React;
+  const W = 1100, H = 264, pad = { t: 20, r: 22, b: 30, l: 54 };
+  const [hoverYear, setHoverYear] = useState(null);
+  const fg = dark ? '236,230,206' : '42,51,36';
+  const accent = dark ? '#E08D5C' : 'var(--tw-accent)';
+
+  const X0 = 1980, X1 = 2100, SPAN = 120;
+  const xs = (y) => pad.l + (y - X0) / SPAN * (W - pad.l - pad.r);
+  const ys = (v) => H - pad.b - (v - dom[0]) / (dom[1] - dom[0]) * (H - pad.t - pad.b);
+
+  const data = useMemo(() => generateFullCurve(metric, activeKey), [metric, activeKey]);
+
+  const seg = (a, b) => {
+    let d = '';
+    for (const p of data) {
+      if (p.year < a || p.year > b) continue;
+      d += (d ? ' L ' : 'M ') + xs(p.year).toFixed(1) + ' ' + ys(p.val).toFixed(1);
+    }
+    return d;
+  };
+
+  const xticks = [1980, 2000, 2025, 2050, 2075, 2100];
+  const yticks = useMemo(() => {
+    const out = []; const steps = 4;
+    for (let i = 0; i <= steps; i++) out.push(dom[0] + i / steps * (dom[1] - dom[0]));
+    return out;
+  }, [dom]);
+
+  const valOf = (yr) => { const p = data.find(d => d.year === yr); return p ? p.val : (data[data.length - 1] || {}).val || 0; };
+  const curVal = valOf(Math.min(2100, year));
+  const v1980 = data.length ? data[0].val : 0;
+  const v2025 = valOf(2025);
+  const vEnd = data.length ? data[data.length - 1].val : 0;
+  const dfmt = (x) => (x >= 0 ? '+' : '−') + (Math.abs(x) >= 10 ? Math.round(Math.abs(x)) : Math.abs(x).toFixed(1));
+
+  const onMove = useCallback((e) => {
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width * W;
+    const yr = Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
+    setHoverYear(Math.max(X0, Math.min(X1, yr)));
+  }, [data]);
+
+  const tip = useMemo(() => {
+    if (hoverYear == null) return null;
+    const px = xs(hoverYear) / W * 100;
+    return { px, flip: px > 62, val: valOf(hoverYear), hist: hoverYear < 2025 };
+  }, [hoverYear, data]);
+
+  return (
+    <div className="chart-wrap">
+      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
+        {yticks.map((v, i) =>
+          <g key={i}>
+            <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
+            <text x={pad.l - 8} y={ys(v) + 3.5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
+          </g>
+        )}
+        {xticks.map(t =>
+          <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{t}</text>
+        )}
+        <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.32)`} strokeWidth="1" strokeDasharray="3 3" />
+        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
+        <path d={seg(X0, 2025)} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2" strokeLinecap="round" />
+        <path d={seg(2025, X1)} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="1.5" opacity="0.3" />
+        <path d={seg(2025, Math.min(2100, year))} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="3" strokeLinecap="round" />
+        <circle cx={xs(Math.min(2100, year))} cy={ys(curVal)} r="5" fill={PATH_VARS[activeKey]} stroke={dark ? '#0E1A0B' : '#FAF9F3'} strokeWidth="2" />
+        {hoverYear != null &&
+          <line x1={xs(hoverYear)} y1={pad.t} x2={xs(hoverYear)} y2={H - pad.b} stroke={accent} strokeWidth="1" opacity="0.6" />
+        }
+      </svg>
+      {tip &&
+        <div className="tip" style={{
+          left: tip.flip ? 'auto' : `calc(${tip.px}% + 14px)`,
+          right: tip.flip ? `calc(${100 - tip.px}% + 14px)` : 'auto',
+          top: 8,
+        }}>
+          <div className="tip-year"><span>{hoverYear}</span><span>{tip.hist ? 'OBSERVED' : SSP_NAMES[activeKey]}</span></div>
+          <div className="tip-hero"><span className="n">{fmt(tip.val)}</span><span className="u">{unit}</span></div>
+          <div className="tip-rows">
+            <div className="tip-row"><span className="lab">vs 2025</span><span className="num">{dfmt(tip.val - v2025)} {unit}</span></div>
+            <div className="tip-row"><span className="lab">vs 1980</span><span className="num">{dfmt(tip.val - v1980)} {unit}</span></div>
+            <div className="tip-row me"><span className="lab">2100 outcome</span><span className="num">{fmt(vEnd)} {unit}</span></div>
+          </div>
+          <div className="tip-foot">{tip.hist ? 'Observed record · CMIP6 historical' : SSP_NAMES[activeKey] + ' pathway'} · MPI-ESM1-2-LR</div>
+        </div>
+      }
+    </div>
+  );
+}
+
+// ── Mercury thermometer ─────────────────────────────────────
+function Thermometer({ value, dark }) {
+  const W = 200, H = 380, TMAX = 5.5;
+  const cx = 84, tubeW = 30, innerW = 15;
+  const tt = 24, bulbCy = 330, bulbR = 30;
+  const scaleTop = tt + 16, scaleBot = bulbCy - 10;
+  const yFor = (t) => scaleBot - Math.max(0, Math.min(1, t / TMAX)) * (scaleBot - scaleTop);
+  const mercY = yFor(value);
+  const fg = dark ? '236,230,206' : '42,51,36';
+  const red = value < 1.5 ? '#5C9468' : value < 2 ? '#C9923E' : value < 3 ? '#E0773C' : '#D33C28';
+  const glass = dark ? 'rgba(248,246,236,0.93)' : 'rgba(255,255,255,0.96)';
+  const outline = `rgba(${fg},0.38)`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      <rect x={cx - tubeW / 2} y={tt} width={tubeW} height={bulbCy - tt + 6} rx={tubeW / 2} fill={glass} stroke={outline} strokeWidth="2" />
+      <circle cx={cx} cy={bulbCy} r={bulbR} fill={glass} stroke={outline} strokeWidth="2" />
+      <circle cx={cx} cy={bulbCy} r={bulbR - 5} fill={red} />
+      <rect x={cx - innerW / 2} y={mercY} width={innerW} height={bulbCy - mercY} fill={red} rx={innerW / 2} />
+      <circle cx={cx} cy={mercY} r={innerW / 2 + 1} fill={red} />
+      <rect x={cx - tubeW / 2 + 5} y={tt + 8} width="4" height={bulbCy - tt - 34} rx="2" fill="rgba(255,255,255,0.5)" />
+      {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(t => {
+        const major = Number.isInteger(t);
+        return <g key={t}>
+          <line x1={cx + tubeW / 2 + 2} y1={yFor(t)} x2={cx + tubeW / 2 + (major ? 12 : 7)} y2={yFor(t)} stroke={`rgba(${fg},0.5)`} strokeWidth="1" />
+          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 3.5} fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.6)`}>{t}°</text>}
+        </g>;
+      })}
+      <line x1={cx - tubeW / 2 - 14} y1={mercY} x2={cx - tubeW / 2 - 2} y2={mercY} stroke={red} strokeWidth="2" />
+      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="12" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
+    </svg>
+  );
+}
+
+// ── Warming stripes (Ed Hawkins motif) ──────────────────────
+function WarmingStripes({ sspKey, year, dark }) {
+  const { useMemo } = React;
+  const data = useMemo(() => generateFullCurve('temp', sspKey), [sspKey]);
+  const fg = dark ? '236,230,206' : '42,51,36';
+  const W = 660, H = 64;
+  const bw = data.length ? W / data.length : 1;
+  const colFor = (v) => {
+    const t = Math.max(0, Math.min(1, (v - 0.0) / 5.5));
+    const r = Math.round(lerp(58, 215, t)), g = Math.round(lerp(150, 58, t)), b = Math.round(lerp(213, 40, t));
+    return `rgb(${r},${g},${b})`;
+  };
+  return (
+    <svg viewBox={`0 0 ${W} ${H + 18}`} width="100%" height="auto">
+      {data.map((d, i) =>
+        <rect key={i} x={i * bw} y={0} width={bw + 0.6} height={H} fill={colFor(d.val)} opacity={d.year <= year ? 1 : 0.18} />
+      )}
+      <line x1={(Math.min(2100, year) - 1980) / 120 * W} y1={0} x2={(Math.min(2100, year) - 1980) / 120 * W} y2={H} stroke={dark ? '#fff' : '#0E1A0B'} strokeWidth="1.5" opacity="0.8" />
+      {[1980, 2000, 2025, 2050, 2075, 2100].map(t =>
+        <text key={t} x={Math.min(W - 14, Math.max(14, (t - 1980) / 120 * W))} y={H + 14} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.55)`}>{t}</text>
+      )}
+    </svg>
+  );
+}
+
+// ── Sea level cross-section ─────────────────────────────────
+function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
+  const { useState } = React;
+  const [showWaterTip, setShowWaterTip] = useState(false);
+  const [tipPos, setTipPos] = useState({ x: 0, y: 0 });
+  const w = 430, h = 320;
+  const fg = '42,51,36';
+  const soft = `rgba(${fg},0.6)`, faint = `rgba(${fg},0.42)`;
+  const bg = '#FAF9F3';
+  // Water gets slightly warmer / more teal as temperature rises
+  const waterR = Math.round(lerp(92, 140, Math.min(1, tempValue / 5)));
+  const waterG = Math.round(lerp(138, 90, Math.min(1, tempValue / 5)));
+  const waterB = Math.round(lerp(126, 110, Math.min(1, tempValue / 5)));
+  const water = `rgb(${waterR},${waterG},${waterB})`;
+  const baselineY = h - 44;
+  const seaY = baselineY - Math.min(value, 200) * 1.1;
+
+  const onWaterMove = (e) => {
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    setTipPos({ x: ((e.clientX - rect.left) / rect.width) * w, y: ((e.clientY - rect.top) / rect.height) * h });
+    setShowWaterTip(true);
+  };
+  const SST_ANOMALY = (tempValue * 0.72).toFixed(1); // ocean warms ~72% of land warming rate
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto">
+        <defs>
+          <linearGradient id="seaG2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor={water} stopOpacity="0.78" />
+            <stop offset="1" stopColor={water} stopOpacity="0.96" />
+          </linearGradient>
+        </defs>
+        {[0, 50, 100, 150, 200].map(cm => {
+          const y = baselineY - cm * 1.1;
+          return <g key={cm}>
+            <line x1="350" y1={y} x2="370" y2={y} stroke={faint} strokeWidth="1" />
+            <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
+          </g>;
+        })}
+        <path d={`M 0 ${baselineY} L 60 ${baselineY} L 80 ${baselineY - 4} L 140 ${baselineY - 4} L 170 ${baselineY - 30} L 230 ${baselineY - 30} L 250 ${baselineY - 12} L 340 ${baselineY - 12} L 340 ${h} L 0 ${h} Z`} fill={`rgba(${fg},0.16)`} />
+        <g transform={`translate(190 ${baselineY - 30})`}>
+          <path d="M -6 0 L 6 0 L 4 -52 L -4 -52 Z" fill={`rgba(${fg},0.85)`} />
+          <rect x="-7" y="-58" width="14" height="6" fill={`rgba(${fg},0.85)`} />
+          <circle cx="0" cy="-66" r="4" fill="#E0773C" />
+        </g>
+        <g transform={`translate(80 ${baselineY - 4})`}>
+          <rect x="0" y="-44" width="22" height="44" fill={`rgba(${fg},0.82)`} />
+          {[[4,-38],[14,-38],[4,-26],[14,-26],[4,-14],[14,-14]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="4" height="4" fill={bg} />)}
+        </g>
+        <g transform={`translate(110 ${baselineY - 4})`}>
+          <rect x="0" y="-28" width="18" height="28" fill={`rgba(${fg},0.72)`} />
+          {[[3,-22],[12,-22],[3,-10],[12,-10]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="3" height="4" fill={bg} />)}
+        </g>
+        <g transform={`translate(260 ${baselineY - 12})`}>
+          <rect x="0" y="-32" width="20" height="32" fill={`rgba(${fg},0.82)`} />
+          {[[3,-26],[13,-26],[3,-14],[13,-14]].map(([ox,oy],k) => <rect key={k} x={ox} y={oy} width="4" height="4" fill={bg} />)}
+        </g>
+        {/* visible 2025 baseline */}
+        <line x1="0" y1={baselineY} x2="340" y2={baselineY} stroke="#E08D5C" strokeWidth="2" opacity="0.85" strokeDasharray="5 3" />
+        <rect x="0" y={baselineY - 16} width="88" height="14" rx="3" fill="#E08D5C" opacity="0.85" />
+        <text x="6" y={baselineY - 5} fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
+        {/* interactive water area */}
+        <rect x="0" y={seaY} width="340" height={h - seaY} fill="url(#seaG2)"
+          onMouseMove={onWaterMove} onMouseLeave={() => setShowWaterTip(false)} style={{ cursor: 'crosshair' }} />
+        <path d={`M 0 ${seaY} Q 20 ${seaY - 3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke="#fff" strokeWidth="0.8" fill="none" opacity="0.45" style={{ pointerEvents: 'none' }} />
+        <text x="6" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
+        <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill="#0E1A0B">+{Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="14" fill={soft}> cm</tspan></text>
+        {/* thermometer sst indicator */}
+        <text x="6" y="76" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
+      </svg>
+      {showWaterTip && (
+        <div className="sea-water-tip" style={{ left: `${(tipPos.x / w) * 100}%`, top: `${(tipPos.y / h) * 100}%` }}>
+          <div className="tip-year"><span>OCEAN CONDITIONS</span><span>{year}</span></div>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 700, margin: '4px 0 2px' }}>+{SST_ANOMALY}°C</div>
+          <div style={{ fontSize: 10, opacity: 0.6, fontFamily: 'var(--mono)', letterSpacing: '0.06em' }}>SEA SURFACE TEMPERATURE ANOMALY</div>
+          <div style={{ borderTop: '1px solid rgba(42,51,36,0.12)', marginTop: 8, paddingTop: 8, fontSize: 10, fontFamily: 'var(--mono)', opacity: 0.55 }}>
+            Oceans absorb ~90% of excess heat.<br />
+            Warmer water expands, adding to rise.<br />
+            Rise: +{Math.round(value)} cm above 2025.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Arctic sea-ice disc ─────────────────────────────────────
+function IceCaps({ tempValue, year = 2025, dark }) {
+  const fg = '42,51,36';
+  const soft = `rgba(${fg},0.62)`;
+  const W = 300, H = 330, CX = 150, CY = 122, MAX_R = 94;
+  const iceExtent = Math.max(0.05, 1 - tempValue / 3.8);
+  const ANG = Array.from({ length: 24 }, (_, i) => ({ a: i / 24 * Math.PI * 2, w: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2) }));
+  const poly = (sc) => ANG.map(({ a, w }) => `${(CX + Math.cos(a) * MAX_R * iceExtent * w * sc).toFixed(1)},${(CY + Math.sin(a) * MAX_R * iceExtent * w * sc).toFixed(1)}`).join(' ');
+  const extentMk = (4.7 * iceExtent).toFixed(1);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+      <text x={CX} y="16" textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
+      <circle cx={CX} cy={CY} r={MAX_R} fill="#12304A" />
+      {[1/3, 2/3, 1].map((f, i) => <circle key={i} cx={CX} cy={CY} r={MAX_R * f} fill="none" stroke="rgba(218,234,245,0.45)" strokeWidth="0.6" strokeDasharray="3 4" opacity="0.5" />)}
+      <polygon points={poly(1)} fill="#DAEAF5" opacity="0.94" />
+      <polygon points={poly(0.6)} fill="#fff" opacity="0.45" />
+      <circle cx={CX} cy={CY} r={MAX_R} fill="none" stroke="rgba(218,234,245,0.4)" strokeWidth="1.5" />
+      <circle cx={CX} cy={CY} r="3" fill="rgba(218,234,245,0.6)" />
+      <text x={CX} y="264" textAnchor="middle" fontFamily="var(--serif)" fontSize="46" fill="#0E1A0B">{extentMk}</text>
+      <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
+      <text x={CX} y="311" textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
+    </svg>
+  );
+}
+
+// ── Grass field (precip / heat stress) ─────────────────────
+function GrassField({ tempValue = 1.2 }) {
+  const { useMemo, useState } = React;
+  const [hovering, setHovering] = useState(false);
+  const W = 660, H = 230, baseY = H - 30;
+  const dry = Math.max(0, Math.min(0.96, tempValue / 5.0));
+  const fg = '42,51,36';
+  const stressLabel = dry < 0.2 ? 'NONE' : dry < 0.4 ? 'LOW' : dry < 0.6 ? 'MODERATE' : dry < 0.8 ? 'SEVERE' : 'EXTREME';
+  const stressColor = dry < 0.2 ? '#4E7558' : dry < 0.4 ? '#7A9B4A' : dry < 0.6 ? '#C9923E' : dry < 0.8 ? '#D05E2A' : '#B83020';
+  const mix = (a, b, t) => `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
+  const soil = mix([74,86,48], [156,131,80], dry);
+  const blades = useMemo(() => {
+    let seed = 99;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const N = 150, out = [];
+    for (let i = 0; i < N; i++) {
+      const x = (i + 0.5) / N * W + (rnd() - 0.5) * 5;
+      const localDry = Math.max(0, Math.min(1, dry + (rnd() - 0.5) * 0.5));
+      const ht = lerp(74, 40, localDry) * (0.7 + rnd() * 0.5);
+      const sway = rnd() - 0.5;
+      const droop = localDry * 34 * (sway >= 0 ? 1 : -1) + sway * 8;
+      const tipX = x + droop, tipY = baseY - ht + localDry * 10;
+      const cpX = x + droop * 0.5 + (rnd() - 0.5) * 6, cpY = baseY - ht * 0.55;
+      const col = mix([92,143,58], [150,104,46], localDry);
+      out.push({ x, tipX, tipY, cpX, cpY, col, wdt: lerp(2.6, 1.8, localDry), z: rnd() });
+    }
+    out.sort((a, b) => a.z - b.z);
+    return out;
+  }, [dry]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
+        onMouseEnter={() => setHovering(true)} onMouseLeave={() => setHovering(false)}
+        style={{ cursor: 'help' }}>
+        <rect x="0" y={baseY} width={W} height={H - baseY} fill={soil} />
+        <rect x="0" y={baseY} width={W} height="3" fill={`rgba(${fg},0.12)`} />
+        {blades.map((b, i) =>
+          <path key={i} d={`M ${b.x.toFixed(1)} ${baseY} Q ${b.cpX.toFixed(1)} ${b.cpY.toFixed(1)} ${b.tipX.toFixed(1)} ${b.tipY.toFixed(1)}`} stroke={b.col} strokeWidth={b.wdt.toFixed(1)} fill="none" strokeLinecap="round" />
+        )}
+        <text x="6" y="20" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.14em" fill={`rgba(${fg},0.55)`}>VEGETATION HEALTH</text>
+        <text x="6" y="36" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={stressColor}>HEAT STRESS: {stressLabel} · {Math.round((1 - dry) * 100)}% HEALTHY COVER</text>
+        {/* stress bar */}
+        <rect x="6" y="44" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
+        <rect x="6" y="44" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
+        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="8.5" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
+      </svg>
+      {hovering && (
+        <div className="grass-tip">
+          <div className="tip-year"><span>VEGETATION HEAT STRESS</span></div>
+          <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 700, margin: '4px 0 2px', color: stressColor }}>{stressLabel} STRESS</div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.65, margin: '4px 0 8px', letterSpacing: '0.06em' }}>+{tempValue.toFixed(1)}°C surface anomaly</div>
+          <div style={{ borderTop: '1px solid rgba(42,51,36,0.12)', paddingTop: 8, fontSize: 11, lineHeight: 1.6, opacity: 0.8 }}>
+            As temperatures rise, soil moisture drops and vegetation wilts. This chart shows projected vegetation health using CMIP6 surface temperature anomaly as a heat stress proxy. Each blade represents local variability.
+          </div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.5, marginTop: 8, letterSpacing: '0.04em' }}>
+            Data: MPI-ESM1-2-LR · CMIP6 · tas anomaly
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+window.VIZ = { Dial, CarbonBlocks, LineChart, Thermometer, WarmingStripes, SeaLevel, IceCaps, GrassField };
+
+// ============================================================
+// ── SECTION 3: TWEAKS PANEL
+// ============================================================
+
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    background:rgba(250,249,247,.86);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;min-height:0}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");background-repeat:no-repeat;background-position:right 8px center}
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:default}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip>span{position:absolute;top:0;bottom:0;right:0;width:34%;display:flex;flex-direction:column;box-shadow:-1px 0 0 rgba(0,0,0,.1)}
+  .twk-chip>span>i{flex:1}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues(prev => ({ ...prev, ...edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) };
+      panel.style.right = offsetRef.current.x + 'px';
+      panel.style.bottom = offsetRef.current.y + 'px';
+    };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onClick={() => setOpen(false)}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ label }) { return <div className="twk-sect">{label}</div>; }
+function TweakRow({ label, value, children, inline }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl"><span>{label}</span>{value != null && <span className="twk-val">{value}</span>}</div>
       {children}
     </div>
   );
 }
-
-function getBubble(metric, value, tempValue) {
-  if (metric === 'co2') {
-    if (value >= 700) return 'The ocean has absorbed 30% of all CO₂ ever emitted. Its pH has dropped 0.1 units, a 26% increase in acidity.';
-    if (value >= 560) return 'We\'ve doubled the pre-industrial atmospheric baseline.';
-    if (value >= 450) return 'The last time CO₂ was this high, forests grew in Antarctica.';
-  }
-  if (metric === 'temp') {
-    if (value >= 3.5) return 'Permafrost covers 25% of the Northern Hemisphere\'s land surface. At this temperature, it\'s releasing carbon, not storing it.';
-    if (value >= 2.0) return 'At this temperature, 37% of the global population is exposed to at least one severe heatwave per year.';
-    if (value >= 1.5) return 'The Paris Agreement\'s aspirational ceiling. Passed.';
-  }
-  if (metric === 'sea') {
-    if (value >= 100) return 'Over 600 million people live within 10 meters of sea level.';
-    if (value >= 50) return 'Tuvalu, Kiribati, and the Marshall Islands have begun legal proceedings over national territory submerged by rising seas.';
-    if (value >= 20) return 'South Florida\'s drainage system starts running in reverse during storm surges.';
-  }
-  if (metric === 'precip') {
-    if (tempValue >= 4.0) return 'At this level of warming, the Amazon rainforest begins converting to savanna, releasing its stored carbon.';
-    if (tempValue >= 2.5) return 'The Ganges, Colorado, and Yellow Rivers are projected to lose 10–30% of annual flow.';
-    if (tempValue >= 1.5) return 'The area in severe drought has roughly doubled globally since 2000.';
-  }
-  return null;
+function TweakSlider({ label, value, min = 0, max = 100, step = 1, unit = '', onChange }) {
+  return (
+    <TweakRow label={label} value={`${value}${unit}`}>
+      <input className="twk-slider" type="range" min={min} max={max} step={step} value={value} onChange={e => onChange(Number(e.target.value))} />
+    </TweakRow>
+  );
+}
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={e => onChange(e.target.value)}>
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+    </TweakRow>
+  );
+}
+function TweakColor({ label, value, options, onChange }) {
+  const isArr = Array.isArray(value);
+  return (
+    <TweakRow label={label}>
+      <div className="twk-chips">
+        {options.map((opt, i) => {
+          const isArrOpt = Array.isArray(opt);
+          const on = isArr ? JSON.stringify(value) === JSON.stringify(opt) : value === opt;
+          return (
+            <button key={i} className="twk-chip" data-on={on ? '1' : '0'} onClick={() => onChange(opt)} style={{ background: isArrOpt ? opt[0] : opt }}>
+              {isArrOpt && <span>{opt.slice(1).map((c, j) => <i key={j} style={{ background: c }} />)}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </TweakRow>
+  );
+}
+function TweakRadio({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+        {options.map(o => (
+          <button key={o} style={{ padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.15)', background: value === o ? 'rgba(0,0,0,0.78)' : 'rgba(255,255,255,0.6)', color: value === o ? '#fff' : 'inherit', font: 'inherit', cursor: 'default', fontSize: 11 }} onClick={() => onChange(o)}>{o}</button>
+        ))}
+      </div>
+    </TweakRow>
+  );
 }
 
-// ── MetricBlock ──
-function MetricBlock({ id, ssp, idx }) {
-  const theme = METRIC_THEMES[id];
-  const sspKey = ssp.code.replace('SSP', '');
-  const blockRef = React.useRef(null);
-  const [year, setYear] = React.useState(2025);
+// ============================================================
+// ── SECTION 4: SECTIONS
+// ============================================================
 
-  React.useEffect(() => {
+function Arrow() {
+  return <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><line x1="2" y1="8" x2="13" y2="8" /><polyline points="9 4 13 8 9 12" /></svg>;
+}
+
+// ── Top chrome ──────────────────────────────────────────────
+function TopChrome({ progress, chapter, dark }) {
+  return (
+    <React.Fragment>
+      <div className="readline"><i style={{ width: progress * 100 + '%' }} /></div>
+      <div className={'chrome' + (dark ? ' on-dark' : '')}>
+        <div className="chrome-brand">Degrees of Consequence</div>
+        <div className="chrome-right">
+          <span className="chrome-chapter">{chapter}</span>
+          <span className="chrome-progress"><i style={{ width: progress * 100 + '%' }} /></span>
+          <span className="chrome-chapter">{String(Math.round(progress * 100)).padStart(2, '0')}%</span>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+// ── Cover ───────────────────────────────────────────────────
+function BrandThermo() {
+  const stripes = [];
+  for (let i = 0; i < 7; i++) stripes.push(<rect key={i} x={8 + i * 16} y="6" width="8" height="188" fill="#000" opacity={i % 2 ? 0.07 : 0} />);
+  return (
+    <svg className="cover-thermo" viewBox="0 0 120 200" aria-hidden="true">
+      <rect x="2" y="2" width="116" height="196" rx="16" fill="var(--tw-accent)" />
+      <g>{stripes}</g>
+      <rect x="2" y="2" width="116" height="196" rx="16" fill="none" stroke="rgba(0,0,0,0.14)" strokeWidth="2" />
+      <rect x="50" y="22" width="20" height="120" rx="10" fill="#fbfaf4" stroke="rgba(0,0,0,0.2)" strokeWidth="2" />
+      <circle cx="60" cy="158" r="22" fill="#fbfaf4" stroke="rgba(0,0,0,0.2)" strokeWidth="2" />
+      <circle cx="60" cy="158" r="16" fill="#C0392B" />
+      <rect x="54" y="64" width="12" height="98" rx="6" fill="#C0392B" />
+      <circle cx="60" cy="64" r="7" fill="#C0392B" />
+      {[0,1,2,3,4,5,6,7].map(i => <line key={i} x1="38" y1={34 + i * 14} x2={i % 2 ? 46 : 50} y2={34 + i * 14} stroke="rgba(255,255,255,0.85)" strokeWidth="2" strokeLinecap="round" />)}
+      <rect x="53" y="28" width="3" height="100" rx="1.5" fill="rgba(255,255,255,0.6)" />
+    </svg>
+  );
+}
+
+function Cover() {
+  return (
+    <section className="scene cover" data-screen-label="01 Cover">
+      <div className="col--wide">
+        <div className="eyebrow reveal" style={{ marginBottom: 28 }}>An interactive story · 75 years of choices</div>
+        <div className="cover-title-row reveal">
+          <BrandThermo />
+          <h1 className="display">Degrees <em className="of">of</em><br /><span className="acc">Consequence</span></h1>
+        </div>
+      </div>
+      <div className="scroll-hint"><span>Scroll to begin</span><span className="bar" /></div>
+    </section>
+  );
+}
+
+// ── About ───────────────────────────────────────────────────
+function About() {
+  return (
+    <section className="scene scene--alt" data-screen-label="01 About">
+      <div className="col stack-28">
+        <div className="eyebrow reveal">Chapter One · The premise</div>
+        <p className="lede reveal" style={{ maxWidth: '40ch' }}>Somewhere in the next few years, the decisions that shape the next century get made. Not by nature. Not by accident. By people: through votes, boardrooms, and budgets. Pick a seat at the table and see what your choices leave behind.</p>
+        <p className="body reveal">
+          This story runs on <strong>CMIP6</strong> climate-model output — the same projections the IPCC
+          uses: surfaced through three plausible futures. Each future is just a different set of human
+          decisions, compounded over 75 years. You won't read a lecture. You'll pick a worldview, watch
+          the model run it forward to 2100, and see the world it leaves behind.
+        </p>
+        <div className="reveal" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'center', paddingTop: 8 }}>
+          {[['var(--tw-low)', 'Sustainable', '+1.3°C'], ['var(--tw-mid)', 'Middle Road', '+2.7°C'], ['var(--tw-high)', 'Fossil-Fueled', '+5.0°C']].map(([c, n, d]) =>
+            <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+              <span style={{ width: 14, height: 14, borderRadius: '50%', background: c, flexShrink: 0 }} />
+              <span><span className="label" style={{ display: 'block' }}>{n}</span><b style={{ fontFamily: 'var(--tw-serif)', fontSize: 22 }}>{d}</b></span>
+            </div>
+          )}
+        </div>
+        <p className="label reveal" style={{ marginTop: 8, opacity: 0.55 }}>Data · CMIP6 · MPI-ESM1-2-LR · NOAA / Google Cloud · 1980–2100</p>
+      </div>
+    </section>
+  );
+}
+
+// ── Persona select ──────────────────────────────────────────
+function PersonaSelect({ persona, onPick }) {
+  const consoleRef = React.useRef(null);
+  const handleContinue = () => {
+    const target = document.querySelector('[data-screen-label="02 The console"]');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  return (
+    <section className="scene scene--tall" data-screen-label="02 Take a seat">
+      <div className="col--wide">
+        <div className="eyebrow reveal" style={{ marginBottom: 22 }}>Chapter Two · Take a seat</div>
+        <h2 className="h2 reveal">Who are you<br />at the table?</h2>
+        <p className="lede reveal" style={{ maxWidth: '52ch', marginTop: 22, color: 'var(--ink-soft)' }}>Three people walk into the room, each holding a different vision of the next decade. Pick one to continue.</p>
+        <div className="persona-grid">
+          {PERSONAS.map((p, i) =>
+            <button key={p.id} className={'persona reveal' + (persona === p.id ? ' sel' : '')} style={{ transitionDelay: i * 60 + 'ms' }} onClick={() => onPick(p.id)}>
+              <div className="persona-img"><img src={p.img} alt={p.name} /></div>
+              <div className="persona-body">
+                <span className="persona-role">{p.label}</span>
+                <span className="persona-name">{p.name}</span>
+                <p className="persona-tag">{p.tag}</p>
+                <span className="persona-cta">{persona === p.id ? 'Seat taken ✓' : 'Take this seat'}{persona !== p.id && <Arrow />}</span>
+              </div>
+            </button>
+          )}
+        </div>
+        <div className="persona-continue-row reveal" style={{ marginTop: 40 }}>
+          {persona ? (
+            <button className="btn btn--primary" onClick={handleContinue}>
+              Continue as {PERSONAS.find(p => p.id === persona)?.name} <Arrow />
+            </button>
+          ) : (
+            <div className="persona-gate-hint">
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--tw-accent)', display: 'inline-block', marginRight: 8 }} />
+              Choose a character above to continue
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Policy console ──────────────────────────────────────────
+function PolicyConsole({ persona }) {
+  const { useState } = React;
+  const p = PERSONAS.find(x => x.id === persona) || PERSONAS[1];
+  const [knob, setKnob] = useState(0);
+  const bucket = classify(computeScore(p.values));
+  const thought = PERSONA_THOUGHTS[p.id] || {};
+  const cur = KNOB_DEFS[knob];
+  return (
+    <section className="scene scene--alt" data-screen-label="02 The console">
+      <div className="col--wide">
+        <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Two · The console</div>
+        <h2 className="h3 reveal" style={{ maxWidth: '20ch' }}>Six dials turn one worldview into one pathway.</h2>
+        <p className="body reveal" style={{ maxWidth: '60ch', marginTop: 16 }}>
+          {p.name} sets every dial without thinking about it — that's what a worldview is.
+          Click any dial to hear the logic behind it.
+        </p>
+        <div className="reveal console-layout" style={{ marginTop: 40 }}>
+          <div className="thought-card">
+            <div className="label" style={{ color: 'var(--tw-accent)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--tw-accent)' }} />
+              PRIORITY {String(knob + 1).padStart(2, '0')} OF 06
+            </div>
+            <img src={cur.img} alt="" style={{ marginTop: 16, width: 52, height: 52 }} />
+            <div style={{ fontSize: 28, lineHeight: 1.0, margin: '12px 0 10px', fontFamily: 'var(--tw-serif)' }}>{cur.short}</div>
+            <p className="body" style={{ fontSize: 14, margin: 0 }}>{cur.desc}</p>
+            <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '16px 0' }} />
+            <p style={{ fontFamily: 'var(--mono)', fontSize: 12.5, lineHeight: 1.65, color: 'var(--ink-soft)', margin: 0 }}>{thought[cur.id]}</p>
+          </div>
+          <div className="console">
+            <div className="console-head">
+              <div className="console-who">
+                <div className="fig fig--round"><img src={p.img} alt="" /></div>
+                <div>
+                  <div className="nm">{p.name}</div>
+                  <div className="rl">{p.keywords}</div>
+                </div>
+              </div>
+              <div className="console-classify">
+                <div className="k">Projected pathway</div>
+                <div className="v" style={{ color: bucket.swatch }}>{bucket.code}</div>
+                <div className="k" style={{ marginTop: 4 }}>{bucket.name} · +{bucket.delta.toFixed(1)}°C</div>
+              </div>
+            </div>
+            <div className="dial-grid">
+              {KNOB_DEFS.map((k, i) =>
+                <button key={k.id} className={'dial-cell' + (i === knob ? ' active' : '')} onClick={() => setKnob(i)}>
+                  <Dial value={p.values[k.id]} color="#E08D5C" active={i === knob} />
+                  <span className="dl">{k.short}</span>
+                  <span className="dv">{String(p.values[k.id]).padStart(2, '0')} / 100</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Time jump (scroll-driven) ───────────────────────────────
+function TimeJump({ persona }) {
+  const { useRef, useState, useEffect } = React;
+  const ref = useRef(null);
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
     const onScroll = () => {
-      const el = blockRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
+      const el = ref.current; if (!el) return;
       const total = el.offsetHeight - window.innerHeight;
-      const p = Math.max(0, Math.min(1, -rect.top / total));
-      setYear(Math.round(2025 + p * 75));
+      setProgress(Math.max(0, Math.min(1, -el.getBoundingClientRect().top / (total || 1))));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  const LINES = [
+    [0.00, 'The room empties. The decisions begin to settle.'],
+    [0.22, 'The atmosphere keeps a perfect ledger.'],
+    [0.44, 'Children born during the meeting are writing the headlines.'],
+    [0.66, 'The atmosphere keeps a perfect ledger.'],
+    [0.86, 'The future arrives. On schedule.'],
+  ];
+  // Gate: if no persona selected, scroll back when user enters this section
+  useEffect(() => {
+    if (persona || !ref.current) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) {
+        const target = document.querySelector('[data-screen-label="02 Take a seat"]');
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, { threshold: 0.3 });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [persona]);
+
+  const eased = 1 - Math.pow(1 - Math.min(1, progress / 0.9), 1.5);
+  const year = Math.round(2025 + 75 * eased);
+  const line = [...LINES].reverse().find(l => progress >= l[0]) || LINES[0];
+  const ticks = [];
+  for (let i = 0; i < 76; i++) {
+    const a = i / 76 * Math.PI * 2 - Math.PI / 2;
+    const lit = i / 76 <= eased;
+    const r1 = 86, r2 = lit ? 96 : 92;
+    ticks.push(<line key={i} x1={100 + r1 * Math.cos(a)} y1={100 + r1 * Math.sin(a)} x2={100 + r2 * Math.cos(a)} y2={100 + r2 * Math.sin(a)} stroke={lit ? '#E08D5C' : 'rgba(236,230,206,0.22)'} strokeWidth={lit ? 2 : 1} strokeLinecap="round" />);
+  }
+  return (
+    <div className="timejump" ref={ref} data-screen-label="03 Time jump">
+      <div className="timejump-sticky">
+        <svg className="timejump-ring" viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(236,230,206,0.12)" strokeWidth="1" />
+          {ticks}
+        </svg>
+        <div className="timejump-inner">
+          <div className="label" style={{ color: 'var(--sage)' }}>Time passing</div>
+          <div className="timejump-year">{year}</div>
+          <div className="timejump-line" key={line[1]}>{line[1]}</div>
+          <div className="timejump-track"><span>2025</span><span className="now">{year}</span><span>2100</span></div>
+          <div className="timejump-bar"><i style={{ width: eased * 100 + '%' }} /></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Timeline intro (dark) ───────────────────────────────────
+function TimelineIntro({ bucket }) {
+  return (
+    <section className="scene scene--dark" data-screen-label="03 What comes next">
+      <div className="col stack-28">
+        <div className="eyebrow reveal">Chapter Three · What comes next</div>
+        <h2 className="h2 reveal">This is the world<br />your framework builds.</h2>
+        <p className="lede reveal" style={{ maxWidth: '54ch' }}>
+          Scroll forward from 2025 to 2100 through four lenses — carbon, heat, the rising sea, and the
+          water cycle. Your pathway is drawn in bold; the other two run faint beside it. Watch how far they diverge.
+        </p>
+        <div className="reveal pathway-tag">
+          <span className="sw" style={{ background: bucket.swatch }} />
+          Your pathway · {bucket.code} · {bucket.name} · +{bucket.delta.toFixed(1)}°C by 2100
+        </div>
+        <p className="label reveal" style={{ marginTop: 4, opacity: 0.5 }}>Data · MPI-ESM1-2-LR · CMIP6 · 1980–2100</p>
+      </div>
+    </section>
+  );
+}
+
+// ── Metric chapter ──────────────────────────────────────────
+function Chapter({ metric, bucket }) {
+  const { useRef, useState, useEffect } = React;
+  const ref = useRef(null);
+  const [prog, setProg] = useState(0);
+  const M = metric;
+  const sspKey = bucket.key;
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = ref.current; if (!el) return;
+      const total = el.offsetHeight - window.innerHeight;
+      setProg(Math.max(0, Math.min(1, -el.getBoundingClientRect().top / (total || 1))));
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const handleChartSeek = React.useCallback((seekYear) => {
-    const el = blockRef.current;
-    if (!el) return;
-    const frac = (seekYear - 2025) / 75;
-    const total = el.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: el.offsetTop + frac * total, behavior: 'smooth' });
-  }, []);
+  const beats = BEATS[M.id][sspKey];
+  const year = Math.round(2025 + Math.min(1, prog) * 75);
+  const yc = Math.min(2100, year);
+  const value = valAt(M.id, sspKey, yc);
+  const tempVal = valAt('temp', sspKey, yc);
+  const activeStep = Math.max(0, Math.min(beats.length - 1, Math.floor(prog * beats.length * 0.999)));
+  const b = beats[activeStep];
 
-  const curve = generateCurve(id, sspKey);
-  const point = curve.find(d => d.year === year) || curve[0];
-  const value = point.val;
-  const beats = METRIC_BEATS[id][sspKey];
-  const activeBeat = [...beats].reverse().find(b => b.year <= year) || beats[0];
-  const Viz = METRIC_VIZ[id];
-
-  const tempCurveForBubble = generateCurve('temp', sspKey);
-  const tempPtForBubble = tempCurveForBubble.find(d => d.year === year) || { val: 0 };
-  const bubble = getBubble(id, value, tempPtForBubble.val);
-
-  return (
-    <div className="metric-block" data-screen-label={`04${String.fromCharCode(65+idx)} ${theme.title}`} ref={blockRef} style={{ background: theme.bg, color: theme.fg }}>
-      <div className="metric-scroller">
-        <div className="metric-sticky">
-          <div className="metric-row">
-            <div className="metric-narrative">
-              <div className="metric-chapter" style={{ color: theme.soft }}>{theme.chapter} · {theme.label}</div>
-              {theme.img && <img src={theme.img} alt="" className="metric-decor-img"/>}
-              <div className="metric-year" style={{ color: theme.accent }}>{year}</div>
-              <h3 style={{ color: theme.fg }}>{activeBeat.title}</h3>
-              <p style={{ color: theme.soft }}>{activeBeat.body}</p>
-              {bubble && <NarrativeBubble color={theme.accent} faint={theme.soft}>{bubble}</NarrativeBubble>}
-              <div className="metric-pathway-tag" style={{ color: theme.soft }}>
-                Your pathway · <span style={{ color: ssp.swatch }}>{ssp.code}</span> · {ssp.name}
-              </div>
-            </div>
-            <div className="metric-viz">
-              <Viz value={value} year={year} color={theme.accent} fg={theme.fg} faint={theme.faint} soft={theme.soft} bg={theme.bg} ssp={ssp} curve={curve} beats={beats}/>
-            </div>
-          </div>
-          <div className="metric-chart" style={{ borderColor: theme.faint, color: theme.fg }}>
-            <MetricMiniChart metric={id} year={year} ssp={ssp} theme={theme} onSeek={handleChartSeek}/>
-          </div>
-        </div>
-        {[0,1,2,3,4].map(i => <div key={i} className="metric-frame"/>)}
+  const Viz = () => {
+    if (M.id === 'temp') return <Thermometer value={value} dark={M.dark} />;
+    if (M.id === 'co2') return <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
+    if (M.id === 'sea') return (
+      <div className="sea-combo">
+        <IceCaps tempValue={tempVal} year={yc} dark={false} key="ice" />
+        <SeaLevel value={value} year={yc} dark={false} key="sea" />
       </div>
-    </div>
-  );
-}
-
-// ── Timeline section ──
-function TimelineSection({ ssp }) {
-  return (
-    <>
-      <div className="timeline-intro" data-screen-label="04 Timeline Intro">
-        <div className="wrap">
-          <div className="eyebrow" style={{ marginBottom: 22 }}>Chapter Three · What Comes Next</div>
-          <h2>This is the world<br/>your framework builds.</h2>
-          <p className="lede">
-            Scroll forward in time, from 2025 to 2100, through four lenses: how hot it gets,
-            how much carbon we leave in the sky, how high the seas rise, and how the water moves.
-            Your pathway is highlighted. Watch how much it diverges from the others.
-          </p>
-          <p style={{ fontSize: 14, fontFamily: 'var(--mono)', letterSpacing: '0.1em', color: 'var(--ink-soft)', marginTop: 20 }}>
-            DATA · MPI-ESM1-2-LR · CMIP6 · r1i1p1f1 · NOAA/Google Cloud
-          </p>
-        </div>
-      </div>
-      <MetricBlock id="co2"    ssp={ssp} idx={0}/>
-      <MetricBlock id="temp"   ssp={ssp} idx={1}/>
-      <MetricBlock id="sea"    ssp={ssp} idx={2}/>
-      <MetricBlock id="precip" ssp={ssp} idx={3}/>
-    </>
-  );
-}
-
-// ── Hero ──
-function HeroTitle() {
-  return (
-    <section className="hero" data-screen-label="01 Intro">
-      <div className="eyebrow">An interactive story · 75 years of choices</div>
-      <h1>Degrees of<br/><span className="acc">Consequence</span></h1>
-      <div className="scroll-hint"><span>Scroll to begin</span><span className="bar"/></div>
-    </section>
-  );
-}
-
-// ── Hero description slide ──
-function HeroDesc() {
-  return (
-    <section className="hero-desc" data-screen-label="01 About">
-      <div className="hero-desc-inner">
-        <p className="hero-desc-lede">
-          Somewhere in the next few years, the decisions that shape the next century will be made. Not by nature. Not by accident. By people, in votes, in boardrooms, in budgets. Pick a seat at the table and see what your choices leave behind.
-        </p>
-        <div className="hero-desc-meta">
-          <div>Reading time<span>~ 6 minutes</span></div>
-          <div>Dataset<span>CMIP6 · SSPs</span></div>
-          <div>Issue<span>Vol. 01 · 2026</span></div>
-        </div>
-      </div>
-      <div className="scroll-hint"><span>Continue</span><span className="bar"/></div>
-    </section>
-  );
-}
-
-// ── DialDisplay (read-only, dark-panel themed) ──
-function DialDisplay({ value, color, label, img }) {
-  const minA = -135, maxA = 135;
-  const angle = minA + (value / 100) * (maxA - minA);
-  const cx = 60, cy = 60, r = 46;
-  const a0 = (minA - 90) * Math.PI / 180;
-  const a1 = (angle - 90) * Math.PI / 180;
-  const a2 = (maxA - 90) * Math.PI / 180;
-  const arc = (start, end) => {
-    const sx = cx + r * Math.cos(start), sy = cy + r * Math.sin(start);
-    const ex = cx + r * Math.cos(end), ey = cy + r * Math.sin(end);
-    const large = (end - start) > Math.PI ? 1 : 0;
-    return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
-  };
-  const imgSize = 28;
-  return (
-    <div className="dial-display">
-      <div className="dial-display-dial">
-        <svg viewBox="0 0 120 120">
-          <path d={arc(a0, a2)} stroke="rgba(236,230,206,0.08)" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d={arc(a0, a1)} stroke={color} strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <circle cx={cx} cy={cy} r={34} fill="rgba(10,16,8,0.85)" stroke="rgba(236,230,206,0.12)" strokeWidth="1"/>
-          {img && <image href={img} x={cx - imgSize/2} y={cy - imgSize/2} width={imgSize} height={imgSize} preserveAspectRatio="xMidYMid meet" opacity="0.82"/>}
-          <g transform={`rotate(${angle} ${cx} ${cy})`}>
-            <line x1={cx} y1={cy - 18} x2={cx} y2={cy - 29} stroke="rgba(236,230,206,0.9)" strokeWidth="2.5" strokeLinecap="round"/>
-            <circle cx={cx} cy={cy - 32} r="3.5" fill={color}/>
-          </g>
-        </svg>
-      </div>
-      <div className="dial-display-label">{label}</div>
-      <div className="dial-display-value">{value.toString().padStart(2, '0')}<span className="dial-display-max"> / 100</span></div>
-    </div>
-  );
-}
-
-// ── CalibDialDisplay (animated needle for calibration overlay) ──
-function CalibDialDisplay({ value, color, label, wobbling }) {
-  const minA = -135, maxA = 135;
-  const angle = minA + (value / 100) * (maxA - minA);
-  const cx = 60, cy = 60, r = 46;
-  const a0 = (minA - 90) * Math.PI / 180;
-  const a1 = (angle - 90) * Math.PI / 180;
-  const a2 = (maxA - 90) * Math.PI / 180;
-  const arc = (start, end) => {
-    const sx = cx + r * Math.cos(start), sy = cy + r * Math.sin(start);
-    const ex = cx + r * Math.cos(end), ey = cy + r * Math.sin(end);
-    const large = (end - start) > Math.PI ? 1 : 0;
-    return `M ${sx} ${sy} A ${r} ${r} 0 ${large} 1 ${ex} ${ey}`;
-  };
-  const needleTrans = wobbling
-    ? 'transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1)'
-    : 'transform 1.1s cubic-bezier(0.34, 1.56, 0.64, 1)';
-  return (
-    <div className="dial-display">
-      <div className="dial-display-dial">
-        <svg viewBox="0 0 120 120">
-          <path d={arc(a0, a2)} stroke="rgba(236,230,206,0.08)" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <path d={arc(a0, a1)} stroke={color} strokeWidth="3" fill="none" strokeLinecap="round"/>
-          <circle cx={cx} cy={cy} r={34} fill="rgba(10,16,8,0.85)" stroke="rgba(236,230,206,0.12)" strokeWidth="1"/>
-          <g style={{ transform: `rotate(${angle}deg)`, transformOrigin: `${cx}px ${cy}px`, transition: needleTrans }}>
-            <line x1={cx} y1={cy - 10} x2={cx} y2={cy - 26} stroke="rgba(236,230,206,0.9)" strokeWidth="2.5" strokeLinecap="round"/>
-            <circle cx={cx} cy={cy - 29} r="3.5" fill={color}/>
-          </g>
-        </svg>
-      </div>
-      <div className="dial-display-label">{label}</div>
-      <div className="dial-display-value" style={{ color }}>{value.toString().padStart(2, '0')}<span className="dial-display-max"> / 100</span></div>
-    </div>
-  );
-}
-
-// ── Calibration overlay ──
-function CalibrationOverlay({ character, onDone }) {
-  const randomVals = () => ({
-    fossil: Math.round(Math.random() * 100),
-    renew:  Math.round(Math.random() * 100),
-    carbon: Math.round(Math.random() * 100),
-    forest: Math.round(Math.random() * 100),
-    coop:   Math.round(Math.random() * 100),
-    consume:Math.round(Math.random() * 100),
-  });
-
-  const [phase, setPhase] = React.useState('wobble');
-  const [vals, setVals] = React.useState(randomVals);
-
-  React.useEffect(() => {
-    const churn = setInterval(() => setVals(randomVals()), 140);
-    const t1 = setTimeout(() => { clearInterval(churn); setPhase('settle'); setVals({ ...character.values }); }, 1800);
-    const t2 = setTimeout(() => setPhase('exit'), 3000);
-    const t3 = setTimeout(() => onDone?.(), 3700);
-    return () => { clearInterval(churn); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, []);
-
-  const wobbling = phase === 'wobble';
-  const ssp = classify(computeScore(character.values));
-
-  const eyebrow = wobbling
-    ? 'Calibrating: framework parameters'
-    : phase === 'settle' ? `${character.name}: settings locked` : 'Entering the policy console';
-
-  const caption = wobbling
-    ? 'Six knobs, no fixed answer. Searching the space.'
-    : phase === 'settle' ? 'Settings locked in. Inspect each knob on the next screen.' : 'Continuing.';
-
-  const footer = wobbling ? '. . .' : `${ssp.code} · ${ssp.name} · +${ssp.delta.toFixed(1)}°C`;
-  const readout = wobbling ? 'Live · adjusting' : 'Live · holding';
-
-  return (
-    <div className={`calibration-overlay${phase === 'exit' ? ' phase-exit' : ''}`}>
-      <div className="calibration-inner">
-        <div className="calibration-eyebrow">
-          <span className="calibration-pulse-dot"/>
-          {eyebrow}
-        </div>
-        <div className={`calibration-panel-wrap calibration-${phase}`}>
-          <div className="policy-right" style={{ margin: 0 }}>
-            <div className="policy-console-header-row">
-              <div className="policy-console-title">Policy console</div>
-              <div className="policy-console-hint">{readout}</div>
-            </div>
-            <div className="policy-dials-grid">
-              {KNOB_DEFS.map(k => (
-                <div key={k.id} className="policy-dial-cell">
-                  <CalibDialDisplay value={vals[k.id] || 0} color="#E08D5C" label={k.shortLabel} wobbling={wobbling}/>
-                </div>
-              ))}
-            </div>
-            <div className="policy-footer-row">
-              <div className="policy-footer-label">PROJECTED PATHWAY</div>
-              <div className="calibration-footer-result">{footer}</div>
-            </div>
-          </div>
-        </div>
-        <p className="calibration-caption">{caption}</p>
-      </div>
-    </div>
-  );
-}
-
-// ── Character select screen ──
-function CharacterSelectScreen({ onPick }) {
-  const [hovered, setHovered] = React.useState(null);
-  return (
-    <section className="char-select" data-screen-label="03 The Choice">
-      <div className="wrap">
-        <div className="eyebrow" style={{ marginBottom: 18 }}>Chapter Two · Take a Seat</div>
-        <h2>Who are you<br/>at the table?</h2>
-        <p className="char-select-lede">
-          Three people walk into the room. Each holds a different vision of what the next decade should look like.
-          Pick one and watch the world their choices build.
-        </p>
-        <div className="char-cards">
-          {PERSONAS.map(p => (
-            <button key={p.id}
-              className={`char-card${hovered === p.id ? ' char-card--hovered' : ''}`}
-              onMouseEnter={() => setHovered(p.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => onPick(p)}>
-              <div className="char-card-img-wrap">
-                <img src={p.img} alt={p.name} className="char-card-img"/>
-              </div>
-              <div className="char-card-body">
-                <div className="char-card-role">{p.label}</div>
-                <div className="char-card-name">{p.name}</div>
-                <p className="char-card-tag">{p.tag}</p>
-                <div className="char-card-cta">Take this seat →</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Policy console (shown after calibration) ──
-function PolicyConsole({ persona, values, bucket, onSubmit, activeThought, setActiveThought, onChangeCharacter }) {
-  const thought = PERSONA_THOUGHTS[persona.id] || {};
-  const currentKnob = KNOB_DEFS[activeThought];
-
-  const handleKnobClick = (i) => { setActiveThought(i); };
-
-  return (
-    <section className="policy-console-section" data-screen-label="03 The Choice">
-      <div className="wrap">
-        <button className="policy-back-btn" onClick={onChangeCharacter}>Choose a different character</button>
-        <div className="policy-console">
-
-          {/* Left: character card + priority card */}
-          <div className="policy-left">
-            <div className="policy-char-card">
-              <img src={persona.img} alt={persona.name} className="policy-char-img"/>
-              <div className="policy-char-info">
-                <div className="policy-char-name">{persona.name}</div>
-                <div className="policy-char-role">{persona.keywords}</div>
-              </div>
-            </div>
-
-            <div className="policy-priority-card">
-              <div className="policy-priority-eyebrow">
-                <span className="policy-priority-dot"/>
-                PRIORITY {String(activeThought + 1).padStart(2, '0')} OF 06
-              </div>
-              {currentKnob.img && <img src={currentKnob.img} alt="" className="policy-priority-img" key={currentKnob.id + '-img'}/>}
-              <div className="policy-priority-title" key={currentKnob.id + '-t'}>{currentKnob.shortLabel}</div>
-              <p className="policy-priority-desc" key={currentKnob.id + '-d'}>{currentKnob.description}</p>
-              <hr className="policy-priority-rule"/>
-              <p className="policy-priority-thought" key={currentKnob.id + '-q'}>{thought[currentKnob.id]}</p>
-              <div className="policy-priority-bars">
-                {KNOB_DEFS.map((k, i) => (
-                  <button key={k.id}
-                    className={`policy-bar${i === activeThought ? ' policy-bar--active' : ''}`}
-                    onClick={() => handleKnobClick(i)}
-                    aria-label={k.shortLabel}/>
-                ))}
-              </div>
-              <div className="policy-priority-hint">CLICK ANY KNOB TO INSPECT HOW THIS FRAMEWORK TREATS IT.</div>
-            </div>
-          </div>
-
-          {/* Right: dark console */}
-          <div className="policy-right">
-            <div className="policy-console-header-row">
-              <div className="policy-console-title">Policy console</div>
-              <div className="policy-console-hint">
-                <span className="policy-console-hint-dot"/>SIX KNOBS · CLICK ANY
-              </div>
-            </div>
-            <div className="policy-dials-grid">
-              {KNOB_DEFS.map((k, i) => (
-                <button key={k.id}
-                  className={`policy-dial-cell${i === activeThought ? ' policy-dial-cell--active' : ''}`}
-                  onClick={() => handleKnobClick(i)}>
-                  {k.img && <img src={k.img} alt="" className="policy-dial-icon"/>}
-                  <DialDisplay value={values[k.id] || 0} color="#E08D5C" label={k.shortLabel}/>
-                </button>
-              ))}
-            </div>
-            <div className="policy-footer-row">
-              <div className="policy-footer-label">PROJECTED PATHWAY</div>
-              <div className="policy-footer-result" style={{ color: bucket.swatch }}>
-                {bucket.code} · {bucket.name.toUpperCase()} · +{bucket.delta.toFixed(1)}°C
-              </div>
-            </div>
-            <button className="policy-submit" onClick={onSubmit}>
-              Apply this framework <ArrowIcon/>
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ── Choice section (orchestrates select → calibrate → console) ──
-function ChoiceSection({ values, setValues, persona, setPersona, onSubmit }) {
-  const [phase, setPhase] = React.useState('select');
-  const [activeThought, setActiveThought] = React.useState(0);
-
-  React.useEffect(() => {
-    if (persona === null) { setPhase('select'); setActiveThought(0); }
-  }, [persona]);
-
-  const pickPersona = (p) => {
-    setPersona(p.id);
-    setValues({ ...p.values });
-    setPhase('calibrating');
-    setActiveThought(0);
-  };
-
-  const selectedPersona = PERSONAS.find(p => p.id === persona);
-  const score = computeScore(values);
-  const bucket = classify(score);
-
-  if (phase === 'select' || !selectedPersona) {
-    return <CharacterSelectScreen onPick={pickPersona}/>;
-  }
-
-  if (phase === 'calibrating') {
-    return (
-      <>
-        <PolicyConsole
-          persona={selectedPersona}
-          values={values}
-          bucket={bucket}
-          onSubmit={onSubmit}
-          activeThought={activeThought}
-          setActiveThought={setActiveThought}
-          onChangeCharacter={() => { setPhase('select'); setPersona(null); }}
-        />
-        <CalibrationOverlay character={selectedPersona} onDone={() => setPhase('console')}/>
-      </>
     );
-  }
+    if (M.id === 'precip') return <div className="viz-box"><GrassField tempValue={tempVal} /></div>;
+    return null;
+  };
+
+  const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
 
   return (
-    <PolicyConsole
-      persona={selectedPersona}
-      values={values}
-      bucket={bucket}
-      onSubmit={onSubmit}
-      activeThought={activeThought}
-      setActiveThought={setActiveThought}
-      onChangeCharacter={() => { setPhase('select'); setPersona(null); }}
-    />
-  );
-}
-
-// ── Outro ──
-function Outro({ onRestart }) {
-  return (
-    <section className="outro" data-screen-label="06 Outro">
-      <div className="wrap">
-        <div className="row">
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 22 }}>Chapter Five · The Real Dials</div>
-            <h2>The dials that matter most are not in your hands.</h2>
-            <p style={{ fontSize: 18, color: 'var(--ink-soft)', maxWidth: '54ch', marginTop: 24 }}>
-              Just 57 corporations are responsible for 80 percent of global emissions since 2016.
-              The CMIP6 pathways diverge not on individual choices but on policy: binding carbon
-              pricing, ending fossil fuel subsidies, regulating methane, and mandating a managed
-              phase-out of extraction. Demanding that governments enact these policies, and holding
-              them to account when they don't, is the lever that actually moves the models.
-            </p>
-            <button className="restart" onClick={onRestart}>Restart your future <ArrowIcon/></button>
-            <div className="outro-decor-imgs">
-              <img src="../images/handshake.png" alt="" className="outro-decor-img"/>
-              <img src="../images/wind_turbines.png" alt="" className="outro-decor-img"/>
+    <section className={'scene chapter chapter--tall' + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
+      <div className="chapter-sticky2">
+        <div className="metric-comp">
+          <div className="mc-narr">
+            <div className="eyebrow">{M.chapter} · {M.title}</div>
+            <div className="mc-beat" key={activeStep} style={{ marginTop: 18 }}>
+              <div className="mc-year">{year}</div>
+              <h3 style={{ fontFamily: 'var(--tw-serif)', margin: '8px 0 10px' }}>{b.title}</h3>
+              <p style={{ margin: 0 }}>{b.body}</p>
+              <div className="mc-note">{b.note}</div>
             </div>
           </div>
-          <div className="credits">
-            <b>Team</b>
-            Tanvi Vidyala<br/>
-            Nithya Nair<br/>
-            Viela Lansangan<br/>
-            <b>Data</b>
-            CMIP6 / MPI-ESM1-2-LR<br/>
-            via NOAA / Google Cloud<br/>
-            Processed with xarray + regionmask
-            <b>Vol. 01 · 2026</b>
-            UCSD · DSC 106
+          <div className="mc-viz"><Viz /></div>
+          <div className="mc-chart">
+            <div className="mc-chart-head">
+              <div>
+                <div className="vt">{M.label} · {year}</div>
+                <div className="vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+              </div>
+            </div>
+            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} />
           </div>
         </div>
       </div>
@@ -1548,172 +1090,277 @@ function Outro({ onRestart }) {
   );
 }
 
-// ── TimeJump ──
-function TimeJump({ onComplete }) {
-  const clampVal = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+// ── Summary tree ────────────────────────────────────────────
+const TREE_PATHS = {
+  '1-2.6': { code: 'SSP1-2.6', name: 'Sustainable',   delta: 1.3, swatch: 'var(--tw-low)' },
+  '2-4.5': { code: 'SSP2-4.5', name: 'Middle Road',   delta: 2.7, swatch: 'var(--tw-mid)' },
+  '5-8.5': { code: 'SSP5-8.5', name: 'Fossil-Fueled', delta: 5.0, swatch: 'var(--tw-high)' },
+};
 
-  const DURATION = 8500;
-  const LINES = [
-    { from: 0.00, to: 0.18, text: 'The room empties. The decisions begin to settle.' },
-    { from: 0.18, to: 0.38, text: 'A decade passes. Then another.' },
-    { from: 0.38, to: 0.62, text: 'Children born during the meeting are now writing the headlines.' },
-    { from: 0.62, to: 0.84, text: 'The atmosphere keeps a perfect ledger.' },
-    { from: 0.84, to: 1.01, text: 'The future arrives. On schedule.' },
+// Severity drives tree appearance: 0 = fully lush, 1 = fully barren
+const TREE_SEVERITY = { '1-2.6': 0.08, '2-4.5': 0.52, '5-8.5': 0.96 };
+
+function SummaryTree({ bucket }) {
+  const { useState, useRef, useEffect } = React;
+  const [view, setView] = useState(bucket.key);
+  const [prevView, setPrevView] = useState(null);
+  const [animating, setAnimating] = useState(false);
+  const [hoveredMetric, setHoveredMetric] = useState(null);
+  const [tipPos, setTipPos] = useState({ x: 0, y: 0 });
+  const svgRef = useRef(null);
+
+  const switchView = (newView) => {
+    if (newView === view || animating) return;
+    setAnimating(true);
+    setTimeout(() => {
+      setView(newView);
+      setAnimating(false);
+    }, 300);
+  };
+
+  const meta = TREE_PATHS[view] || TREE_PATHS['2-4.5'];
+  const key = view;
+  const sev = TREE_SEVERITY[key] ?? 0.5;
+  const lush = 1 - sev;
+
+  const mix = (a, b, t) => `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
+
+  // Trunk color: healthy brown → ashen grey-brown when barren
+  const wood = mix([85,62,38], [110,98,88], sev);
+  const trunkW = lerp(22, 10, sev);  // thin trunk when barren
+  const branchW = lerp(10, 4, sev);
+
+  // Leaf color: lush green → burnt brown/grey
+  const leafCol = mix([72,148,80], [130,110,80], sev);
+  // Background ground: rich green → dry cracked
+  const groundCol = mix([96,140,76], [168,148,110], sev);
+  const skyCol = mix([240,248,240], [252,244,220], sev);
+
+  const W = 1000, H = 540, groundY = 480, baseX = 500, forkX = 500, forkY = 280;
+  const treeMetrics = [
+    { id: 'co2',    label: 'CO₂',           tip: [160, 210], unit: 'ppm', desc: 'Atmospheric CO₂ concentration' },
+    { id: 'temp',   label: 'Temperature',   tip: [380, 145], unit: '°C',  desc: 'Global surface temperature anomaly' },
+    { id: 'sea',    label: 'Sea Level',     tip: [645, 145], unit: 'cm',  desc: 'Cumulative sea level rise above 2025' },
+    { id: 'precip', label: 'Precipitation', tip: [875, 210], unit: '%',   desc: 'Change in global mean precipitation' },
   ];
+  const fmts = { co2: v => Math.round(v), temp: v => '+' + v.toFixed(1), sea: v => '+' + Math.round(v), precip: v => '+' + v.toFixed(1) };
 
-  const CORNER_IMGS = [
-    { src: '../images/drought.png',       threshold: 0.18, cls: 'timejump-img timejump-img--1' },
-    { src: '../images/melting_ice.png',   threshold: 0.38, cls: 'timejump-img timejump-img--2' },
-    { src: '../images/typhoon.png',       threshold: 0.62, cls: 'timejump-img timejump-img--3' },
-    { src: '../images/polluted_earth.png',threshold: 0.84, cls: 'timejump-img timejump-img--4' },
-  ];
-
-  const sectionRef = React.useRef(null);
-  const [p, setP] = React.useState(0);
-  const startedRef = React.useRef(false);
-  const doneRef = React.useRef(false);
-  const startTimeRef = React.useRef(null);
-
-  // Build 76 radial ticks SVG
-  const ticks = [];
-  for (let i = 0; i < 76; i++) {
-    const ang = (i / 76) * Math.PI * 2 - Math.PI / 2;
-    const lit = i / 76 <= p;
-    const r1 = 88, r2 = lit ? 96 : 93;
-    ticks.push(
-      <line key={i}
-        x1={100 + r1 * Math.cos(ang)} y1={100 + r1 * Math.sin(ang)}
-        x2={100 + r2 * Math.cos(ang)} y2={100 + r2 * Math.sin(ang)}
-        stroke={lit ? '#E08D5C' : 'rgba(236,230,206,0.25)'}
-        strokeWidth={lit ? 2 : 1}
-        strokeLinecap="round"
-      />
-    );
+  // Seeded random for consistent leaf placement
+  let seed = 42;
+  const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  // Pre-generate leaves (same positions every render, count varies by lushness)
+  const allLeaves = [];
+  for (let mi = 0; mi < 4; mi++) {
+    const [tx, ty] = treeMetrics[mi].tip;
+    const totalLeaves = Math.round(3 + lush * 28); // 3 bare → 31 lush
+    const arr = [];
+    for (let i = 0; i < 40; i++) { // always generate 40, show N of them
+      const ang = rnd() * Math.PI * 2, rad = 4 + rnd() * (16 + lush * 28);
+      arr.push({ lx: tx + Math.cos(ang) * rad, ly: ty + Math.sin(ang) * rad * 0.72, lr: lerp(3, 6, lush) + rnd() * lerp(1, 5, lush), op: 0.4 + rnd() * 0.5 });
+    }
+    allLeaves.push(arr.slice(0, totalLeaves));
   }
 
-  React.useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
+  // Crack lines in dry ground
+  const cracks = [];
+  if (sev > 0.5) {
+    let cs = 12345;
+    const cr = () => (cs = (cs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    for (let i = 0; i < Math.round((sev - 0.5) * 20); i++) {
+      const x = 80 + cr() * (W - 160), y = groundY + 8 + cr() * 26;
+      const len = 10 + cr() * 40, angle = (cr() - 0.5) * 1.2;
+      cracks.push({ x, y, len, angle });
+    }
+  }
 
-    const checkVisibility = () => {
-      if (startedRef.current) return;
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight;
-      if (rect.top < vh * 0.6 && rect.bottom > vh * 0.4) {
-        startedRef.current = true;
-        startTimeRef.current = performance.now();
-        requestAnimationFrame(animate);
-      }
-    };
-
-    const animate = (now) => {
-      const elapsed = now - startTimeRef.current;
-      const rawP = clampVal(elapsed / DURATION, 0, 1);
-      setP(rawP);
-
-      if (rawP < 1) {
-        requestAnimationFrame(animate);
-      } else if (!doneRef.current) {
-        doneRef.current = true;
-        setTimeout(() => { onComplete(); }, 900);
-      }
-    };
-
-    window.addEventListener('scroll', checkVisibility, { passive: true });
-    checkVisibility();
-    return () => window.removeEventListener('scroll', checkVisibility);
-  }, [onComplete]);
-
-  const eased = 1 - Math.pow(1 - clampVal(p / 0.85, 0, 1), 1.6);
-  const year = Math.round(2025 + 75 * eased);
-  const activeLine = [...LINES].reverse().find(l => p >= l.from) || LINES[0];
+  const onSvgMove = (e) => {
+    if (!svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    setTipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
 
   return (
-    <div className="timejump-wrap" data-screen-label="04 Time Jump" ref={sectionRef}>
-      <div className="timejump-sticky">
-        {/* Background radial ticks SVG */}
-        <div className="timejump-bg-svg">
-          <svg viewBox="0 0 200 200">
-            <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(236,230,206,0.15)" strokeWidth="1"/>
-            {ticks}
+    <section className="scene summary" data-screen-label="03 The whole picture" style={{ background: `linear-gradient(180deg, ${skyCol} 0%, var(--bg) 60%)` }}>
+      <div className="col--wide">
+        <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Three · E · The whole picture</div>
+        <h2 className="h2 reveal" style={{ maxWidth: '18ch' }}>One pathway, four consequences.</h2>
+        <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 18, color: 'var(--ink-soft)' }}>
+          Every dial you turned compounds into a single tree of outcomes by 2100. Switch pathways to see how the tree of life responds — lush or barren.
+        </p>
+        <div className="tree-controls reveal">
+          <span className="lbl">Compare pathway</span>
+          <div className="tree-pathway-btns">
+            {Object.entries(TREE_PATHS).map(([k, p]) => (
+              <button key={k} className={'tree-btn' + (view === k ? ' active' : '')}
+                style={{ '--btn-color': p.swatch }} onClick={() => switchView(k)}>
+                <span className="tree-btn-dot" />
+                <span>{p.name}</span>
+                <span className="tree-btn-delta">+{p.delta.toFixed(1)}°C</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className={`summary-tree reveal${animating ? ' tree-animating' : ''}`}>
+          <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" onMouseMove={onSvgMove} onMouseLeave={() => setHoveredMetric(null)}>
+            {/* Sky gradient */}
+            <defs>
+              <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor={skyCol} stopOpacity="0.4" />
+                <stop offset="1" stopColor={skyCol} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width={W} height={groundY} fill="url(#skyGrad)" />
+
+            {/* Ground */}
+            <rect x="0" y={groundY} width={W} height={H - groundY} fill={groundCol} />
+            <rect x="0" y={groundY} width={W} height="4" fill={`rgba(42,51,36,${lerp(0.18, 0.08, sev)})`} />
+            {/* Dry cracks */}
+            {cracks.map((c, i) => (
+              <line key={i} x1={c.x} y1={c.y}
+                x2={c.x + Math.cos(c.angle) * c.len} y2={c.y + Math.sin(c.angle) * c.len}
+                stroke="rgba(42,30,16,0.35)" strokeWidth="1" />
+            ))}
+            {/* Grass blades when lush */}
+            {lush > 0.4 && Array.from({ length: Math.round(lush * 60) }).map((_, i) => {
+              const bx = 60 + (i / (Math.round(lush * 60) - 1)) * (W - 120) + (i % 3 - 1) * 6;
+              const bh = lerp(4, 14, lush) * (0.7 + (i % 5) * 0.07);
+              return <path key={i} d={`M ${bx} ${groundY} Q ${bx + (i%2 ? 2 : -2)} ${groundY - bh * 0.6} ${bx + (i%2 ? 3 : -3)} ${groundY - bh}`} stroke={leafCol} strokeWidth={lerp(1.2, 2.2, lush)} fill="none" strokeLinecap="round" />;
+            })}
+
+            {/* Main trunk */}
+            <path d={`M ${baseX} ${groundY - 2} C ${baseX - 10} ${groundY - 80} ${forkX + 12} ${forkY + 80} ${forkX} ${forkY}`} stroke={wood} strokeWidth={trunkW} fill="none" strokeLinecap="round" />
+
+            {/* Branches + leaves + metric cards */}
+            {treeMetrics.map((m, mi) => {
+              const [tx, ty] = m.tip;
+              const c1x = forkX + (tx - forkX) * 0.28, c1y = forkY - 44;
+              const c2x = forkX + (tx - forkX) * 0.75, c2y = ty + 44;
+              const val = valAt(m.id, key, 2100);
+              const isHov = hoveredMetric === m.id;
+              return (
+                <g key={m.id}>
+                  {/* Branch */}
+                  <path d={`M ${forkX} ${forkY} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`} stroke={wood} strokeWidth={branchW} fill="none" strokeLinecap="round" />
+                  {/* Leaves */}
+                  {allLeaves[mi].map((l, k) => (
+                    <ellipse key={k} cx={l.lx.toFixed(1)} cy={l.ly.toFixed(1)} rx={l.lr.toFixed(1)} ry={(l.lr * 0.68).toFixed(1)} fill={leafCol} opacity={l.op.toFixed(2)} />
+                  ))}
+                  {/* Connector line */}
+                  <line x1={tx} y1={ty - 40} x2={tx} y2={ty - 8} stroke="rgba(42,51,36,0.18)" strokeWidth="1" strokeDasharray="3 3" />
+                  {/* Metric card */}
+                  <g transform={`translate(${tx - 90} ${ty - 164})`}
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={() => setHoveredMetric(m.id)}
+                    onMouseLeave={() => setHoveredMetric(null)}>
+                    <rect x="0" y="0" width="180" height="92" rx="14"
+                      fill={isHov ? '#fff' : 'rgba(250,249,247,0.94)'}
+                      stroke={isHov ? meta.swatch : 'rgba(42,51,36,0.14)'}
+                      strokeWidth={isHov ? 2 : 1} />
+                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">{m.label.toUpperCase()}</text>
+                    <text x="166" y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
+                    <text x="14" y="66" fontFamily="var(--serif)" fontSize="32" fill="#0E1A0B">{fmts[m.id](val)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> {m.unit}</tspan></text>
+                    <text x="14" y="84" fontFamily="var(--mono)" fontSize="9" fill="rgba(42,51,36,0.38)">{m.desc}</text>
+                  </g>
+                </g>
+              );
+            })}
+            {/* Pathway label */}
+            <rect x={baseX - 200} y={groundY + 14} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
+            <text x={baseX} y={groundY + 33} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
           </svg>
         </div>
-
-        {/* Corner climate images */}
-        <div className="timejump-img-strip">
-          {CORNER_IMGS.map((img, i) => (
-            <img key={i} src={img.src} alt="" className={img.cls}
-              style={{ opacity: p >= img.threshold ? 1 : 0 }}/>
-          ))}
-        </div>
-
-        <div className="timejump-inner">
-          <div className="timejump-eyebrow">Time passing</div>
-          <div className="timejump-year">{year}</div>
-          <div key={activeLine.text} className="timejump-line">{activeLine.text}</div>
-          <div className="timejump-ticker">
-            <span>2025</span>
-            <span className="timejump-ticker-now">{year}</span>
-            <span>2100</span>
-          </div>
-          <div className="timejump-progress">
-            <div className="timejump-progress-fill" style={{ width: `${p * 100}%` }}/>
-          </div>
-        </div>
+        <p className="label reveal" style={{ marginTop: 12, opacity: 0.5 }}>Hover over metric cards for details · Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
       </div>
-    </div>
+    </section>
   );
 }
 
-// ── Loading screen ──
-function LoadingScreen() {
+// ── Outro ───────────────────────────────────────────────────
+function Outro({ onRestart }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-      <div style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(32px,5vw,64px)', color: 'var(--ink)', lineHeight: 1 }}>
-        Degrees of<br/><span style={{ color: 'var(--forest)' }}>Consequence</span>
+    <section className="scene" data-screen-label="04 The real dials">
+      <div className="outro-grid">
+        <div className="stack-28">
+          <div className="eyebrow reveal">Chapter Four · The real dials</div>
+          <h2 className="h2 reveal">The dials that matter most are not in your hands.</h2>
+          <p className="body reveal" style={{ fontSize: 19, maxWidth: '54ch' }}>
+            Just <strong>57 corporations</strong> are responsible for 80 percent of global emissions since 2016.
+            The CMIP6 pathways diverge not on individual choices but on policy: binding carbon pricing,
+            ending fossil-fuel subsidies, regulating methane, and a managed phase-out of extraction.
+            Demanding those policies — and holding governments to account when they stall — is the lever that
+            actually moves the models.
+          </p>
+          <button className="btn btn--primary reveal" onClick={onRestart}>Restart your future <Arrow /></button>
+          <div className="outro-illos reveal">
+            <div className="fig"><img src="../images/handshake.png" alt="" /></div>
+            <div className="fig"><img src="../images/wind_turbines.png" alt="" /></div>
+            <div className="fig"><img src="../images/green_leaf.png" alt="" /></div>
+          </div>
+        </div>
+        <div className="credits reveal">
+          <b>Story</b>Degrees of Consequence<br />A climate adventure
+          <b>Team</b>Tanvi Vidyala<br />Nithya Nair<br />Viela Lansangan
+          <b>Data</b>CMIP6 / MPI-ESM1-2-LR<br />via NOAA / Google Cloud<br />Processed with xarray + regionmask
+          <b>Issue</b>Vol. 01 · 2026<br />UCSD · DSC 106
+        </div>
       </div>
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--ink-soft)' }}>
-        Loading CMIP6 data…
-      </div>
-    </div>
+    </section>
   );
 }
 
-// ── App ──
-function App() {
-  const [values, setValues] = React.useState({ fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 });
-  const [persona, setPersona] = React.useState(null);
-  const [submitted, setSubmitted] = React.useState(false);
-  const [timeJumpDone, setTimeJumpDone] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [chapter, setChapter] = React.useState('Cover');
-  const [dataReady, setDataReady] = React.useState(false);
+// ============================================================
+// ── SECTION 5: APP
+// ============================================================
 
-  // Load real CMIP6 data
+const TWEAK_DEFAULTS = {
+  displayFont: "'Bricolage Grotesque', system-ui, sans-serif",
+  accent: '#3C7B51',
+  pathways: ['#82A78A', '#C49B5E', '#B4633A'],
+  columnWidth: 660,
+  spacing: 'generous',
+};
+
+const SPACING_MAP = { tight: 0.72, regular: 0.86, generous: 1, airy: 1.22 };
+
+function useReveal() {
   React.useEffect(() => {
-    fetch('../data/climate-data.json')
-      .then(r => r.json())
-      .then(data => { CLIMATE = data; setDataReady(true); })
-      .catch(err => { console.warn('[app] climate-data.json load failed:', err); setDataReady(true); });
-
-    fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-      .then(r => r.json())
-      .then(d => { WORLD_TOPO = d; buildWorldPaths(); fireTopoReady(); })
-      .catch(err => console.warn('[app] world-atlas load failed:', err));
-
-    fetch('../data/regional-temp.json')
-      .then(r => r.json())
-      .then(d => { REGIONAL_TEMP = d; })
-      .catch(err => console.warn('[app] regional-temp.json load failed:', err));
-
-    fetch('../data/pr_anomalies.json')
-      .then(r => r.json())
-      .then(d => { PR_ANOMALIES = d; })
-      .catch(err => console.warn('[app] pr_anomalies.json load failed:', err));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    const scan = () => document.querySelectorAll('.reveal:not(.in)').forEach(el => io.observe(el));
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => { io.disconnect(); mo.disconnect(); };
   }, []);
+}
 
-  // Scroll tracking
-  React.useEffect(() => {
+function App({ climateData }) {
+  const { useState, useEffect, useMemo } = React;
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [persona, setPersona] = useState(() => localStorage.getItem('doc-persona') || null);
+  const [progress, setProgress] = useState(0);
+  const [chapter, setChapter] = useState('01 Cover');
+  const [dark, setDark] = useState(false);
+  useReveal();
+
+  useEffect(() => { initDOC(climateData); }, [climateData]);
+
+  useEffect(() => {
+    const r = document.documentElement.style;
+    r.setProperty('--tw-serif', t.displayFont);
+    r.setProperty('--tw-accent', t.accent);
+    const pw = t.pathways || TWEAK_DEFAULTS.pathways;
+    r.setProperty('--tw-low', pw[0]);
+    r.setProperty('--tw-mid', pw[1]);
+    r.setProperty('--tw-high', pw[2]);
+    r.setProperty('--tw-measure', t.columnWidth + 'px');
+    r.setProperty('--tw-rhythm', SPACING_MAP[t.spacing] || 1);
+  }, [t]);
+
+  useEffect(() => { localStorage.setItem('doc-persona', persona); }, [persona]);
+
+  useEffect(() => {
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
       setProgress(max > 0 ? window.scrollY / max : 0);
@@ -1723,63 +1370,79 @@ function App() {
         if (el.getBoundingClientRect().top < window.innerHeight * 0.5) current = el;
       }
       if (current) setChapter(current.getAttribute('data-screen-label'));
+      const topEl = labeled.find(el => {
+        const r = el.getBoundingClientRect();
+        return r.top <= 56 && r.bottom >= 56;
+      });
+      setDark(topEl ? (topEl.classList.contains('scene--dark') || topEl.classList.contains('timejump')) : false);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const onSubmit = () => {
-    setSubmitted(true);
-    setTimeJumpDone(false);
-    requestAnimationFrame(() => {
-      const el = document.querySelector('[data-screen-label="04 Time Jump"]');
-      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
-    });
-  };
-
-  const handleTimeJumpComplete = () => {
-    setTimeJumpDone(true);
-    setTimeout(() => {
-      const el = document.querySelector('[data-screen-label="04 Timeline Intro"]');
-      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 10, behavior: 'smooth' });
-    }, 240);
-  };
-
-  const onRestart = () => {
-    setSubmitted(false);
-    setTimeJumpDone(false);
-    setPersona(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const score = computeScore(values);
-  const ssp = classify(score);
-
-  if (!dataReady) return <LoadingScreen/>;
+  const bucket = useMemo(() => {
+    const p = PERSONAS.find(x => x.id === persona) || PERSONAS[1];
+    return classify(computeScore(p.values));
+  }, [persona]);
 
   return (
-    <>
-      <div className="topbar">
-        <div className="brand">Degrees of Consequence</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <div className="chapter">{chapter}</div>
-            <div className="progress"><i style={{ width: `${progress * 100}%` }}/></div>
-            <div className="chapter">{Math.round(progress * 100).toString().padStart(2,'0')}%</div>
-          </div>
-          <a href="writeup.html" className="topbar-writeup">Write-up</a>
-        </div>
-      </div>
-      <HeroTitle/>
-      <HeroDesc/>
-      <ChoiceSection values={values} setValues={setValues} persona={persona} setPersona={setPersona} onSubmit={onSubmit}/>
-      {submitted && !timeJumpDone && <TimeJump onComplete={handleTimeJumpComplete}/>}
-      {timeJumpDone && <TimelineSection ssp={ssp}/>}
-      {timeJumpDone && <Outro onRestart={onRestart}/>}
-    </>
+    <React.Fragment>
+      <TopChrome progress={progress} chapter={chapter} dark={dark} />
+      <Cover />
+      <About />
+      <PersonaSelect persona={persona} onPick={setPersona} />
+      <PolicyConsole persona={persona} />
+      <TimeJump persona={persona} />
+      <TimelineIntro bucket={bucket} />
+      {METRICS.map(m => <Chapter key={m.id} metric={m} bucket={bucket} />)}
+      <SummaryTree bucket={bucket} />
+      <Outro onRestart={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Type" />
+        <TweakSelect label="Display font" value={t.displayFont}
+          options={[
+            { label: 'Bricolage (bold)', value: "'Bricolage Grotesque', system-ui, sans-serif" },
+            { label: 'Instrument Serif', value: "'Instrument Serif', Georgia, serif" },
+            { label: 'Georgia', value: "Georgia, 'Times New Roman', serif" },
+          ]}
+          onChange={v => setTweak('displayFont', v)} />
+        <TweakSection label="Color" />
+        <TweakColor label="Accent" value={t.accent}
+          options={['#3C7B51', '#214B30', '#B4633A', '#2E4A6E', '#0E1A0B']}
+          onChange={v => setTweak('accent', v)} />
+        <TweakColor label="Pathways" value={t.pathways}
+          options={[['#82A78A','#C49B5E','#B4633A'], ['#5E8C6A','#D98E3B','#9E3B2E'], ['#6B8F9E','#C9A24B','#A84B2F']]}
+          onChange={v => setTweak('pathways', v)} />
+        <TweakSection label="Layout" />
+        <TweakSlider label="Column width" value={t.columnWidth} min={560} max={840} step={20} unit="px"
+          onChange={v => setTweak('columnWidth', v)} />
+        <TweakRadio label="Spacing" value={t.spacing} options={['tight','regular','generous','airy']}
+          onChange={v => setTweak('spacing', v)} />
+      </TweaksPanel>
+    </React.Fragment>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App/>);
+// ── Bootstrap: fetch data then render ──────────────────────
+async function boot() {
+  const loading = document.createElement('div');
+  loading.id = '__doc_loading';
+  loading.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#f8f8f6;font:14px/1 -apple-system,sans-serif;color:#888;z-index:9999';
+  loading.textContent = 'Loading climate data…';
+  document.body.appendChild(loading);
+
+  try {
+    const res = await fetch('../data/climate-data.json');
+    const climateData = await res.json();
+    initDOC(climateData);
+    loading.remove();
+    ReactDOM.createRoot(document.getElementById('root')).render(<App climateData={climateData} />);
+  } catch (err) {
+    loading.textContent = 'Error loading data: ' + err.message;
+    console.error('[DoC] boot error', err);
+  }
+}
+
+boot();
