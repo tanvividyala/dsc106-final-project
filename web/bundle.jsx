@@ -262,7 +262,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
 }
 
 // ── Line chart 1980–2100 with info-dense tooltip ────────────
-function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear }) {
   const { useState, useRef, useMemo, useCallback } = React;
   const W = 1100, H = 264, pad = { t: 20, r: 22, b: 30, l: 54 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -298,13 +298,20 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
   const vEnd = data.length ? data[data.length - 1].val : 0;
   const dfmt = (x) => (x >= 0 ? '+' : '−') + (Math.abs(x) >= 10 ? Math.round(Math.abs(x)) : Math.abs(x).toFixed(1));
 
-  const onMove = useCallback((e) => {
+  const yearFromEvent = useCallback((e) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width * W;
-    const yr = Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
-    setHoverYear(Math.max(X0, Math.min(X1, yr)));
-  }, [data]);
+    return Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
+  }, []);
+
+  const onMove = useCallback((e) => {
+    setHoverYear(Math.max(X0, Math.min(X1, yearFromEvent(e))));
+  }, [yearFromEvent]);
+
+  const onClick = useCallback((e) => {
+    if (onClickYear) onClickYear(Math.max(X0, Math.min(X1, yearFromEvent(e))));
+  }, [onClickYear, yearFromEvent]);
 
   const tip = useMemo(() => {
     if (hoverYear == null) return null;
@@ -314,7 +321,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
 
   return (
     <div className="chart-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
         {yticks.map((v, i) =>
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
@@ -421,10 +428,11 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
   const fg = '42,51,36';
   const soft = `rgba(${fg},0.6)`, faint = `rgba(${fg},0.42)`;
   const bg = '#FAF9F3';
-  // Water gets slightly warmer / more teal as temperature rises
-  const waterR = Math.round(lerp(92, 140, Math.min(1, tempValue / 5)));
-  const waterG = Math.round(lerp(138, 90, Math.min(1, tempValue / 5)));
-  const waterB = Math.round(lerp(126, 110, Math.min(1, tempValue / 5)));
+  // Water starts as clear blue, gets murky brown as temperature rises
+  const waterT = Math.min(1, tempValue / 5);
+  const waterR = Math.round(lerp(55, 110, waterT));
+  const waterG = Math.round(lerp(110, 88, waterT));
+  const waterB = Math.round(lerp(175, 70, waterT));
   const water = `rgb(${waterR},${waterG},${waterB})`;
   const baselineY = h - 44;
   const seaY = baselineY - Math.min(value, 200) * 1.1;
@@ -585,6 +593,95 @@ function GrassField({ tempValue = 1.2 }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Sun (heat section corner decoration) ───────────────────
+function Sun({ tempValue = 1.2 }) {
+  const { useMemo } = React;
+  const intensity = Math.min(1, Math.max(0, tempValue / 5.0));
+  // Color: warm amber at low temps → intense orange-red at high
+  const sunG = Math.round(lerp(200, 110, intensity));
+  const sunB = Math.round(lerp(50, 15, intensity));
+  const col = `rgb(255,${sunG},${sunB})`;
+  const coreR = lerp(50, 72, intensity);
+  const rayLen = lerp(18, 65, intensity);
+  const glowR = lerp(110, 200, intensity);
+  const NUM = 14;
+  const cx = 300, cy = 0; // sun center pinned to top-right corner
+  const rays = useMemo(() => Array.from({ length: NUM }, (_, i) => {
+    const a = (i / NUM) * Math.PI * 2;
+    const gap = coreR + 10;
+    const extra = (i % 3) * 12 * intensity;
+    return {
+      x1: cx + Math.cos(a) * gap, y1: cy + Math.sin(a) * gap,
+      x2: cx + Math.cos(a) * (gap + rayLen + extra),
+      y2: cy + Math.sin(a) * (gap + rayLen + extra),
+    };
+  }), [intensity, coreR, rayLen]);
+
+  return (
+    <div style={{ position: 'absolute', top: 0, right: 0, width: 300, height: 300, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      <svg viewBox="0 0 300 300" width="300" height="300">
+        <defs>
+          <radialGradient id="sunHalo" cx="100%" cy="0%" r="80%">
+            <stop offset="0%" stopColor={col} stopOpacity={lerp(0.18, 0.42, intensity)} />
+            <stop offset="60%" stopColor={col} stopOpacity={lerp(0.04, 0.12, intensity)} />
+            <stop offset="100%" stopColor={col} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="300" height="300" fill="url(#sunHalo)" />
+        {rays.map((r, i) => (
+          <line key={i} x1={r.x1.toFixed(1)} y1={r.y1.toFixed(1)} x2={r.x2.toFixed(1)} y2={r.y2.toFixed(1)}
+            stroke={col} strokeWidth={lerp(1.8, 3.5, intensity).toFixed(1)} strokeLinecap="round"
+            opacity={lerp(0.45, 0.9, intensity).toFixed(2)} />
+        ))}
+        <circle cx={cx} cy={cy} r={lerp(90, 140, intensity)} fill={col} opacity={lerp(0.06, 0.14, intensity).toFixed(2)} />
+        <circle cx={cx} cy={cy} r={coreR.toFixed(1)} fill={col} opacity="0.95" />
+      </svg>
+    </div>
+  );
+}
+
+// ── Smoke clouds (co2 section background) ──────────────────
+function SmokeClouds({ co2Value = 420 }) {
+  const { useMemo } = React;
+  // co2: 380 = near-present baseline, 870 = high-end 2100
+  const intensity = Math.min(1, Math.max(0, (co2Value - 380) / (870 - 380)));
+  const W = 1200, H = 900;
+  const clouds = useMemo(() => {
+    let seed = 77;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const n = Math.round(4 + intensity * 16);
+    const all = [];
+    for (let i = 0; i < 20; i++) {
+      all.push({
+        x: 80 + rnd() * (W - 160),
+        y: 40 + rnd() * (H - 80),
+        rx: 70 + rnd() * 160,
+        ry: 45 + rnd() * 90,
+        op: (0.035 + rnd() * 0.065) * (0.25 + intensity * 0.75),
+        dark: rnd() > 0.5,
+      });
+    }
+    return all.slice(0, n);
+  }, [intensity]);
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <filter id="smokeBlur" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="28" />
+          </filter>
+        </defs>
+        {clouds.map((c, i) => (
+          <ellipse key={i} cx={c.x} cy={c.y} rx={c.rx} ry={c.ry}
+            fill={c.dark ? 'rgba(60,60,60,1)' : 'rgba(110,110,110,1)'}
+            opacity={c.op} filter="url(#smokeBlur)" />
+        ))}
+      </svg>
     </div>
   );
 }
@@ -810,8 +907,8 @@ function About() {
     <section className="scene scene--alt" data-screen-label="01 About">
       <div className="col stack-28">
         <div className="eyebrow reveal">Chapter One · The premise</div>
-        <p className="lede reveal" style={{ maxWidth: '40ch' }}>Somewhere in the next few years, the decisions that shape the next century get made. Not by nature. Not by accident. By people: through votes, boardrooms, and budgets. Pick a seat at the table and see what your choices leave behind.</p>
-        <p className="body reveal">
+        <p className="lede reveal" style={{ maxWidth: '44ch', fontSize: 'clamp(20px, 2.6vw, 26px)' }}>Somewhere in the next few years, the decisions that shape the next century get made. Not by nature. Not by accident. By people: through votes, boardrooms, and budgets. Pick a seat at the table and see what your choices leave behind.</p>
+        <p className="body reveal" style={{ fontSize: 19, lineHeight: 1.75, maxWidth: '58ch' }}>
           This story runs on <strong>CMIP6</strong> climate-model output — the same projections the IPCC
           uses: surfaced through three plausible futures. Each future is just a different set of human
           decisions, compounded over 75 years. You won't read a lecture. You'll pick a worldview, watch
@@ -1040,6 +1137,13 @@ function Chapter({ metric, bucket }) {
 
   const beats = BEATS[M.id][sspKey];
   const year = Math.round(2025 + Math.min(1, prog) * 75);
+
+  const handleChartClick = React.useCallback((clickedYear) => {
+    const el = ref.current; if (!el) return;
+    const targetProg = Math.max(0, Math.min(1, (clickedYear - 2025) / 75));
+    const total = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: el.offsetTop + targetProg * total, behavior: 'smooth' });
+  }, []);
   const yc = Math.min(2100, year);
   const value = valAt(M.id, sspKey, yc);
   const tempVal = valAt('temp', sspKey, yc);
@@ -1058,8 +1162,10 @@ function Chapter({ metric, bucket }) {
 
   return (
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
-      <div className="chapter-sticky2">
-        <div className="metric-comp">
+      <div className="chapter-sticky2" style={{ position: 'relative' }}>
+        {M.id === 'temp' && <Sun tempValue={tempVal} />}
+        {M.id === 'co2' && <SmokeClouds co2Value={value} />}
+        <div className="metric-comp" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
             <div className="eyebrow">{M.chapter} · {M.title}</div>
             <div className="mc-beat" key={activeStep} style={{ marginTop: 18 }}>
@@ -1068,9 +1174,9 @@ function Chapter({ metric, bucket }) {
               <p style={{ margin: 0 }}>{b.body}</p>
               <div className="mc-note">{b.note}</div>
             </div>
+            {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
           </div>
           <div className="mc-viz"><Viz /></div>
-          {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
           <div className="mc-chart">
             <div className="mc-chart-head">
               <div>
@@ -1078,7 +1184,7 @@ function Chapter({ metric, bucket }) {
                 <div className="vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
               </div>
             </div>
-            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} />
+            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
           </div>
         </div>
       </div>

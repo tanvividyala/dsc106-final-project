@@ -262,7 +262,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
 }
 
 // ── Line chart 1980–2100 with info-dense tooltip ────────────
-function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear }) {
   const { useState, useRef, useMemo, useCallback } = React;
   const W = 1100, H = 264, pad = { t: 20, r: 22, b: 30, l: 54 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -298,13 +298,20 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
   const vEnd = data.length ? data[data.length - 1].val : 0;
   const dfmt = (x) => (x >= 0 ? '+' : '−') + (Math.abs(x) >= 10 ? Math.round(Math.abs(x)) : Math.abs(x).toFixed(1));
 
-  const onMove = useCallback((e) => {
+  const yearFromEvent = useCallback((e) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width * W;
-    const yr = Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
-    setHoverYear(Math.max(X0, Math.min(X1, yr)));
-  }, [data]);
+    return Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
+  }, []);
+
+  const onMove = useCallback((e) => {
+    setHoverYear(Math.max(X0, Math.min(X1, yearFromEvent(e))));
+  }, [yearFromEvent]);
+
+  const onClick = useCallback((e) => {
+    if (onClickYear) onClickYear(Math.max(X0, Math.min(X1, yearFromEvent(e))));
+  }, [onClickYear, yearFromEvent]);
 
   const tip = useMemo(() => {
     if (hoverYear == null) return null;
@@ -314,7 +321,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt }) {
 
   return (
     <div className="chart-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
         {yticks.map((v, i) =>
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
@@ -421,10 +428,11 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
   const fg = '42,51,36';
   const soft = `rgba(${fg},0.6)`, faint = `rgba(${fg},0.42)`;
   const bg = '#FAF9F3';
-  // Water gets slightly warmer / more teal as temperature rises
-  const waterR = Math.round(lerp(92, 140, Math.min(1, tempValue / 5)));
-  const waterG = Math.round(lerp(138, 90, Math.min(1, tempValue / 5)));
-  const waterB = Math.round(lerp(126, 110, Math.min(1, tempValue / 5)));
+  // Water starts as clear blue, gets murky brown as temperature rises
+  const waterT = Math.min(1, tempValue / 5);
+  const waterR = Math.round(lerp(55, 110, waterT));
+  const waterG = Math.round(lerp(110, 88, waterT));
+  const waterB = Math.round(lerp(175, 70, waterT));
   const water = `rgb(${waterR},${waterG},${waterB})`;
   const baselineY = h - 44;
   const seaY = baselineY - Math.min(value, 200) * 1.1;
@@ -1040,6 +1048,13 @@ function Chapter({ metric, bucket }) {
 
   const beats = BEATS[M.id][sspKey];
   const year = Math.round(2025 + Math.min(1, prog) * 75);
+
+  const handleChartClick = React.useCallback((clickedYear) => {
+    const el = ref.current; if (!el) return;
+    const targetProg = Math.max(0, Math.min(1, (clickedYear - 2025) / 75));
+    const total = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: el.offsetTop + targetProg * total, behavior: 'smooth' });
+  }, []);
   const yc = Math.min(2100, year);
   const value = valAt(M.id, sspKey, yc);
   const tempVal = valAt('temp', sspKey, yc);
@@ -1068,9 +1083,9 @@ function Chapter({ metric, bucket }) {
               <p style={{ margin: 0 }}>{b.body}</p>
               <div className="mc-note">{b.note}</div>
             </div>
+            {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
           </div>
           <div className="mc-viz"><Viz /></div>
-          {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
           <div className="mc-chart">
             <div className="mc-chart-head">
               <div>
@@ -1078,7 +1093,7 @@ function Chapter({ metric, bucket }) {
                 <div className="vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
               </div>
             </div>
-            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} />
+            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
           </div>
         </div>
       </div>
