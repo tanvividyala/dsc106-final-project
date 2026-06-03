@@ -237,7 +237,7 @@ button { cursor: default; font-family: inherit; }
 }
 .cover-thermo {
   width: 80px;
-  height: 134px;
+  height: 180px;
   flex-shrink: 0;
 }
 .scroll-hint {
@@ -429,7 +429,7 @@ button { cursor: default; font-family: inherit; }
 .timejump-bar i { display: block; height: 100%; background: #E08D5C; }
 
 /* ── Chapter (metric) ──────────────────────────────────── */
-.chapter { min-height: unset; }
+.chapter { min-height: unset; justify-content: flex-start; }
 .chapter--tall { height: 400vh; }
 
 .chapter-sticky2 {
@@ -444,7 +444,7 @@ button { cursor: default; font-family: inherit; }
 .metric-comp {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: 1fr auto;
   grid-template-areas:
     "narr viz"
     "chart chart";
@@ -454,7 +454,6 @@ button { cursor: default; font-family: inherit; }
   margin: 0 auto;
   padding: 64px 32px 32px;
   height: 100vh;
-  align-content: center;
 }
 @media (max-width: 900px) {
   .metric-comp {
@@ -465,9 +464,60 @@ button { cursor: default; font-family: inherit; }
   }
 }
 
-.mc-narr { grid-area: narr; display: flex; flex-direction: column; justify-content: center; padding-right: 8px; }
-.mc-viz  { grid-area: viz;  display: flex; align-items: center; justify-content: center; }
+.mc-narr { grid-area: narr; display: flex; flex-direction: column; justify-content: center; padding-right: 8px; min-height: 0; }
+.mc-viz  { grid-area: viz;  display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; }
 .mc-chart { grid-area: chart; padding-top: 20px; min-height: 0; }
+
+/* Constrain viz SVGs so the chart row is always visible */
+.mc-viz svg {
+  max-height: calc(100vh - 280px);
+  max-width: 100%;
+  width: auto;
+}
+.sea-combo > svg,
+.sea-combo > div > svg {
+  max-height: calc(50vh - 150px);
+  max-width: 100%;
+  width: auto;
+}
+.sea-combo > div {
+  overflow: hidden;
+  flex-shrink: 1;
+  width: 100%;
+}
+
+/* Sea section: IceCaps moves below text (left col), SeaLevel fills right col */
+.chapter--sea .metric-comp {
+  grid-template-areas:
+    "narr viz"
+    "ice  viz"
+    "chart chart";
+  grid-template-rows: auto 1fr auto;
+  padding-top: 40px;
+}
+.mc-ice {
+  grid-area: ice;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+.mc-ice svg {
+  max-height: 200px;
+  width: auto;
+  max-width: 100%;
+}
+
+/* Precip section: wider viz column so GrassField is slightly larger */
+.chapter--precip .metric-comp {
+  grid-template-columns: 1fr 2fr;
+}
+.chapter--precip .mc-viz svg {
+  width: 100%;
+  max-height: 50vh;
+}
 
 .mc-year {
   font-family: var(--tw-serif);
@@ -725,7 +775,7 @@ button { cursor: default; font-family: inherit; }
 
 /* ── Tree animation ────────────────────────────────────── */
 .summary-tree { transition: opacity 0.3s ease; }
-.summary-tree.tree-animating { opacity: 0.3; }
+.summary-tree.tree-animating { opacity: 0; }
 
 /* ── Summary section background distinct from outro ───── */
 .summary { background: var(--bg); }

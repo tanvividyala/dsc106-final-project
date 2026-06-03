@@ -1049,12 +1049,7 @@ function Chapter({ metric, bucket }) {
   const Viz = () => {
     if (M.id === 'temp') return <Thermometer value={value} dark={M.dark} />;
     if (M.id === 'co2') return <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
-    if (M.id === 'sea') return (
-      <div className="sea-combo">
-        <IceCaps tempValue={tempVal} year={yc} dark={false} key="ice" />
-        <SeaLevel value={value} year={yc} dark={false} key="sea" />
-      </div>
-    );
+    if (M.id === 'sea') return <SeaLevel value={value} year={yc} dark={false} />;
     if (M.id === 'precip') return <div className="viz-box"><GrassField tempValue={tempVal} /></div>;
     return null;
   };
@@ -1062,7 +1057,7 @@ function Chapter({ metric, bucket }) {
   const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
 
   return (
-    <section className={'scene chapter chapter--tall' + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
+    <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
         <div className="metric-comp">
           <div className="mc-narr">
@@ -1075,6 +1070,7 @@ function Chapter({ metric, bucket }) {
             </div>
           </div>
           <div className="mc-viz"><Viz /></div>
+          {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
           <div className="mc-chart">
             <div className="mc-chart-head">
               <div>
@@ -1111,10 +1107,11 @@ function SummaryTree({ bucket }) {
 
   const switchView = (newView) => {
     if (newView === view || animating) return;
-    setPrevView(view);
     setAnimating(true);
-    setView(newView);
-    setTimeout(() => { setAnimating(false); setPrevView(null); }, 600);
+    setTimeout(() => {
+      setView(newView);
+      setAnimating(false);
+    }, 300);
   };
 
   const meta = TREE_PATHS[view] || TREE_PATHS['2-4.5'];

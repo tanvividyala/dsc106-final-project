@@ -237,7 +237,7 @@ button { cursor: default; font-family: inherit; }
 }
 .cover-thermo {
   width: 80px;
-  height: 134px;
+  height: 180px;
   flex-shrink: 0;
 }
 .scroll-hint {
@@ -429,7 +429,7 @@ button { cursor: default; font-family: inherit; }
 .timejump-bar i { display: block; height: 100%; background: #E08D5C; }
 
 /* ── Chapter (metric) ──────────────────────────────────── */
-.chapter { min-height: unset; }
+.chapter { min-height: unset; justify-content: flex-start; }
 .chapter--tall { height: 400vh; }
 
 .chapter-sticky2 {
@@ -484,6 +484,39 @@ button { cursor: default; font-family: inherit; }
   overflow: hidden;
   flex-shrink: 1;
   width: 100%;
+}
+
+/* Sea section: IceCaps moves below text (left col), SeaLevel fills right col */
+.chapter--sea .metric-comp {
+  grid-template-areas:
+    "narr viz"
+    "ice  viz"
+    "chart chart";
+  grid-template-rows: auto 1fr auto;
+  padding-top: 40px;
+}
+.mc-ice {
+  grid-area: ice;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+.mc-ice svg {
+  max-height: 200px;
+  width: auto;
+  max-width: 100%;
+}
+
+/* Precip section: wider viz column so GrassField is slightly larger */
+.chapter--precip .metric-comp {
+  grid-template-columns: 1fr 2fr;
+}
+.chapter--precip .mc-viz svg {
+  width: 100%;
+  max-height: 50vh;
 }
 
 .mc-year {
