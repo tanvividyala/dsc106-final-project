@@ -13,26 +13,26 @@
 const SSP_NAMES = { '1-2.6': 'Sustainable', '2-4.5': 'Middle Road', '5-8.5': 'Fossil-Fueled' };
 
 const KNOB_DEFS = [
-  { id: 'fossil',  short: 'Fossil fuel',    color: '#B4633A', img: '../images/coal_mine_cart.png',   desc: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.' },
-  { id: 'renew',   short: 'Renewables',     color: '#4E7558', img: '../images/solar_panel.png',      desc: 'How fast new wind, solar, and clean energy gets built and funded.' },
-  { id: 'carbon',  short: 'Carbon pricing', color: '#4E7558', img: '../images/capitol_building.png', desc: 'Whether burning carbon costs money, and how much.' },
-  { id: 'forest',  short: 'Forests & land', color: '#82A78A', img: '../images/rainforest.png',       desc: 'How much land gets protected from deforestation and degradation.' },
-  { id: 'coop',    short: 'Cooperation',    color: '#82A78A', img: '../images/handshake.png',        desc: 'Whether countries work together or compete on climate action.' },
-  { id: 'consume', short: 'Consumption',    color: '#82A78A', img: '../images/recycling.png',        desc: 'How much the framework tries to reduce overall demand for energy and goods.' },
+  { id: 'fossil',  short: 'Fossil fuel',    color: '#B4633A', img: 'images/coal_mine_cart.png',   desc: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.' },
+  { id: 'renew',   short: 'Renewables',     color: '#4E7558', img: 'images/solar_panel.png',      desc: 'How fast new wind, solar, and clean energy gets built and funded.' },
+  { id: 'carbon',  short: 'Carbon pricing', color: '#4E7558', img: 'images/capitol_building.png', desc: 'Whether burning carbon costs money, and how much.' },
+  { id: 'forest',  short: 'Forests & land', color: '#82A78A', img: 'images/rainforest.png',       desc: 'How much land gets protected from deforestation and degradation.' },
+  { id: 'coop',    short: 'Cooperation',    color: '#82A78A', img: 'images/handshake.png',        desc: 'Whether countries work together or compete on climate action.' },
+  { id: 'consume', short: 'Consumption',    color: '#82A78A', img: 'images/recycling.png',        desc: 'How much the framework tries to reduce overall demand for energy and goods.' },
 ];
 
 const PERSONAS = [
   { id: 'tycoon', keywords: 'ENERGY · EXTRACTION · GROWTH', name: 'The Oil Tycoon', label: 'Drill, baby, drill',
     tag: 'Oil built the modern world, and he plans to keep it that way. Future costs are someone else\'s problem.',
-    img: '../images/oil_baron_floating.png',
+    img: 'images/oil_baron_floating.png',
     values: { fossil: 92, renew: 12, carbon: 6, forest: 18, coop: 18, consume: 8 } },
   { id: 'politician', keywords: 'POLITICS · COMPROMISE · OPTICS', name: 'The Politician', label: 'Split the difference',
     tag: 'He talks green and votes convenient. Every choice is filtered through the next election.',
-    img: '../images/parliament_debate.png',
+    img: 'images/parliament_debate.png',
     values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
   { id: 'scientist', keywords: 'PATHWAY · PROJECTION · EVIDENCE', name: 'The Climate Scientist', label: 'Follow the data',
     tag: 'The IPCC curves are her north star. Decarbonize by 2050 or the math does not work.',
-    img: '../images/stressed_researcher.png',
+    img: 'images/stressed_researcher.png',
     values: { fossil: 8, renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
 ];
 
@@ -357,7 +357,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
   // Inline legend
   const legY = H - 16, swSz = 7;
   const legend = (
-    <g fontFamily="var(--mono)" fontSize="9" letterSpacing="0.07em">
+    <g fontFamily="var(--mono)" fontSize="11" letterSpacing="0.07em">
       <rect x={padX} y={legY-7} width={swSz} height={swSz} rx="1" fill={baseC} />
       <text x={padX+swSz+4} y={legY} fill={`rgba(${fg},0.45)`}>PRE-INDUSTRIAL</text>
       <rect x={padX+130} y={legY-7} width={swSz} height={swSz} rx="1" fill={carbonExcessColor(310)} />
@@ -368,13 +368,13 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
       onMouseMove={onMouseMove} onMouseLeave={onLeave} style={{ cursor: 'crosshair' }}>
-      <text x={padX} y="24" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em"
+      <text x={padX} y="24" fontFamily="var(--mono)" fontSize="14" letterSpacing="0.14em"
         fill={`rgba(${fg},0.62)`}>EACH CELL = 1 PPM CO₂</text>
       {cells}
       {highlight}
       {tip}
       {legend}
-      <text x={W-padX} y={H-16} textAnchor="end" fontFamily="var(--mono)" fontSize="11"
+      <text x={W-padX} y={H-16} textAnchor="end" fontFamily="var(--mono)" fontSize="13"
         letterSpacing="0.1em" fill={`rgba(${fg},0.72)`}>{year} · {ppm} PPM</text>
     </svg>
   );
@@ -447,23 +447,23 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
   return (
     <div className="chart-wrap">
       <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
-        <text x={pad.l} y={12} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
+        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
           {metricChartTitle} · {SSP_NAMES[activeKey]} pathway
         </text>
-        <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.45)`}
+        <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${chartMidY})`}>{unit}</text>
         {yticks.map((v, i) =>
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
-            <text x={pad.l - 8} y={ys(v) + 3.5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
+            <text x={pad.l - 8} y={ys(v) + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
           </g>
         )}
         {xticks.map(t =>
-          <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.5)`}>{t}</text>
+          <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{t}</text>
         )}
-        <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
+        <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
         <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.32)`} strokeWidth="1" strokeDasharray="3 3" />
-        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
+        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
         <path d={seg(X0, 2025)} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2" strokeLinecap="round" />
         <path d={seg(2025, X1)} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="1.5" opacity="0.3" />
         <path d={seg(2025, Math.min(2100, year))} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="3" strokeLinecap="round" />
@@ -495,7 +495,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 // ── Multi-scenario line chart (all 3 SSPs at once) ──────────
 function MultiLineChart({ metric, dark, dom, unit, fmt }) {
   const { useState, useMemo } = React;
-  const W = 920, H = 222, pad = { t: 30, r: 20, b: 42, l: 52 };
+  const W = 960, H = 290, pad = { t: 36, r: 24, b: 48, l: 62 };
   const [hoverYear, setHoverYear] = useState(null);
   const fg = dark ? '236,230,206' : '42,51,36';
   const X0 = 1980, X1 = 2100, SPAN = 120;
@@ -553,53 +553,53 @@ function MultiLineChart({ metric, dark, dom, unit, fmt }) {
     <div className="chart-wrap" style={{ position: 'relative' }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: 'auto' }}
         onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
-        <text x={pad.l} y={12} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
+        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
           {metricChartTitle2} · all three pathways
         </text>
-        <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.45)`}
+        <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${multiMidY})`}>{unit}</text>
         {yticks.map((v, i) => (
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.09)`} strokeWidth="1" />
-            <text x={pad.l - 6} y={ys(v) + 3.5} textAnchor="end" fontFamily="var(--mono)" fontSize="9.5" fill={`rgba(${fg},0.45)`}>{fmt(v)}</text>
+            <text x={pad.l - 8} y={ys(v) + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{fmt(v)}</text>
           </g>
         ))}
         {xticks.map(t => (
-          <text key={t} x={xs(t)} y={H - pad.b + 16} textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" fill={`rgba(${fg},0.45)`}>{t}</text>
+          <text key={t} x={xs(t)} y={H - pad.b + 20} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{t}</text>
         ))}
-        <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
-        <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.28)`} strokeWidth="1" strokeDasharray="3 3" />
-        <text x={xs(2025)} y={pad.t - 5} textAnchor="middle" fontFamily="var(--mono)" fontSize="8" letterSpacing="0.1em" fill={`rgba(${fg},0.4)`}>2025</text>
+        <line x1={xs(2025)} y1={pad.t - 4} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.3)`} strokeWidth="1.5" strokeDasharray="4 3" />
+        <text x={xs(2025)} y={pad.t - 8} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.45)`}>2025</text>
         {/* Historical — grey, single path */}
-        <path d={histSeg} fill="none" stroke={`rgba(${fg},0.5)`} strokeWidth="2" strokeLinecap="round" />
+        <path d={histSeg} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2.5" strokeLinecap="round" />
         {/* Projections — one per SSP */}
         {SSPS.map((k, i) => (
-          <path key={k} d={projSegs[i]} fill="none" stroke={SSP_COLORS[k]} strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+          <path key={k} d={projSegs[i]} fill="none" stroke={SSP_COLORS[k]} strokeWidth="3" strokeLinecap="round" opacity="0.92" />
         ))}
         {/* 2100 endpoint dots */}
         {SSPS.map(k => {
           const v = valOf(k, 2100);
-          return <circle key={k} cx={xs(2100)} cy={ys(v)} r="4" fill={SSP_COLORS[k]} stroke={dark ? '#0E1A0B' : '#FAF9F3'} strokeWidth="1.5" />;
+          return <circle key={k} cx={xs(2100)} cy={ys(v)} r="5" fill={SSP_COLORS[k]} stroke={dark ? '#0E1A0B' : '#FAF9F3'} strokeWidth="2" />;
         })}
         {/* Hover crosshair */}
         {hoverYear != null && (
-          <line x1={xs(hoverYear)} y1={pad.t} x2={xs(hoverYear)} y2={H - pad.b} stroke={`rgba(${fg},0.3)`} strokeWidth="1" />
+          <line x1={xs(hoverYear)} y1={pad.t} x2={xs(hoverYear)} y2={H - pad.b} stroke={`rgba(${fg},0.35)`} strokeWidth="1.5" />
         )}
-        {/* Inline legend */}
+        {/* Inline legend — bigger and more readable */}
         {SSPS.map((k, i) => (
-          <g key={k} transform={`translate(${W - 178}, ${pad.t + i * 17})`}>
-            <rect x="0" y="-6" width="18" height="3" rx="1.5" fill={SSP_COLORS[k]} />
-            <text x="24" y="0" fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.65)`}>{SSP_LABELS[k]}</text>
+          <g key={k} transform={`translate(${W - 200}, ${pad.t + i * 22})`}>
+            <rect x="0" y="-7" width="22" height="4" rx="2" fill={SSP_COLORS[k]} />
+            <text x="30" y="0" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.7)`}>{SSP_LABELS[k]}</text>
           </g>
         ))}
       </svg>
       {/* Hover values tooltip */}
       {hoverYear != null && (
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(250,249,247,0.97)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 8, padding: '6px 10px', pointerEvents: 'none' }}>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 4 }}>{hoverYear}</div>
+        <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(250,249,247,0.98)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 10, padding: '10px 16px', pointerEvents: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 8 }}>{hoverYear}</div>
           {SSPS.map(k => (
-            <div key={k} style={{ fontFamily: 'var(--mono)', fontSize: 10, color: SSP_COLORS[k], marginBottom: 2 }}>
-              {SSP_LABELS[k]}: {fmt(valOf(k, hoverYear))} {unit}
+            <div key={k} style={{ display: 'flex', gap: 16, justifyContent: 'space-between', minWidth: 210, marginBottom: 4, alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'rgba(42,51,36,0.55)' }}>{SSP_LABELS[k]}</span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 13, color: SSP_COLORS[k], fontWeight: 600 }}>{fmt(valOf(k, hoverYear))} {unit}</span>
             </div>
           ))}
         </div>
@@ -632,11 +632,11 @@ function Thermometer({ value, dark }) {
         const major = Number.isInteger(t);
         return <g key={t}>
           <line x1={cx + tubeW / 2 + 2} y1={yFor(t)} x2={cx + tubeW / 2 + (major ? 12 : 7)} y2={yFor(t)} stroke={`rgba(${fg},0.5)`} strokeWidth="1" />
-          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 3.5} fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.6)`}>{t}°</text>}
+          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 4} fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.6)`}>{t}°</text>}
         </g>;
       })}
       <line x1={cx - tubeW / 2 - 14} y1={mercY} x2={cx - tubeW / 2 - 2} y2={mercY} stroke={red} strokeWidth="2" />
-      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="12" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
+      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="15" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
     </svg>
   );
 }
@@ -705,7 +705,7 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
           const y = baselineY - cm * 1.1;
           return <g key={cm}>
             <line x1="350" y1={y} x2="370" y2={y} stroke={faint} strokeWidth="1" />
-            <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
+            <text x="376" y={y + 3} fontFamily="var(--mono)" fontSize="11" letterSpacing="0.08em" fill={soft}>{cm}cm</text>
           </g>;
         })}
         <path d={`M 0 ${baselineY} L 60 ${baselineY} L 80 ${baselineY - 4} L 140 ${baselineY - 4} L 170 ${baselineY - 30} L 230 ${baselineY - 30} L 250 ${baselineY - 12} L 340 ${baselineY - 12} L 340 ${h} L 0 ${h} Z`} fill={`rgba(${fg},0.16)`} />
@@ -729,15 +729,15 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
         {/* visible 2025 baseline */}
         <line x1="0" y1={baselineY} x2="340" y2={baselineY} stroke="#E08D5C" strokeWidth="2" opacity="0.85" strokeDasharray="5 3" />
         <rect x="0" y={baselineY - 16} width="88" height="14" rx="3" fill="#E08D5C" opacity="0.85" />
-        <text x="6" y={baselineY - 5} fontFamily="var(--mono)" fontSize="8.5" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
+        <text x="6" y={baselineY - 4} fontFamily="var(--mono)" fontSize="10" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
         {/* interactive water area */}
         <rect x="0" y={seaY} width="340" height={h - seaY} fill="url(#seaG2)"
           onMouseMove={onWaterMove} onMouseLeave={() => setShowWaterTip(false)} style={{ cursor: 'crosshair' }} />
         <path d={`M 0 ${seaY} Q 20 ${seaY - 3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke="#fff" strokeWidth="0.8" fill="none" opacity="0.45" style={{ pointerEvents: 'none' }} />
-        <text x="6" y="22" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
+        <text x="6" y="22" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
         <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill="#0E1A0B">+{Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="14" fill={soft}> cm</tspan></text>
         {/* thermometer sst indicator */}
-        <text x="6" y="76" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
+        <text x="6" y="76" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
       </svg>
       {showWaterTip && (
         <div className="sea-water-tip" style={{ left: `${(tipPos.x / w) * 100}%`, top: `${(tipPos.y / h) * 100}%` }}>
@@ -766,7 +766,7 @@ function IceCaps({ tempValue, year = 2025, dark }) {
   const extentMk = (4.7 * iceExtent).toFixed(1);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      <text x={CX} y="16" textAnchor="middle" fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
+      <text x={CX} y="17" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
       <circle cx={CX} cy={CY} r={MAX_R} fill="#12304A" />
       {[1/3, 2/3, 1].map((f, i) => <circle key={i} cx={CX} cy={CY} r={MAX_R * f} fill="none" stroke="rgba(218,234,245,0.45)" strokeWidth="0.6" strokeDasharray="3 4" opacity="0.5" />)}
       <polygon points={poly(1)} fill="#DAEAF5" opacity="0.94" />
@@ -774,8 +774,8 @@ function IceCaps({ tempValue, year = 2025, dark }) {
       <circle cx={CX} cy={CY} r={MAX_R} fill="none" stroke="rgba(218,234,245,0.4)" strokeWidth="1.5" />
       <circle cx={CX} cy={CY} r="3" fill="rgba(218,234,245,0.6)" />
       <text x={CX} y="264" textAnchor="middle" fontFamily="var(--serif)" fontSize="46" fill="#0E1A0B">{extentMk}</text>
-      <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
-      <text x={CX} y="311" textAnchor="middle" fontFamily="var(--mono)" fontSize="8.5" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
+      <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
+      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
     </svg>
   );
 }
@@ -820,12 +820,12 @@ function GrassField({ tempValue = 1.2 }) {
         {blades.map((b, i) =>
           <path key={i} d={`M ${b.x.toFixed(1)} ${baseY} Q ${b.cpX.toFixed(1)} ${b.cpY.toFixed(1)} ${b.tipX.toFixed(1)} ${b.tipY.toFixed(1)}`} stroke={b.col} strokeWidth={b.wdt.toFixed(1)} fill="none" strokeLinecap="round" />
         )}
-        <text x="6" y="20" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.14em" fill={`rgba(${fg},0.55)`}>VEGETATION HEALTH</text>
-        <text x="6" y="36" fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em" fill={stressColor}>HEAT STRESS: {stressLabel} · {Math.round((1 - dry) * 100)}% HEALTHY COVER</text>
+        <text x="6" y="20" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.14em" fill={`rgba(${fg},0.55)`}>VEGETATION HEALTH</text>
+        <text x="6" y="37" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={stressColor}>HEAT STRESS: {stressLabel} · {Math.round((1 - dry) * 100)}% HEALTHY COVER</text>
         {/* stress bar */}
-        <rect x="6" y="44" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
-        <rect x="6" y="44" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
-        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="8.5" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
+        <rect x="6" y="46" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
+        <rect x="6" y="46" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
+        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
       </svg>
       {hovering && (
         <div className="grass-tip">
@@ -1482,32 +1482,42 @@ const ROOTS_DEF = [
   { id: 'consume', short: 'Consume', bad: false },
 ];
 
+// Bezier point evaluation
+const bezPt = (t, p0, p1, p2, p3) => {
+  const it = 1 - t;
+  return [it*it*it*p0[0]+3*it*it*t*p1[0]+3*it*t*t*p2[0]+t*t*t*p3[0],
+          it*it*it*p0[1]+3*it*it*t*p1[1]+3*it*t*t*p2[1]+t*t*t*p3[1]];
+};
+
 // Leaf shape path generators
+// spikyLeaf: narrow pointed lance (Temperature — heat/fire)
 const spikyLeaf = (cx, cy, r, ang) => {
-  const cos = Math.cos(ang), sin = Math.sin(ang);
-  const tip1x = cx + cos * r * 1.0, tip1y = cy + sin * r * 1.0;
-  const tip2x = cx - cos * r * 1.0, tip2y = cy - sin * r * 1.0;
-  const cpx1 = cx + (-sin * r * 0.28), cpy1 = cy + (cos * r * 0.28);
-  const cpx2 = cx - (-sin * r * 0.28), cpy2 = cy - (cos * r * 0.28);
-  return `M ${tip1x.toFixed(1)} ${tip1y.toFixed(1)} C ${cpx1.toFixed(1)} ${cpy1.toFixed(1)} ${cpx2.toFixed(1)} ${cpy2.toFixed(1)} ${tip2x.toFixed(1)} ${tip2y.toFixed(1)} C ${cpx2.toFixed(1)} ${cpy2.toFixed(1)} ${cpx1.toFixed(1)} ${cpy1.toFixed(1)} ${tip1x.toFixed(1)} ${tip1y.toFixed(1)} Z`;
+  const ax = Math.cos(ang), ay = Math.sin(ang);
+  const px = -Math.sin(ang), py = Math.cos(ang);
+  const t1x = cx+ax*r, t1y = cy+ay*r;
+  const t2x = cx-ax*r, t2y = cy-ay*r;
+  const w = r * 0.18;
+  return `M ${t1x.toFixed(1)} ${t1y.toFixed(1)} C ${(cx+ax*0.3*r+px*w).toFixed(1)} ${(cy+ay*0.3*r+py*w).toFixed(1)} ${(cx-ax*0.3*r+px*w).toFixed(1)} ${(cy-ay*0.3*r+py*w).toFixed(1)} ${t2x.toFixed(1)} ${t2y.toFixed(1)} C ${(cx-ax*0.3*r-px*w).toFixed(1)} ${(cy-ay*0.3*r-py*w).toFixed(1)} ${(cx+ax*0.3*r-px*w).toFixed(1)} ${(cy+ay*0.3*r-py*w).toFixed(1)} ${t1x.toFixed(1)} ${t1y.toFixed(1)} Z`;
 };
 
+// teardropLeaf: rounded base tapering to tip (Sea Level — water drop)
 const teardropLeaf = (cx, cy, r, ang) => {
-  const cos = Math.cos(ang), sin = Math.sin(ang);
-  const bx = cx - cos * r * 0.6, by = cy - sin * r * 0.6;
-  const tx = cx + cos * r * 0.9, ty = cy + sin * r * 0.9;
-  const side = r * 0.55;
-  const cpx1 = bx + (-sin * side), cpy1 = by + (cos * side);
-  const cpx2 = bx - (-sin * side), cpy2 = by - (cos * side);
-  return `M ${tx.toFixed(1)} ${ty.toFixed(1)} C ${cpx1.toFixed(1)} ${cpy1.toFixed(1)} ${(cx + (-sin*side*0.2)).toFixed(1)} ${(cy + (cos*side*0.2)).toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)} C ${(cx - (-sin*side*0.2)).toFixed(1)} ${(cy - (cos*side*0.2)).toFixed(1)} ${cpx2.toFixed(1)} ${cpy2.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)} Z`;
+  const ax = Math.cos(ang), ay = Math.sin(ang);
+  const px = -Math.sin(ang), py = Math.cos(ang);
+  const tipX = cx+ax*r*0.9, tipY = cy+ay*r*0.9;
+  const bsX = cx-ax*r*0.65, bsY = cy-ay*r*0.65;
+  const w = r * 0.52;
+  return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} C ${(cx+px*w*0.35).toFixed(1)} ${(cy+py*w*0.35).toFixed(1)} ${(bsX+px*w).toFixed(1)} ${(bsY+py*w).toFixed(1)} ${bsX.toFixed(1)} ${bsY.toFixed(1)} C ${(bsX-px*w).toFixed(1)} ${(bsY-py*w).toFixed(1)} ${(cx-px*w*0.35).toFixed(1)} ${(cy-py*w*0.35).toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Z`;
 };
 
-const jaggedLeaf = (cx, cy, r, rndFn) => {
+// jaggedLeaf: uses ang as a deterministic seed for irregularity (no NaN risk)
+const jaggedLeaf = (cx, cy, r, ang) => {
   const N = 7;
   const pts = [];
   for (let i = 0; i < N; i++) {
     const a = (i / N) * Math.PI * 2;
-    const rr = (i % 2 === 0) ? r : r * (0.38 + rndFn() * 0.22);
+    const jitter = 0.38 + (Math.sin(ang * 3.7 + i * 2.1) * 0.11 + 0.11);
+    const rr = (i % 2 === 0) ? r : r * jitter;
     pts.push(`${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr).toFixed(1)}`);
   }
   return `M ${pts.join(' L ')} Z`;
@@ -1577,9 +1587,9 @@ function SummaryTree({ bucket, knobValues }) {
 
   // Three branches (CO₂ is now the trunk)
   const treeMetrics = [
-    { id: 'temp',    label: 'Temperature', tip: [220, 200], unit: '°C',  desc: 'Surface temp anomaly by 2100',  leafShape: 'spiky',    dataId: 'temp' },
-    { id: 'sea',     label: 'Sea Level',   tip: [500, 160], unit: 'cm',  desc: 'Sea level rise above 2025',     leafShape: 'teardrop', dataId: 'sea' },
-    { id: 'drought', label: 'Drying',      tip: [780, 200], unit: '%',   desc: 'Dry regions lose soil moisture', leafShape: 'jagged',   dataId: 'precip' },
+    { id: 'temp',    label: 'Temperature', tip: [205, 205], subTips: [[278, 172]], unit: '°C',  desc: 'Surface temp anomaly by 2100',   leafShape: 'spiky',    dataId: 'temp' },
+    { id: 'sea',     label: 'Sea Level',   tip: [500, 158], subTips: [[432, 178],[568,178]], unit: 'cm',  desc: 'Sea level rise above 2025',      leafShape: 'teardrop', dataId: 'sea' },
+    { id: 'drought', label: 'Drying',      tip: [795, 205], subTips: [[722, 172]], unit: '%',   desc: 'Dry regions lose soil moisture',  leafShape: 'jagged',   dataId: 'precip' },
   ];
   const fmts = {
     temp:    v => (v >= 0 ? '+' : '') + v.toFixed(1),
@@ -1601,25 +1611,35 @@ function SummaryTree({ bucket, knobValues }) {
   // Seeded random for consistent leaf placement
   let seed = 42;
   const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
-  const allLeaves = [];
-  for (let mi = 0; mi < 3; mi++) {
-    const [tx, ty] = treeMetrics[mi].tip;
-    const bl = branchLush[mi];
-    const totalLeaves = Math.round(5 + bl * 30);
+
+  // Generate leaf cluster at a tip position
+  const makeLeaves = (tx, ty, bl, count, radiusMult = 1) => {
     const arr = [];
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 55; i++) {
       const ang = rnd() * Math.PI * 2;
-      const rad = 5 + rnd() * (14 + bl * 26);
+      const rad = (8 + rnd() * (20 + bl * 38)) * radiusMult;
       arr.push({
         lx: tx + Math.cos(ang) * rad,
-        ly: ty + Math.sin(ang) * rad * 0.75,
-        lr: lerp(3.5, 6.5, bl) + rnd() * lerp(1, 4.5, bl),
-        op: 0.45 + rnd() * 0.5,
+        ly: ty + Math.sin(ang) * rad * 0.78,
+        lr: (lerp(5, 10, bl) + rnd() * lerp(2, 6, bl)) * radiusMult,
+        op: 0.5 + rnd() * 0.45,
         ang: rnd() * Math.PI * 2,
       });
     }
-    allLeaves.push(arr.slice(0, totalLeaves));
-  }
+    return arr.slice(0, count);
+  };
+
+  // Main + subtip leaf clusters per branch
+  const allLeaves = treeMetrics.map((m, mi) => {
+    const bl = branchLush[mi];
+    const mainCount = Math.round(8 + bl * 42);
+    const subCount  = Math.round(5 + bl * 24);
+    const [tx, ty] = m.tip;
+    return {
+      main: makeLeaves(tx, ty, bl, mainCount),
+      subs: m.subTips.map(([stx, sty]) => makeLeaves(stx, sty, bl, subCount, 0.75)),
+    };
+  });
 
   // Crack lines in dry ground
   const cracks = [];
@@ -1663,7 +1683,7 @@ function SummaryTree({ bucket, knobValues }) {
           </div>
         </div>
         <div className="summary-tree reveal">
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" onMouseLeave={() => setHoveredMetric(null)}>
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }} onMouseLeave={() => setHoveredMetric(null)}>
             <defs>
               <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stopColor={skyCol} stopOpacity="0.4" />
@@ -1672,48 +1692,31 @@ function SummaryTree({ bucket, knobValues }) {
             </defs>
             <rect x="0" y="0" width={W} height={groundY} fill="url(#skyGrad)" />
 
-            {/* Policy roots — rendered before ground so they appear buried */}
-            {ROOTS_DEF.map((r, i) => {
-              const t = i / (ROOTS_DEF.length - 1);
-              const rootEndX = 230 + t * 540;
-              const rootEndY = groundY + 20 + Math.sin(Math.PI * t) * 28;
-              const val = displayRoots ? (displayRoots[r.id] ?? 50) : 50;
-              const rootGood = r.bad ? (100 - val) / 100 : val / 100;
-              const rootW = lerp(1.5, 7, rootGood);
-              const rootColor = r.bad
-                ? mix([180, 99, 58], [90, 70, 50], rootGood)
-                : mix([90, 70, 50], [72, 148, 80], rootGood);
-              const cx1 = baseX + (rootEndX - baseX) * 0.25;
-              const cy1 = groundY + 8;
-              const cx2 = rootEndX - (rootEndX - baseX) * 0.2;
-              const cy2 = rootEndY - 4;
-              return (
-                <g key={r.id}>
-                  <path d={`M ${baseX} ${groundY} C ${cx1} ${cy1} ${cx2} ${cy2} ${rootEndX} ${rootEndY}`}
-                    stroke={rootColor} strokeWidth={rootW} fill="none" strokeLinecap="round" />
-                </g>
-              );
-            })}
-
-            {/* Ground (covers most of roots) */}
+            {/* Ground */}
             <rect x="0" y={groundY} width={W} height={H - groundY} fill={groundCol} />
             <rect x="0" y={groundY} width={W} height="4" fill={`rgba(42,51,36,${lerp(0.18, 0.08, sev)})`} />
 
-            {/* Root labels — peek above ground */}
+            {/* Policy roots — buttress arches visible above ground surface */}
             {ROOTS_DEF.map((r, i) => {
               const t = i / (ROOTS_DEF.length - 1);
-              const rootEndX = 230 + t * 540;
+              const rootEndX = 195 + t * 610;
+              const dist = Math.abs(rootEndX - baseX);
+              const archH = dist * 0.14 + 10;
+              const midX = (baseX + rootEndX) / 2;
               const val = displayRoots ? (displayRoots[r.id] ?? 50) : 50;
               const rootGood = r.bad ? (100 - val) / 100 : val / 100;
+              const rootW = lerp(1.5, 8, rootGood);
               const rootColor = r.bad
-                ? mix([180, 99, 58], [90, 70, 50], rootGood)
-                : mix([90, 70, 50], [72, 148, 80], rootGood);
+                ? mix([180, 99, 58], [70, 55, 42], rootGood)
+                : mix([70, 55, 42], [58, 128, 70], rootGood);
               return (
-                <text key={r.id} x={rootEndX} y={groundY + 16}
-                  textAnchor="middle" fontFamily="var(--mono)" fontSize="8"
-                  letterSpacing="0.08em" fill={rootColor} opacity="0.85">
-                  {r.short.toUpperCase()}
-                </text>
+                <g key={r.id}>
+                  <path d={`M ${baseX} ${groundY - 3} Q ${midX} ${groundY - archH} ${rootEndX} ${groundY - 3}`}
+                    stroke={rootColor} strokeWidth={rootW} fill="none" strokeLinecap="round" />
+                  <text x={midX} y={groundY - archH - 5}
+                    textAnchor="middle" fontFamily="var(--mono)" fontSize="7.5"
+                    letterSpacing="0.07em" fill={rootColor} opacity="0.9">{r.short.toUpperCase()}</text>
+                </g>
               );
             })}
 
@@ -1731,71 +1734,64 @@ function SummaryTree({ bucket, knobValues }) {
               return <path key={i} d={`M ${bx} ${groundY} Q ${bx + (i%2 ? 2 : -2)} ${groundY - bh * 0.6} ${bx + (i%2 ? 3 : -3)} ${groundY - bh}`} stroke={leafCol} strokeWidth={lerp(1.2, 2.2, lush)} fill="none" strokeLinecap="round" />;
             })}
 
-            {/* Main trunk (= CO₂) */}
-            <path d={`M ${baseX} ${groundY - 2} C ${baseX - 10} ${groundY - 80} ${forkX + 12} ${forkY + 80} ${forkX} ${forkY}`} stroke={wood} strokeWidth={trunkW} fill="none" strokeLinecap="round" />
+            {/* Main trunk (= CO₂) — with shadow for depth */}
+            <path d={`M ${baseX + 4} ${groundY} C ${baseX - 6} ${groundY - 75} ${forkX + 18} ${forkY + 85} ${forkX + 3} ${forkY}`}
+              stroke={mix([65,46,26],[90,80,72],sev)} strokeWidth={trunkW + 2} fill="none" strokeLinecap="round" opacity="0.35" />
+            <path d={`M ${baseX} ${groundY - 2} C ${baseX - 12} ${groundY - 78} ${forkX + 14} ${forkY + 82} ${forkX} ${forkY}`}
+              stroke={wood} strokeWidth={trunkW} fill="none" strokeLinecap="round" />
 
-            {/* CO₂ trunk card — clickable */}
-            {(() => {
-              const cardW = 200, cardH = 108;
-              const cx = forkX - cardW / 2;
-              const cy = forkY - cardH - 18;
-              const isHov = hoveredMetric === 'co2';
-              const isSel = selectedMetric === 'co2';
-              return (
-                <g transform={`translate(${cx} ${cy})`}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => handleCardClick('co2')}
-                  onMouseEnter={() => setHoveredMetric('co2')}
-                  onMouseLeave={() => setHoveredMetric(null)}>
-                  <rect x="0" y="0" width={cardW} height={cardH} rx="14"
-                    fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.96)'}
-                    stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.18)'}
-                    strokeWidth={isHov || isSel ? 2 : 1} />
-                  <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK DRIVER</text>
-                  <text x={cardW - 14} y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
-                  <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
-                  <foreignObject x="12" y="74" width="176" height="28">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
-                      Atmospheric CO₂ concentration
-                    </div>
-                  </foreignObject>
-                  {/* Click hint */}
-                  <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
-                </g>
-              );
-            })()}
-            {/* Connector from CO₂ card to fork */}
-            <line x1={forkX} y1={forkY - 18} x2={forkX} y2={forkY - 8} stroke="rgba(42,51,36,0.2)" strokeWidth="1" strokeDasharray="3 3" />
-
-            {/* Branches + leaves + metric cards */}
+            {/* Branches + secondary branches + leaves + metric cards */}
             {treeMetrics.map((m, mi) => {
               const [tx, ty] = m.tip;
-              const c1x = forkX + (tx - forkX) * 0.28, c1y = forkY - 44;
-              const c2x = forkX + (tx - forkX) * 0.75, c2y = ty + 44;
+              const c1x = forkX + (tx - forkX) * 0.3, c1y = forkY - 50;
+              const c2x = forkX + (tx - forkX) * 0.72, c2y = ty + 50;
               const rawVal = displayVals[m.dataId] ?? valAt(m.dataId, view, 2100);
               const displayId = m.id === 'drought' ? 'drought' : m.id;
               const isHov = hoveredMetric === m.id;
               const isSel = selectedMetric === m.id;
-              const bl = branchLush[mi];
-              // Leaf color slightly varies per branch shape
-              const leafColBranch = m.leafShape === 'spiky'    ? mix([100,155,80], [150,120,70], sev)
-                                  : m.leafShape === 'teardrop' ? mix([60,130,150], [100,120,140], sev)
-                                  : mix([130,155,60], [150,130,80], sev);
+
+              const sp = bezPt(0.58, [forkX, forkY], [c1x, c1y], [c2x, c2y], [tx, ty]);
+
+              const leafColBranch = m.leafShape === 'spiky'
+                ? mix([105,160,78], [148,118,68], sev)
+                : m.leafShape === 'teardrop'
+                ? mix([55,128,155], [95,118,140], sev)
+                : mix([128,158,55], [148,128,78], sev);
+
+              const renderLeaf = (l, k, scl) => {
+                const lr = l.lr * (scl || 1);
+                if (m.leafShape === 'spiky')    return <path key={k} d={spikyLeaf(l.lx, l.ly, lr, l.ang)}   fill={leafColBranch} opacity={l.op.toFixed(2)} />;
+                if (m.leafShape === 'teardrop') return <path key={k} d={teardropLeaf(l.lx, l.ly, lr, l.ang)} fill={leafColBranch} opacity={l.op.toFixed(2)} />;
+                return                                  <path key={k} d={jaggedLeaf(l.lx, l.ly, lr, l.ang)}  fill={leafColBranch} opacity={l.op.toFixed(2)} />;
+              };
+
               return (
                 <g key={m.id}>
-                  {/* Branch */}
-                  <path d={`M ${forkX} ${forkY} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`} stroke={wood} strokeWidth={branchW} fill="none" strokeLinecap="round" />
-                  {/* Leaves */}
-                  {allLeaves[mi].map((l, k) => {
-                    const lrndSeed = (k * 31 + mi * 7) % 17;
-                    const lrndFn = () => ((lrndSeed * 9301 + k * 49297 + mi) % 233280) / 233280;
-                    if (m.leafShape === 'spiky')
-                      return <path key={k} d={spikyLeaf(l.lx, l.ly, l.lr, l.ang)} fill={leafColBranch} opacity={l.op.toFixed(2)} />;
-                    if (m.leafShape === 'teardrop')
-                      return <path key={k} d={teardropLeaf(l.lx, l.ly, l.lr, l.ang)} fill={leafColBranch} opacity={l.op.toFixed(2)} />;
-                    return <path key={k} d={jaggedLeaf(l.lx, l.ly, l.lr, lrndFn)} fill={leafColBranch} opacity={l.op.toFixed(2)} />;
+                  {/* Branch shadow */}
+                  <path d={`M ${forkX+2} ${forkY+2} C ${c1x+2} ${c1y+2} ${c2x+2} ${c2y+2} ${tx+2} ${ty+2}`}
+                    stroke={mix([65,46,26],[90,80,72],sev)} strokeWidth={branchW+2} fill="none" strokeLinecap="round" opacity="0.22" />
+                  {/* Main branch */}
+                  <path d={`M ${forkX} ${forkY} C ${c1x} ${c1y} ${c2x} ${c2y} ${tx} ${ty}`}
+                    stroke={wood} strokeWidth={branchW} fill="none" strokeLinecap="round" />
+                  {/* Secondary branches */}
+                  {m.subTips.map(([stx, sty], si) => {
+                    const sc1x = sp[0] + (stx - sp[0]) * 0.25;
+                    const sc1y = sp[1] + (sty - sp[1]) * 0.08 - 20;
+                    const sc2x = sp[0] + (stx - sp[0]) * 0.7;
+                    const sc2y = sty + 24;
+                    return (
+                      <path key={si}
+                        d={`M ${sp[0].toFixed(1)} ${sp[1].toFixed(1)} C ${sc1x.toFixed(1)} ${sc1y.toFixed(1)} ${sc2x.toFixed(1)} ${sc2y.toFixed(1)} ${stx} ${sty}`}
+                        stroke={wood} strokeWidth={branchW * 0.62} fill="none" strokeLinecap="round" />
+                    );
                   })}
-                  {/* Connector line to card */}
+                  {/* Leaves on main tip */}
+                  {allLeaves[mi].main.map((l, k) => renderLeaf(l, k))}
+                  {/* Leaves on sub-tips */}
+                  {allLeaves[mi].subs.map((subArr, si) =>
+                    subArr.map((l, k) => renderLeaf(l, `s${si}_${k}`, 0.8))
+                  )}
+                  {/* Connector to card */}
                   <line x1={tx} y1={ty - 42} x2={tx} y2={ty - 10}
                     stroke={isSel ? meta.swatch : 'rgba(42,51,36,0.18)'}
                     strokeWidth={isSel ? 1.5 : 1}
@@ -1823,49 +1819,80 @@ function SummaryTree({ bucket, knobValues }) {
                 </g>
               );
             })}
-            {/* Pathway label */}
-            <rect x={baseX - 200} y={groundY + 28} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
-            <text x={baseX} y={groundY + 47} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
-          </svg>
 
-          {/* Chart panel — slides up when a metric card is clicked */}
-          {selectedMetric && (() => {
-            const sm = selectedMetric === 'co2'
-              ? { id: 'co2', label: 'CO₂', dataId: 'co2' }
-              : treeMetrics.find(m => m.id === selectedMetric);
-            if (!sm) return null;
-            const metricId = sm.dataId || sm.id;
-            const mDef = getMetricDef(metricId);
-            return (
-              <div className="tree-chart-panel">
-                <div className="tree-chart-panel-head">
-                  <span className="tree-chart-title">{sm.label} · All three pathways · 1980–2100</span>
-                  <button className="tree-chart-close" onClick={() => setSelectedMetric(null)}>✕</button>
-                </div>
-                <MultiLineChart
-                  metric={metricId}
-                  dark={false}
-                  dom={mDef.dom}
-                  unit={mDef.unit}
-                  fmt={mDef.fmt}
-                />
-                <div className="tree-chart-outcomes">
-                  {['1-2.6','2-4.5','5-8.5'].map(k => {
-                    const swatchKey = k === '1-2.6' ? 'low' : k === '2-4.5' ? 'mid' : 'high';
-                    return (
-                      <div key={k} className="tree-chart-outcome" style={{ '--c': `var(--tw-${swatchKey})` }}>
-                        <span className="tco-name">{SSP_NAMES[k]}</span>
-                        <span className="tco-val">{mDef.fmt(valAt(metricId, k, 2100))}<span className="tco-unit"> {mDef.unit}</span></span>
+            {/* CO₂ trunk card — to the right of the trunk */}
+            {(() => {
+              const cardW = 196, cardH = 108;
+              const cardX = forkX + 36;
+              const cardY = forkY + 8;
+              const isHov = hoveredMetric === 'co2';
+              const isSel = selectedMetric === 'co2';
+              return (
+                <g>
+                  <line x1={forkX + 12} y1={forkY + 30} x2={cardX - 4} y2={cardY + 40}
+                    stroke="rgba(42,51,36,0.22)" strokeWidth="1" strokeDasharray="3 3" />
+                  <g transform={`translate(${cardX} ${cardY})`}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleCardClick('co2')}
+                    onMouseEnter={() => setHoveredMetric('co2')}
+                    onMouseLeave={() => setHoveredMetric(null)}>
+                    <rect x="0" y="0" width={cardW} height={cardH} rx="14"
+                      fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.96)'}
+                      stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.18)'}
+                      strokeWidth={isHov || isSel ? 2 : 1} />
+                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
+                    <text x={cardW - 14} y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
+                    <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
+                    <foreignObject x="12" y="74" width="172" height="28">
+                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
+                        Atmospheric CO₂ concentration
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
+                    </foreignObject>
+                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
+                  </g>
+                </g>
+              );
+            })()}
+
+            {/* Pathway label */}
+            <rect x={baseX - 200} y={groundY + 42} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
+            <text x={baseX} y={groundY + 61} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
+          </svg>
         </div>
         <p className="label reveal" style={{ marginTop: 12, opacity: 0.5 }}>Click metric cards to compare all scenarios · Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
       </div>
+
+      {/* Chart modal — centered popup */}
+      {selectedMetric && (() => {
+        const sm = selectedMetric === 'co2'
+          ? { id: 'co2', label: 'CO₂', dataId: 'co2' }
+          : treeMetrics.find(m => m.id === selectedMetric);
+        if (!sm) return null;
+        const metricId = sm.dataId || sm.id;
+        const mDef = getMetricDef(metricId);
+        return (
+          <div className="tree-modal-overlay" onClick={e => { if (e.target === e.currentTarget) setSelectedMetric(null); }}>
+            <div className="tree-modal">
+              <div className="tree-chart-panel-head">
+                <span className="tree-chart-title">{sm.label} · All three pathways · 1980–2100</span>
+                <button className="tree-chart-close" onClick={() => setSelectedMetric(null)}>✕</button>
+              </div>
+              <MultiLineChart metric={metricId} dark={false} dom={mDef.dom} unit={mDef.unit} fmt={mDef.fmt} />
+              <div className="tree-chart-outcomes">
+                {['1-2.6','2-4.5','5-8.5'].map(k => {
+                  const swatchKey = k === '1-2.6' ? 'low' : k === '2-4.5' ? 'mid' : 'high';
+                  return (
+                    <div key={k} className="tree-chart-outcome" style={{ '--c': `var(--tw-${swatchKey})` }}>
+                      <span className="tco-name">{SSP_NAMES[k]}</span>
+                      <span className="tco-val">{mDef.fmt(valAt(metricId, k, 2100))}<span className="tco-unit"> {mDef.unit}</span></span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </section>
   );
 }
@@ -1887,9 +1914,9 @@ function Outro({ onRestart }) {
           </p>
           <button className="btn btn--primary reveal" onClick={onRestart}>Restart your future <Arrow /></button>
           <div className="outro-illos reveal">
-            <div className="fig"><img src="../images/handshake.png" alt="" /></div>
-            <div className="fig"><img src="../images/wind_turbines.png" alt="" /></div>
-            <div className="fig"><img src="../images/green_leaf.png" alt="" /></div>
+            <div className="fig"><img src="images/handshake.png" alt="" /></div>
+            <div className="fig"><img src="images/wind_turbines.png" alt="" /></div>
+            <div className="fig"><img src="images/green_leaf.png" alt="" /></div>
           </div>
         </div>
         <div className="credits reveal">
@@ -2052,7 +2079,7 @@ async function boot() {
   document.body.appendChild(loading);
 
   try {
-    const res = await fetch('../data/climate-data.json');
+    const res = await fetch('data/climate-data.json');
     const climateData = await res.json();
     initDOC(climateData);
     loading.remove();
