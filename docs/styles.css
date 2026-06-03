@@ -78,11 +78,11 @@ button { cursor: default; font-family: inherit; }
   letter-spacing: -0.01em;
 }
 .lede {
-  font-size: clamp(17px, 2.2vw, 21px);
-  line-height: 1.5;
+  font-size: clamp(19px, 2.5vw, 24px);
+  line-height: 1.55;
   color: var(--ink);
 }
-.body { font-size: 16px; line-height: 1.7; }
+.body { font-size: 18px; line-height: 1.75; }
 .label {
   font-family: var(--mono);
   font-size: 11px;
@@ -236,9 +236,11 @@ button { cursor: default; font-family: inherit; }
   flex-wrap: wrap;
 }
 .cover-thermo {
-  width: 80px;
-  height: 180px;
+  width: 134px;
+  height: 300px;
   flex-shrink: 0;
+  position: relative;
+  top: 24px;
 }
 .scroll-hint {
   position: absolute;
@@ -315,6 +317,18 @@ button { cursor: default; font-family: inherit; }
   padding: 24px 26px;
   position: sticky;
   top: 70px;
+}
+.thought-card::after {
+  content: '';
+  position: absolute;
+  top: 38px;
+  right: -10px;
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 10px solid var(--card);
+  filter: drop-shadow(1px 0 0 rgba(42,51,36,0.12));
 }
 .console {
   background: #07120A;
@@ -515,6 +529,19 @@ button { cursor: default; font-family: inherit; }
   max-height: 50vh;
 }
 
+/* Temp section: let the thermometer be taller */
+.chapter--temp .mc-viz svg {
+  max-height: calc(100vh - 200px);
+}
+
+/* ── Dial direction indicator ──────────────────────────── */
+.dial-dir {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
 .mc-year {
   font-family: var(--tw-serif);
   font-size: clamp(40px, 5vw, 64px);
@@ -522,8 +549,8 @@ button { cursor: default; font-family: inherit; }
   line-height: 1;
   letter-spacing: -0.02em;
 }
-.mc-beat h3 { font-size: clamp(16px, 2vw, 22px); margin-bottom: 10px; }
-.mc-beat p  { font-size: 14px; line-height: 1.65; opacity: 0.8; max-width: 40ch; }
+.mc-beat h3 { font-size: clamp(20px, 2.4vw, 28px); margin-bottom: 12px; }
+.mc-beat p  { font-size: 16px; line-height: 1.7; opacity: 0.85; max-width: 38ch; }
 .mc-note {
   margin-top: 14px;
   font-family: var(--mono);

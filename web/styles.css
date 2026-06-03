@@ -78,11 +78,11 @@ button { cursor: default; font-family: inherit; }
   letter-spacing: -0.01em;
 }
 .lede {
-  font-size: clamp(17px, 2.2vw, 21px);
-  line-height: 1.5;
+  font-size: clamp(19px, 2.5vw, 24px);
+  line-height: 1.55;
   color: var(--ink);
 }
-.body { font-size: 16px; line-height: 1.7; }
+.body { font-size: 18px; line-height: 1.75; }
 .label {
   font-family: var(--mono);
   font-size: 11px;
@@ -205,7 +205,7 @@ button { cursor: default; font-family: inherit; }
 
 /* ── Scenes ────────────────────────────────────────────── */
 .scene {
-  padding: calc(96px * var(--tw-rhythm)) 0;
+  padding: calc(64px * var(--tw-rhythm)) 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -236,9 +236,11 @@ button { cursor: default; font-family: inherit; }
   flex-wrap: wrap;
 }
 .cover-thermo {
-  width: 80px;
-  height: 180px;
+  width: 134px;
+  height: 300px;
   flex-shrink: 0;
+  position: relative;
+  top: 24px;
 }
 .scroll-hint {
   position: absolute;
@@ -308,14 +310,6 @@ button { cursor: default; font-family: inherit; }
 }
 @media (max-width: 860px) { .console-layout { grid-template-columns: 1fr; } }
 
-.thought-card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 24px 26px;
-  position: sticky;
-  top: 70px;
-}
 .console {
   background: #07120A;
   border-radius: var(--r-xl);
@@ -450,9 +444,9 @@ button { cursor: default; font-family: inherit; }
     "chart chart";
   gap: 0 32px;
   width: 100%;
-  max-width: calc(var(--tw-measure) * 1.7);
+  max-width: calc(var(--tw-measure) * 1.85);
   margin: 0 auto;
-  padding: 64px 32px 32px;
+  padding: 48px 24px 20px;
   height: 100vh;
 }
 @media (max-width: 900px) {
@@ -515,6 +509,41 @@ button { cursor: default; font-family: inherit; }
   max-height: 50vh;
 }
 
+/* Temp section: let the thermometer be taller */
+.chapter--temp .mc-viz svg {
+  max-height: calc(100vh - 200px);
+}
+
+/* ── Dial direction indicator ──────────────────────────── */
+.dial-dir {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+
+/* ── Thought-card speech bubble ────────────────────────── */
+.thought-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 24px 26px;
+  position: sticky;
+  top: 70px;
+}
+.thought-card::after {
+  content: '';
+  position: absolute;
+  top: 38px;
+  right: -10px;
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 10px solid var(--card);
+  filter: drop-shadow(1px 0 0 rgba(42,51,36,0.12));
+}
+
 .mc-year {
   font-family: var(--tw-serif);
   font-size: clamp(40px, 5vw, 64px);
@@ -522,12 +551,12 @@ button { cursor: default; font-family: inherit; }
   line-height: 1;
   letter-spacing: -0.02em;
 }
-.mc-beat h3 { font-size: clamp(16px, 2vw, 22px); margin-bottom: 10px; }
-.mc-beat p  { font-size: 14px; line-height: 1.65; opacity: 0.8; max-width: 40ch; }
+.mc-beat h3 { font-size: clamp(22px, 2.6vw, 30px); margin-bottom: 12px; }
+.mc-beat p  { font-size: 17px; line-height: 1.7; opacity: 0.85; max-width: 40ch; }
 .mc-note {
   margin-top: 14px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   opacity: 0.5;
 }
@@ -540,18 +569,18 @@ button { cursor: default; font-family: inherit; }
 }
 .vt {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   opacity: 0.5;
 }
 .vv {
   font-family: var(--tw-serif);
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   line-height: 1;
 }
-.u { font-family: var(--mono); font-size: 13px; opacity: 0.55; margin-left: 4px; }
+.u { font-family: var(--mono); font-size: 14px; opacity: 0.55; margin-left: 4px; }
 
 .viz-box { width: 100%; display: flex; align-items: center; justify-content: center; }
 .sea-combo { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
@@ -769,12 +798,125 @@ button { cursor: default; font-family: inherit; }
 .tree-btn.active .tree-btn-dot { background: rgba(255,255,255,0.7); }
 .tree-btn-delta { opacity: 0.65; margin-left: 2px; }
 
-/* ── Tree animation ────────────────────────────────────── */
-.summary-tree { transition: opacity 0.3s ease; }
-.summary-tree.tree-animating { opacity: 0; }
-
 /* ── Summary section background distinct from outro ───── */
 .summary { background: var(--bg); }
+
+/* ── Tree chart panel ──────────────────────────────────── */
+.tree-chart-panel {
+  margin-top: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 24px 16px;
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tree-chart-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.tree-chart-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.tree-chart-close {
+  appearance: none;
+  background: none;
+  border: none;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: default;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.tree-chart-close:hover { background: var(--line); }
+.tree-chart-outcomes {
+  display: flex;
+  gap: 28px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  flex-wrap: wrap;
+}
+.tree-chart-outcome { display: flex; flex-direction: column; gap: 3px; }
+.tco-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--c);
+  text-transform: uppercase;
+}
+.tco-val {
+  font-family: var(--tw-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--c);
+  line-height: 1;
+}
+.tco-unit {
+  font-family: var(--mono);
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+/* ── Tree chart modal ──────────────────────────────────── */
+.tree-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(14,26,11,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 600;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.18s ease;
+  padding: 24px;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.tree-modal {
+  background: var(--card);
+  border-radius: var(--r-xl);
+  padding: 36px 44px 32px;
+  width: min(1040px, 96vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.15);
+  animation: scaleIn 0.22s ease;
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.tree-modal .tree-chart-panel-head { margin-bottom: 20px; }
+.tree-modal .tree-chart-title {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+.tree-modal .tree-chart-close {
+  font-size: 18px;
+  padding: 4px 10px;
+  opacity: 0.5;
+}
+.tree-modal .tree-chart-outcomes {
+  margin-top: 20px;
+  padding-top: 20px;
+  gap: 40px;
+}
+.tree-modal .tco-name { font-size: 11px; }
+.tree-modal .tco-val { font-size: 36px; }
+.tree-modal .tco-unit { font-size: 14px; }
 
 /* ── Smooth section transitions ─────────────────────────── */
 .scene { position: relative; }
