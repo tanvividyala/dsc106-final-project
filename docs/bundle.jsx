@@ -267,7 +267,7 @@ function nearestCarbonMilestone(ppm) {
 
 function CarbonBlocks({ value = 420, year = 2025 }) {
   const { useState, useEffect, useRef, useMemo, useCallback } = React;
-  const COLS = 40, ROWS = 34, BASE = 280, TOTAL = COLS * ROWS;
+  const COLS = 50, ROWS = 18, BASE = 280, TOTAL = COLS * ROWS;
   const W = 480, padX = 22, top = 42, bot = 50;
   const cell = (W - padX * 2) / COLS;
   const H = top + ROWS * cell + bot;
@@ -446,10 +446,8 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 
   return (
     <div className="chart-wrap">
+      <div className="lc-title">{metricChartTitle} · {SSP_NAMES[activeKey]} pathway</div>
       <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
-        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
-          {metricChartTitle} · {SSP_NAMES[activeKey]} pathway
-        </text>
         <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${chartMidY})`}>{unit}</text>
         {yticks.map((v, i) =>
@@ -493,7 +491,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 }
 
 // ── Multi-scenario line chart (all 3 SSPs at once) ──────────
-function MultiLineChart({ metric, dark, dom, unit, fmt }) {
+function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
   const { useState, useMemo } = React;
   const W = 960, H = 290, pad = { t: 36, r: 24, b: 48, l: 62 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -551,11 +549,9 @@ function MultiLineChart({ metric, dark, dom, unit, fmt }) {
 
   return (
     <div className="chart-wrap" style={{ position: 'relative' }}>
+      {!hideTitle && <div className="lc-title">{metricChartTitle2} · all three pathways</div>}
       <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: 'auto' }}
         onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
-        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
-          {metricChartTitle2} · all three pathways
-        </text>
         <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${multiMidY})`}>{unit}</text>
         {yticks.map((v, i) => (
@@ -895,25 +891,34 @@ function Sun({ tempValue = 1.2 }) {
 function SmokeClouds({ co2Value = 420 }) {
   const { useMemo } = React;
   // starts showing at 280 (baseline), maxes out at 700+
-  const intensity = Math.min(1, Math.max(0, (co2Value - 280) / (700 - 280)));
+  const intensity = Math.min(1, Math.max(0, (co2Value - 415) / (700 - 415)));
   const W = 1200, H = 900;
   const clouds = useMemo(() => {
     let seed = 77;
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const all = [];
     for (let i = 0; i < 24; i++) {
-      const baseOp = 0.65 + rnd() * 0.25;
+      const scale = 0.7 + rnd() * 1.2;
+      const baseOp = 0.28 + rnd() * 0.18;
+      const n = 3 + Math.floor(rnd() * 3);
+      const puffs = [];
+      // flat base ellipse
+      puffs.push({ type: 'e', x: 0, y: 12 * scale, rx: 55 * scale, ry: 18 * scale });
+      // bumpy top circles spread left to right
+      for (let j = 0; j < n; j++) {
+        const t = (j + 0.5) / n;
+        const bx = (t - 0.5) * 90 * scale;
+        const br = (18 + rnd() * 28) * scale;
+        puffs.push({ type: 'c', x: bx, y: -(br * 0.5 + rnd() * 8 * scale), r: br });
+      }
       all.push({
-        x: 80 + rnd() * (W - 160),
-        y: 80 + rnd() * (H - 100),
-        rx: 65 + rnd() * 180,
-        ry: 38 + rnd() * 105,
-        baseOp,
-        dark: rnd() > 0.5,
+        cx: 80 + rnd() * (W - 160),
+        cy: 80 + rnd() * (H - 100),
+        puffs, baseOp,
         dur: (8 + rnd() * 14).toFixed(1),
         opDur: (7 + rnd() * 9).toFixed(1),
-        dx: ((rnd() - 0.5) * 60).toFixed(1),
-        dy: (-18 - rnd() * 38).toFixed(1),
+        dx: (rnd() - 0.5) * 60,
+        dy: -18 - rnd() * 38,
         delay: (-rnd() * 14).toFixed(1),
       });
     }
@@ -924,18 +929,21 @@ function SmokeClouds({ co2Value = 420 }) {
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
       opacity: intensity, transition: 'opacity 1.8s ease' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-        <defs />
         {clouds.map((c, i) => (
-          <ellipse key={i} cx={c.x} cy={c.y} rx={c.rx} ry={c.ry}
-            fill={c.dark ? 'rgba(140,140,140,1)' : 'rgba(190,190,190,1)'}>
-            <animate attributeName="opacity"
-              values={`${c.baseOp.toFixed(3)};${Math.min(0.95,c.baseOp*1.1).toFixed(3)};${(c.baseOp*0.85).toFixed(3)};${c.baseOp.toFixed(3)}`}
-              dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+          <g key={i} opacity={c.baseOp}>
             <animateTransform attributeName="transform" type="translate"
-              values={`0,0; ${c.dx},${c.dy}; 0,0`}
+              values={`${c.cx},${c.cy}; ${(c.cx+c.dx).toFixed(1)},${(c.cy+c.dy).toFixed(1)}; ${c.cx},${c.cy}`}
               keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
-              dur={`${c.dur}s`} repeatCount="indefinite" additive="sum" begin={`${c.delay}s`} />
-          </ellipse>
+              dur={`${c.dur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+            <animate attributeName="opacity"
+              values={`${c.baseOp.toFixed(3)};${Math.min(0.6,c.baseOp*1.2).toFixed(3)};${(c.baseOp*0.75).toFixed(3)};${c.baseOp.toFixed(3)}`}
+              dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+            {c.puffs.map((p, j) =>
+              p.type === 'c'
+                ? <circle key={j} cx={p.x} cy={p.y} r={p.r} fill="rgba(195,205,215,1)" />
+                : <ellipse key={j} cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill="rgba(195,205,215,1)" />
+            )}
+          </g>
         ))}
       </svg>
     </div>
@@ -1419,6 +1427,53 @@ function Chapter({ metric, bucket }) {
 
   const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
 
+  if (M.id === 'co2') {
+    const CO2Waffle = () => <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
+    return (
+      <section className="scene chapter chapter--tall chapter--co2" ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
+        <div className="chapter-sticky2">
+          <SmokeClouds co2Value={value} />
+          <div className="metric-comp metric-comp--co2" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="mc-narr">
+              <div className="eyebrow">{M.chapter}</div>
+              <div className="metric-section-title">{M.title}</div>
+              <div className="co2-narr-beat">
+                <h3 className="co2-beat-title">{b.title}</h3>
+                <p className="co2-beat-body">{b.body}</p>
+              </div>
+              <div className="co2-reached-wrapper">
+                <div className="co2-reached-card">
+                  <div className="co2-reached-label">YOU'VE REACHED</div>
+                  <div className="co2-reached-year">{year}</div>
+                </div>
+                <div className="mc-note" style={{ marginTop: 8 }}>{b.note}</div>
+              </div>
+            </div>
+            <div className="co2-right-card">
+              <div className="co2-card-header">
+                <span className="co2-card-title">{M.label} · ATMOSPHERIC CONCENTRATION</span>
+                <span className="co2-card-badge">
+                  <span className="co2-badge-dot" style={{ background: bucket.swatch }} />
+                  {bucket.name.toUpperCase()} · {bucket.code}
+                </span>
+              </div>
+              <div className="co2-card-viz">
+                <CO2Waffle />
+              </div>
+              <div className="co2-value-row">
+                <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+                <div className="co2-value-label">ATMOSPHERIC CONCENTRATION<br />AS OF {year}</div>
+              </div>
+              <div className="co2-card-chart">
+                <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
@@ -1426,8 +1481,9 @@ function Chapter({ metric, bucket }) {
         {M.id === 'co2' && <SmokeClouds co2Value={value} />}
         <div className="metric-comp" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
-            <div className="eyebrow">{M.chapter} · {M.title}</div>
-            <div className="mc-beat" key={activeStep} style={{ marginTop: 18 }}>
+            <div className="eyebrow">{M.chapter}</div>
+            <div className="metric-section-title">{M.title}</div>
+            <div className="mc-beat" key={activeStep} style={{ marginTop: 0 }}>
               <div className="mc-year">{year}</div>
               <h3 style={{ fontFamily: 'var(--tw-serif)', margin: '8px 0 10px' }}>{b.title}</h3>
               <p style={{ margin: 0 }}>{b.body}</p>
@@ -1872,7 +1928,7 @@ function SummaryTree({ bucket, knobValues }) {
                 <span className="tree-chart-title">{sm.label} · All three pathways · 1980–2100</span>
                 <button className="tree-chart-close" onClick={() => setSelectedMetric(null)}>✕</button>
               </div>
-              <MultiLineChart metric={metricId} dark={false} dom={mDef.dom} unit={mDef.unit} fmt={mDef.fmt} />
+              <MultiLineChart metric={metricId} dark={false} dom={mDef.dom} unit={mDef.unit} fmt={mDef.fmt} hideTitle={true} />
               <div className="tree-chart-outcomes">
                 {['1-2.6','2-4.5','5-8.5'].map(k => {
                   const swatchKey = k === '1-2.6' ? 'low' : k === '2-4.5' ? 'mid' : 'high';

@@ -92,23 +92,35 @@ button { cursor: default; font-family: inherit; }
 }
 .eyebrow {
   font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--tw-accent);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .eyebrow::before {
   content: '';
   display: block;
-  width: 20px;
-  height: 1.5px;
+  width: 28px;
+  height: 2px;
   background: currentColor;
-  opacity: 0.6;
   flex-shrink: 0;
 }
+
+/* Section title used in metric chapters — large orientation anchor */
+.metric-section-title {
+  font-family: var(--tw-serif);
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.scene--dark .metric-section-title { color: #ECE6CE; }
 
 /* ── Reveal animations ─────────────────────────────────── */
 .reveal {
@@ -585,6 +597,172 @@ button { cursor: default; font-family: inherit; }
 .viz-box { width: 100%; display: flex; align-items: center; justify-content: center; }
 .sea-combo { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
 
+/* ── CO₂ chapter layout ─────────────────────────────────── */
+.metric-comp--co2 {
+  grid-template-columns: minmax(200px, 30%) 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "narr viz";
+  align-items: stretch;
+  padding: 50px 20px 30px;
+  max-width: min(1300px, 90vw);
+}
+.chapter--co2 .mc-narr {
+  justify-content: flex-start;
+  gap: 10px;
+  align-self: center;
+  height: min(44vh, calc(100vh - 80px));
+  position: relative;
+  padding-bottom: 150px;
+}
+.chapter--co2 .metric-section-title {
+  font-size: clamp(34px, 4.2vw, 56px);
+}
+.co2-narr-beat { display: flex; flex-direction: column; }
+.co2-beat-title {
+  font-family: var(--tw-serif);
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--tw-accent);
+}
+.co2-beat-body {
+  font-size: 17px;
+  line-height: 1.7;
+  opacity: 0.85;
+  margin: 0;
+  max-width: 38ch;
+}
+.co2-reached-wrapper {
+  position: absolute;
+  bottom: -44px;
+  left: 0;
+  right: 0;
+}
+.co2-reached-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+}
+.co2-reached-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.co2-reached-year {
+  font-family: var(--tw-serif);
+  font-size: clamp(44px, 4.5vw, 58px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-top: 4px;
+}
+.co2-right-card {
+  grid-area: viz;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 120px);
+  align-self: center;
+}
+.co2-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.co2-card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+.co2-card-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 4px 10px 4px 8px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.co2-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.co2-card-viz {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+.co2-card-viz .viz-box { display: flex; align-items: center; justify-content: center; }
+.co2-card-viz svg {
+  display: block;
+  width: 720px;
+  height: auto;
+  max-width: 100%;
+}
+.co2-card-viz svg text {
+  font-size: 10px;
+}
+.co2-value-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.co2-vv { font-size: clamp(32px, 3.5vw, 48px); }
+.co2-value-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  text-align: right;
+  line-height: 1.6;
+}
+.co2-card-chart {
+  padding: 10px 18px 14px;
+  overflow: hidden;
+}
+.co2-card-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Line chart title ──────────────────────────────────── */
+.lc-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  opacity: 0.85;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.scene--dark .lc-title { color: #ECE6CE; }
+
 /* ── Line chart tooltip ────────────────────────────────── */
 .chart-wrap { position: relative; width: 100%; }
 .chart-wrap svg { width: 100%; height: auto; display: block; }
@@ -900,9 +1078,10 @@ button { cursor: default; font-family: inherit; }
 }
 .tree-modal .tree-chart-panel-head { margin-bottom: 20px; }
 .tree-modal .tree-chart-title {
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  opacity: 0.75;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  opacity: 1;
+  color: var(--ink);
 }
 .tree-modal .tree-chart-close {
   font-size: 18px;

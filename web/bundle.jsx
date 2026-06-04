@@ -267,7 +267,7 @@ function nearestCarbonMilestone(ppm) {
 
 function CarbonBlocks({ value = 420, year = 2025 }) {
   const { useState, useEffect, useRef, useMemo, useCallback } = React;
-  const COLS = 40, ROWS = 34, BASE = 280, TOTAL = COLS * ROWS;
+  const COLS = 50, ROWS = 18, BASE = 280, TOTAL = COLS * ROWS;
   const W = 480, padX = 22, top = 42, bot = 50;
   const cell = (W - padX * 2) / COLS;
   const H = top + ROWS * cell + bot;
@@ -446,10 +446,8 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 
   return (
     <div className="chart-wrap">
+      <div className="lc-title">{metricChartTitle} · {SSP_NAMES[activeKey]} pathway</div>
       <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
-        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
-          {metricChartTitle} · {SSP_NAMES[activeKey]} pathway
-        </text>
         <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${chartMidY})`}>{unit}</text>
         {yticks.map((v, i) =>
@@ -493,7 +491,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 }
 
 // ── Multi-scenario line chart (all 3 SSPs at once) ──────────
-function MultiLineChart({ metric, dark, dom, unit, fmt }) {
+function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
   const { useState, useMemo } = React;
   const W = 960, H = 290, pad = { t: 36, r: 24, b: 48, l: 62 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -551,11 +549,9 @@ function MultiLineChart({ metric, dark, dom, unit, fmt }) {
 
   return (
     <div className="chart-wrap" style={{ position: 'relative' }}>
+      {!hideTitle && <div className="lc-title">{metricChartTitle2} · all three pathways</div>}
       <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: 'auto' }}
         onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
-        <text x={pad.l} y={14} fontFamily="var(--mono)" fontSize="13" letterSpacing="0.10em" fill={`rgba(${fg},0.55)`}>
-          {metricChartTitle2} · all three pathways
-        </text>
         <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${multiMidY})`}>{unit}</text>
         {yticks.map((v, i) => (
@@ -756,14 +752,18 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
 }
 
 // ── Arctic sea-ice disc ─────────────────────────────────────
-function IceCaps({ tempValue, year = 2025, dark }) {
+// MAX_HIST_ICE: approximate NH September extent at 1979 start of satellite record (~7.5 M km²).
+// Used to scale the disc radius — raw CMIP6 siconc data drives the number, not a formula.
+const MAX_HIST_ICE = 7.5;
+function IceCaps({ sspKey, year = 2025, dark }) {
   const fg = '42,51,36';
   const soft = `rgba(${fg},0.62)`;
   const W = 300, H = 330, CX = 150, CY = 122, MAX_R = 94;
-  const iceExtent = Math.max(0.05, 1 - tempValue / 3.8);
+  const rawExtent = valAt('ice', sspKey, year);
+  const extentMk = Math.max(0.1, rawExtent).toFixed(1);
+  const iceExtent = Math.max(0.04, rawExtent / MAX_HIST_ICE);
   const ANG = Array.from({ length: 24 }, (_, i) => ({ a: i / 24 * Math.PI * 2, w: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2) }));
   const poly = (sc) => ANG.map(({ a, w }) => `${(CX + Math.cos(a) * MAX_R * iceExtent * w * sc).toFixed(1)},${(CY + Math.sin(a) * MAX_R * iceExtent * w * sc).toFixed(1)}`).join(' ');
-  const extentMk = (4.7 * iceExtent).toFixed(1);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
       <text x={CX} y="17" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
@@ -775,7 +775,7 @@ function IceCaps({ tempValue, year = 2025, dark }) {
       <circle cx={CX} cy={CY} r="3" fill="rgba(218,234,245,0.6)" />
       <text x={CX} y="264" textAnchor="middle" fontFamily="var(--serif)" fontSize="46" fill="#0E1A0B">{extentMk}</text>
       <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
-      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
+      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year} · CMIP6 MPI-ESM1-2-LR siconc</text>
     </svg>
   );
 }
@@ -894,26 +894,34 @@ function Sun({ tempValue = 1.2 }) {
 // ── Smoke clouds (co2 section background) ──────────────────
 function SmokeClouds({ co2Value = 420 }) {
   const { useMemo } = React;
-  // starts showing at 280 (baseline), maxes out at 700+
-  const intensity = Math.min(1, Math.max(0, (co2Value - 280) / (700 - 280)));
+  const intensity = Math.min(1, Math.max(0, (co2Value - 415) / (700 - 415)));
   const W = 1200, H = 900;
   const clouds = useMemo(() => {
     let seed = 77;
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const all = [];
     for (let i = 0; i < 24; i++) {
-      const baseOp = 0.65 + rnd() * 0.25;
+      const scale = 0.7 + rnd() * 1.2;
+      const baseOp = 0.28 + rnd() * 0.18;
+      const n = 3 + Math.floor(rnd() * 3);
+      const puffs = [];
+      // flat base ellipse
+      puffs.push({ type: 'e', x: 0, y: 12 * scale, rx: 55 * scale, ry: 18 * scale });
+      // bumpy top circles spread left to right
+      for (let j = 0; j < n; j++) {
+        const t = (j + 0.5) / n;
+        const bx = (t - 0.5) * 90 * scale;
+        const br = (18 + rnd() * 28) * scale;
+        puffs.push({ type: 'c', x: bx, y: -(br * 0.5 + rnd() * 8 * scale), r: br });
+      }
       all.push({
-        x: 80 + rnd() * (W - 160),
-        y: 80 + rnd() * (H - 100),
-        rx: 65 + rnd() * 180,
-        ry: 38 + rnd() * 105,
-        baseOp,
-        dark: rnd() > 0.5,
+        cx: 80 + rnd() * (W - 160),
+        cy: 80 + rnd() * (H - 100),
+        puffs, baseOp,
         dur: (8 + rnd() * 14).toFixed(1),
         opDur: (7 + rnd() * 9).toFixed(1),
-        dx: ((rnd() - 0.5) * 60).toFixed(1),
-        dy: (-18 - rnd() * 38).toFixed(1),
+        dx: (rnd() - 0.5) * 60,
+        dy: -18 - rnd() * 38,
         delay: (-rnd() * 14).toFixed(1),
       });
     }
@@ -924,18 +932,21 @@ function SmokeClouds({ co2Value = 420 }) {
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
       opacity: intensity, transition: 'opacity 1.8s ease' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-        <defs />
         {clouds.map((c, i) => (
-          <ellipse key={i} cx={c.x} cy={c.y} rx={c.rx} ry={c.ry}
-            fill={c.dark ? 'rgba(140,140,140,1)' : 'rgba(190,190,190,1)'}>
-            <animate attributeName="opacity"
-              values={`${c.baseOp.toFixed(3)};${Math.min(0.95,c.baseOp*1.1).toFixed(3)};${(c.baseOp*0.85).toFixed(3)};${c.baseOp.toFixed(3)}`}
-              dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+          <g key={i} opacity={c.baseOp}>
             <animateTransform attributeName="transform" type="translate"
-              values={`0,0; ${c.dx},${c.dy}; 0,0`}
+              values={`${c.cx},${c.cy}; ${(c.cx+c.dx).toFixed(1)},${(c.cy+c.dy).toFixed(1)}; ${c.cx},${c.cy}`}
               keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
-              dur={`${c.dur}s`} repeatCount="indefinite" additive="sum" begin={`${c.delay}s`} />
-          </ellipse>
+              dur={`${c.dur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+            <animate attributeName="opacity"
+              values={`${c.baseOp.toFixed(3)};${Math.min(0.6,c.baseOp*1.2).toFixed(3)};${(c.baseOp*0.75).toFixed(3)};${c.baseOp.toFixed(3)}`}
+              dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
+            {c.puffs.map((p, j) =>
+              p.type === 'c'
+                ? <circle key={j} cx={p.x} cy={p.y} r={p.r} fill="rgba(195,205,215,1)" />
+                : <ellipse key={j} cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill="rgba(195,205,215,1)" />
+            )}
+          </g>
         ))}
       </svg>
     </div>
@@ -1419,6 +1430,53 @@ function Chapter({ metric, bucket }) {
 
   const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
 
+  if (M.id === 'co2') {
+    const CO2Waffle = () => <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
+    return (
+      <section className="scene chapter chapter--tall chapter--co2" ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
+        <div className="chapter-sticky2">
+          <SmokeClouds co2Value={value} />
+          <div className="metric-comp metric-comp--co2" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="mc-narr">
+              <div className="eyebrow">{M.chapter}</div>
+              <div className="metric-section-title">{M.title}</div>
+              <div className="co2-narr-beat">
+                <h3 className="co2-beat-title">{b.title}</h3>
+                <p className="co2-beat-body">{b.body}</p>
+              </div>
+              <div className="co2-reached-wrapper">
+                <div className="co2-reached-card">
+                  <div className="co2-reached-label">YOU'VE REACHED</div>
+                  <div className="co2-reached-year">{year}</div>
+                </div>
+                <div className="mc-note" style={{ marginTop: 8 }}>{b.note}</div>
+              </div>
+            </div>
+            <div className="co2-right-card">
+              <div className="co2-card-header">
+                <span className="co2-card-title">{M.label} · ATMOSPHERIC CONCENTRATION</span>
+                <span className="co2-card-badge">
+                  <span className="co2-badge-dot" style={{ background: bucket.swatch }} />
+                  {bucket.name.toUpperCase()} · {bucket.code}
+                </span>
+              </div>
+              <div className="co2-card-viz">
+                <CO2Waffle />
+              </div>
+              <div className="co2-value-row">
+                <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+                <div className="co2-value-label">ATMOSPHERIC CONCENTRATION<br />AS OF {year}</div>
+              </div>
+              <div className="co2-card-chart">
+                <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
@@ -1426,14 +1484,15 @@ function Chapter({ metric, bucket }) {
         {M.id === 'co2' && <SmokeClouds co2Value={value} />}
         <div className="metric-comp" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
-            <div className="eyebrow">{M.chapter} · {M.title}</div>
-            <div className="mc-beat" key={activeStep} style={{ marginTop: 18 }}>
+            <div className="eyebrow">{M.chapter}</div>
+            <div className="metric-section-title">{M.title}</div>
+            <div className="mc-beat" key={activeStep} style={{ marginTop: 0 }}>
               <div className="mc-year">{year}</div>
               <h3 style={{ fontFamily: 'var(--tw-serif)', margin: '8px 0 10px' }}>{b.title}</h3>
               <p style={{ margin: 0 }}>{b.body}</p>
               <div className="mc-note">{b.note}</div>
             </div>
-            {M.id === 'sea' && <div className="mc-ice"><IceCaps tempValue={tempVal} year={yc} dark={false} /></div>}
+            {M.id === 'sea' && <div className="mc-ice"><IceCaps sspKey={sspKey} year={yc} dark={false} /></div>}
           </div>
           <div className="mc-viz"><Viz /></div>
           <div className="mc-chart">
@@ -1660,9 +1719,9 @@ function SummaryTree({ bucket, knobValues }) {
     <section className="scene summary" data-screen-label="03 The whole picture" style={{ background: `linear-gradient(180deg, ${skyCol} 0%, var(--bg) 60%)` }}>
       <div className="col--wide">
         <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Three · E · The whole picture</div>
-        <h2 className="h2 reveal" style={{ maxWidth: '22ch' }}>One driver, three consequences.</h2>
-        <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 18, color: 'var(--ink-soft)' }}>
-          CO₂ is the trunk. Your policy choices feed the roots — and every tonne emitted branches into temperature, sea level, and drying. Click any card to compare all three pathways.
+        <h2 className="h2 reveal" style={{ maxWidth: '28ch' }}>Compare three climate futures.</h2>
+        <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 10, color: 'var(--ink-soft)', fontSize: 16 }}>
+          CO₂ is the trunk. Policy choices feed the roots — every tonne branches into temperature, sea level, and drying. Click any card to see how each pathway compares.
         </p>
         <div className="tree-controls reveal">
           <span className="lbl">Compare pathway</span>
@@ -1709,7 +1768,7 @@ function SummaryTree({ bucket, knobValues }) {
                   <path d={`M ${baseX} ${groundY - 3} Q ${midX} ${groundY - archH} ${rootEndX} ${groundY - 3}`}
                     stroke={rootColor} strokeWidth={rootW} fill="none" strokeLinecap="round" />
                   <text x={midX} y={groundY - archH - 5}
-                    textAnchor="middle" fontFamily="var(--mono)" fontSize="7.5"
+                    textAnchor="middle" fontFamily="var(--mono)" fontSize="10"
                     letterSpacing="0.07em" fill={rootColor} opacity="0.9">{r.short.toUpperCase()}</text>
                 </g>
               );
@@ -1797,19 +1856,19 @@ function SummaryTree({ bucket, knobValues }) {
                     onClick={() => handleCardClick(m.id)}
                     onMouseEnter={() => setHoveredMetric(m.id)}
                     onMouseLeave={() => setHoveredMetric(null)}>
-                    <rect x="0" y="0" width="200" height="110" rx="14"
+                    <rect x="0" y="0" width="200" height="120" rx="14"
                       fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.94)'}
                       stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.14)'}
                       strokeWidth={isHov || isSel ? 2 : 1} />
-                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">{m.label.toUpperCase()}</text>
-                    <text x="186" y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
-                    <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{fmts[displayId](rawVal)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> {m.unit}</tspan></text>
-                    <foreignObject x="12" y="74" width="176" height="28">
-                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
+                    <text x="14" y="28" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">{m.label.toUpperCase()}</text>
+                    <text x="186" y="28" textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={meta.swatch}>2100</text>
+                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{fmts[displayId](rawVal)}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> {m.unit}</tspan></text>
+                    <foreignObject x="12" y="82" width="176" height="28">
+                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
                         {m.desc}
                       </div>
                     </foreignObject>
-                    <text x="186" y="102" textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
+                    <text x="186" y="114" textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
@@ -1817,7 +1876,7 @@ function SummaryTree({ bucket, knobValues }) {
 
             {/* CO₂ trunk card — to the right of the trunk */}
             {(() => {
-              const cardW = 196, cardH = 108;
+              const cardW = 196, cardH = 120;
               const cardX = forkX + 36;
               const cardY = forkY + 8;
               const isHov = hoveredMetric === 'co2';
@@ -1835,15 +1894,15 @@ function SummaryTree({ bucket, knobValues }) {
                       fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.96)'}
                       stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.18)'}
                       strokeWidth={isHov || isSel ? 2 : 1} />
-                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
-                    <text x={cardW - 14} y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
-                    <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
-                    <foreignObject x="12" y="74" width="172" height="28">
-                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
+                    <text x="14" y="28" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
+                    <text x={cardW - 14} y="28" textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={meta.swatch}>2100</text>
+                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
+                    <foreignObject x="12" y="82" width="172" height="28">
+                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
                         Atmospheric CO₂ concentration
                       </div>
                     </foreignObject>
-                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
+                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
@@ -1851,10 +1910,15 @@ function SummaryTree({ bucket, knobValues }) {
 
             {/* Pathway label */}
             <rect x={baseX - 200} y={groundY + 42} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
-            <text x={baseX} y={groundY + 61} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
+            <text x={baseX} y={groundY + 61} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
+
+            {/* Leaf density legend — top-left sky area */}
+            <rect x={8} y={8} width={192} height={46} rx={8} fill="rgba(250,249,247,0.92)" stroke="rgba(42,51,36,0.13)" strokeWidth={1} />
+            <text x={20} y={29} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.1em" fill="rgba(42,51,36,0.6)">LEAF DENSITY ENCODES</text>
+            <text x={20} y={44} fontFamily="var(--mono)" fontSize="9" fill="rgba(42,51,36,0.48)">More = healthier · Fewer = stressed</text>
           </svg>
         </div>
-        <p className="label reveal" style={{ marginTop: 12, opacity: 0.5 }}>Click metric cards to compare all scenarios · Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
+        <p className="label reveal" style={{ marginTop: 10, opacity: 0.5 }}>Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
       </div>
 
       {/* Chart modal — centered popup */}
@@ -1872,7 +1936,7 @@ function SummaryTree({ bucket, knobValues }) {
                 <span className="tree-chart-title">{sm.label} · All three pathways · 1980–2100</span>
                 <button className="tree-chart-close" onClick={() => setSelectedMetric(null)}>✕</button>
               </div>
-              <MultiLineChart metric={metricId} dark={false} dom={mDef.dom} unit={mDef.unit} fmt={mDef.fmt} />
+              <MultiLineChart metric={metricId} dark={false} dom={mDef.dom} unit={mDef.unit} fmt={mDef.fmt} hideTitle={true} />
               <div className="tree-chart-outcomes">
                 {['1-2.6','2-4.5','5-8.5'].map(k => {
                   const swatchKey = k === '1-2.6' ? 'low' : k === '2-4.5' ? 'mid' : 'high';

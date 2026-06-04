@@ -110,6 +110,13 @@ def main():
     tas = load_json(os.path.join(DATA, "tas_anomalies.json"))
     pr  = load_json(os.path.join(DATA, "pr_anomalies.json"))
 
+    ice_path = os.path.join(DATA, "sea_ice_extent.json")
+    ice_raw = load_json(ice_path) if os.path.exists(ice_path) else None
+    if ice_raw:
+        print("[prepare] Sea ice data found — will include metrics.ice")
+    else:
+        print("[prepare] WARNING: sea_ice_extent.json not found — metrics.ice will be omitted")
+
     tas_regions = tas["regions"]
     pr_regions  = pr["regions"]
 
@@ -117,7 +124,7 @@ def main():
     hist_years = list(range(1980, 2025))
     PR_BASELINE_MM = 2.6   # global mean precipitation mm/day
 
-    metrics = {"temp": {}, "co2": {}, "sea": {}, "precip": {}}
+    metrics = {"temp": {}, "co2": {}, "sea": {}, "precip": {}, "ice": {}}
 
     # --- Historical 1980-2024 (shared across SSPs: use ssp126 which connects to historical) ---
     print("[prepare]  Historical 1980-2024…")
@@ -157,12 +164,26 @@ def main():
         cm = 0.15 * t + 0.003 * t * t
         hist_sea.append({"year": yr, "val": round(cm, 2)})
 
+    # Sea ice historical: use fetched CMIP6 data (1979-2014) + ssp126 for 2015-2024
+    hist_ice = None
+    if ice_raw:
+        ice_hist_map = {r["year"]: r["val"] for r in ice_raw.get("historical", [])}
+        # Extend to 2024 using ssp126 (scenarios barely diverge before 2030)
+        for r in ice_raw.get("ssp126", []):
+            if 2015 <= r["year"] <= 2024:
+                ice_hist_map[r["year"]] = r["val"]
+        available = {yr: v for yr, v in ice_hist_map.items() if yr in hist_years}
+        if available:
+            hist_ice = smooth_curve(available, hist_years, degree=2)
+
     historical = {
         "temp":   hist_temp,
         "precip": hist_precip,
         "co2":    hist_co2,
         "sea":    hist_sea,
     }
+    if hist_ice:
+        historical["ice"] = hist_ice
 
     for ssp_key, short in SSP_MAP.items():
         print(f"[prepare]  SSP{short}…")
@@ -192,6 +213,12 @@ def main():
         metrics["precip"][short] = precip_curve
         metrics["co2"][short]    = synthetic_curve(CO2_PARAMS[short])
         metrics["sea"][short]    = synthetic_curve(SEA_PARAMS[short])
+
+        # Sea ice (real CMIP6 siconc data)
+        if ice_raw and ssp_key in ice_raw:
+            ice_ssp_map = {r["year"]: r["val"] for r in ice_raw[ssp_key] if r["year"] >= 2025}
+            if ice_ssp_map:
+                metrics["ice"][short] = smooth_curve(ice_ssp_map, years_out, degree=2)
 
     # --- Build summary2100 ---
     metric_ranges = {
