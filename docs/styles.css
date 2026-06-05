@@ -34,7 +34,7 @@
 
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
 body {
   background: var(--bg);
   color: var(--ink);
@@ -233,7 +233,7 @@ button { cursor: default; font-family: inherit; }
 .scene--dark .lede   { color: rgba(236,230,206,0.85); }
 .scene--dark .body   { color: rgba(236,230,206,0.8); }
 .scene--dark .label  { color: rgba(236,230,206,0.45); }
-.scene--tall { min-height: 80vh; }
+.scene--tall { min-height: 100vh; }
 
 /* ── Cover ─────────────────────────────────────────────── */
 .cover {
@@ -492,38 +492,76 @@ button { cursor: default; font-family: inherit; }
   width: 100%;
 }
 
-/* Sea section: IceCaps pinned at bottom of left narr column, stable position */
-.chapter--sea .mc-narr {
+/* Non-CO2 chapters: narr matches CO2 structure */
+.chapter--sea .mc-narr,
+.chapter--temp .mc-narr,
+.chapter--precip .mc-narr {
   justify-content: flex-start;
+  gap: 10px;
+  align-self: center;
+  height: min(44vh, calc(100vh - 80px));
 }
-.mc-ice {
-  margin-top: auto;
-  flex-shrink: 0;
+
+/* ── Non-CO2 metric card viz sizing ──────────────────────── */
+.metric-card-viz--sea {
+  flex-shrink: 1;
+  overflow: hidden;
+  padding: 0;
+}
+.sea-split {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+.sea-ice-left {
+  flex: 0 0 40%;
+  min-width: 0;
+  border-right: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  padding-top: 16px;
-  max-height: 290px;
+  padding: 8px 6px;
 }
-.mc-ice svg {
-  max-height: 290px;
-  width: auto;
-  max-width: 100%;
-}
-
-/* Precip section: wider viz column so GrassField is slightly larger */
-.chapter--precip .metric-comp {
-  grid-template-columns: 1fr 2fr;
-}
-.chapter--precip .mc-viz svg {
+.sea-ice-left svg {
   width: 100%;
-  max-height: 50vh;
+  height: auto;
+  max-height: calc(52vh - 120px);
 }
-
-/* Temp section: let the thermometer be taller */
-.chapter--temp .mc-viz svg {
-  max-height: calc(100vh - 200px);
+.sea-level-right {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 8px 10px;
+  display: flex;
+  align-items: flex-start;
+}
+.sea-level-right > div {
+  width: 100%;
+}
+.sea-level-right svg {
+  width: 100%;
+  height: auto;
+  max-height: calc(52vh - 120px);
+}
+.metric-card-viz--temp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+.metric-card-viz--temp svg {
+  max-height: calc(45vh - 130px);
+  width: auto;
+}
+.metric-card-viz--precip {
+  flex-shrink: 1;
+  overflow: hidden;
+  padding-left: 24px;
+}
+.metric-card-viz--precip svg {
+  width: 100%;
+  max-height: calc(32vh - 80px);
 }
 
 /* ── Dial direction indicator ──────────────────────────── */
@@ -634,9 +672,13 @@ button { cursor: default; font-family: inherit; }
 }
 .co2-reached-wrapper {
   position: absolute;
-  bottom: -44px;
+  bottom: -64px;
   left: 0;
   right: 0;
+}
+.metric-year-wrapper {
+  margin-top: auto;
+  padding-top: 16px;
 }
 .co2-reached-card {
   background: var(--card);
@@ -661,7 +703,7 @@ button { cursor: default; font-family: inherit; }
 }
 .co2-right-card {
   grid-area: viz;
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   display: flex;
@@ -750,6 +792,25 @@ button { cursor: default; font-family: inherit; }
   width: 100%;
   height: auto;
 }
+
+/* ── Temperature chapter: dark card matching background ─── */
+.chapter--temp .co2-right-card {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(236,230,206,0.12);
+}
+.chapter--temp .co2-card-header { border-bottom-color: rgba(236,230,206,0.12); }
+.chapter--temp .co2-card-title  { color: rgba(236,230,206,0.55); }
+.chapter--temp .co2-card-badge  { border-color: rgba(236,230,206,0.2); background: rgba(255,255,255,0.06); color: #ECE6CE; }
+.chapter--temp .co2-card-viz    { border-bottom-color: rgba(236,230,206,0.12); }
+.chapter--temp .co2-value-row   { border-bottom-color: rgba(236,230,206,0.12); }
+.chapter--temp .co2-vv          { color: #ECE6CE; }
+.chapter--temp .co2-value-label { color: rgba(236,230,206,0.5); }
+.chapter--temp .co2-reached-card {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(236,230,206,0.12);
+}
+.chapter--temp .co2-reached-label { color: rgba(236,230,206,0.5); }
+.chapter--temp .co2-reached-year  { color: #ECE6CE; }
 
 /* ── Line chart title ──────────────────────────────────── */
 .lc-title {
@@ -930,7 +991,7 @@ button { cursor: default; font-family: inherit; }
   font-family: var(--mono);
   font-size: 11px;
   color: #ECE6CE;
-  transform: translate(12px, -50%);
+  transform: translate(2px, -50%);
   z-index: 10;
 }
 
@@ -1098,7 +1159,7 @@ button { cursor: default; font-family: inherit; }
 .tree-modal .tco-unit { font-size: 14px; }
 
 /* ── Smooth section transitions ─────────────────────────── */
-.scene { position: relative; }
+.scene { position: relative; scroll-snap-align: start; }
 
 /* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }

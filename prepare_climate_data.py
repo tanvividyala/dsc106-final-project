@@ -117,6 +117,13 @@ def main():
     else:
         print("[prepare] WARNING: sea_ice_extent.json not found — metrics.ice will be omitted")
 
+    sm_path = os.path.join(DATA, "soil_moisture.json")
+    sm_raw = load_json(sm_path) if os.path.exists(sm_path) else None
+    if sm_raw:
+        print(f"[prepare] Soil moisture data found (model: {sm_raw.get('model','?')}) — will include metrics.mrso + metrics.drought")
+    else:
+        print("[prepare] WARNING: soil_moisture.json not found — metrics.mrso/drought will be omitted")
+
     tas_regions = tas["regions"]
     pr_regions  = pr["regions"]
 
@@ -124,7 +131,7 @@ def main():
     hist_years = list(range(1980, 2025))
     PR_BASELINE_MM = 2.6   # global mean precipitation mm/day
 
-    metrics = {"temp": {}, "co2": {}, "sea": {}, "precip": {}, "ice": {}}
+    metrics = {"temp": {}, "co2": {}, "sea": {}, "precip": {}, "ice": {}, "mrso": {}, "drought": {}}
 
     # --- Historical 1980-2024 (shared across SSPs: use ssp126 which connects to historical) ---
     print("[prepare]  Historical 1980-2024…")
@@ -185,6 +192,14 @@ def main():
     if hist_ice:
         historical["ice"] = hist_ice
 
+    # Soil moisture historical
+    if sm_raw:
+        sm_hist_map = {r["year"]: r["mrso"]    for r in sm_raw["historical"] if r["year"] in hist_years}
+        dr_hist_map = {r["year"]: r["drought"]  for r in sm_raw["historical"] if r["year"] in hist_years}
+        if sm_hist_map:
+            historical["mrso"]   = smooth_curve(sm_hist_map, hist_years, degree=2)
+            historical["drought"] = smooth_curve(dr_hist_map, hist_years, degree=2)
+
     for ssp_key, short in SSP_MAP.items():
         print(f"[prepare]  SSP{short}…")
 
@@ -219,6 +234,14 @@ def main():
             ice_ssp_map = {r["year"]: r["val"] for r in ice_raw[ssp_key] if r["year"] >= 2025}
             if ice_ssp_map:
                 metrics["ice"][short] = smooth_curve(ice_ssp_map, years_out, degree=2)
+
+        # Soil moisture + drought (real CMIP6 mrso data)
+        if sm_raw and ssp_key in sm_raw:
+            sm_ssp_map = {r["year"]: r["mrso"]   for r in sm_raw[ssp_key] if r["year"] >= 2025}
+            dr_ssp_map = {r["year"]: r["drought"] for r in sm_raw[ssp_key] if r["year"] >= 2025}
+            if sm_ssp_map:
+                metrics["mrso"][short]   = smooth_curve(sm_ssp_map, years_out, degree=2)
+                metrics["drought"][short] = smooth_curve(dr_ssp_map, years_out, degree=2)
 
     # --- Build summary2100 ---
     metric_ranges = {

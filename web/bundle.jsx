@@ -728,7 +728,7 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
         <text x="6" y={baselineY - 4} fontFamily="var(--mono)" fontSize="10" letterSpacing="0.10em" fill="#fff">2025 BASELINE</text>
         {/* interactive water area */}
         <rect x="0" y={seaY} width="340" height={h - seaY} fill="url(#seaG2)"
-          onMouseMove={onWaterMove} onMouseLeave={() => setShowWaterTip(false)} style={{ cursor: 'crosshair' }} />
+          onMouseMove={onWaterMove} onMouseLeave={() => setShowWaterTip(false)} style={{ cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='30' viewBox='0 0 18 30'%3E%3Crect x='7' y='2' width='4' height='20' rx='2' fill='white' stroke='rgba(0,0,0,0.6)' stroke-width='1.5'/%3E%3Crect x='8.5' y='12' width='1' height='10' fill='%23E0773C'/%3E%3Ccircle cx='9' cy='25' r='5' fill='%23E0773C' stroke='rgba(0,0,0,0.5)' stroke-width='1.5'/%3E%3C/svg%3E") 9 25, crosshair` }} />
         <path d={`M 0 ${seaY} Q 20 ${seaY - 3} 40 ${seaY} T 80 ${seaY} T 120 ${seaY} T 160 ${seaY} T 200 ${seaY} T 240 ${seaY} T 280 ${seaY} T 320 ${seaY} L 340 ${seaY}`} stroke="#fff" strokeWidth="0.8" fill="none" opacity="0.45" style={{ pointerEvents: 'none' }} />
         <text x="6" y="22" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.16em" fill={soft}>{year} · CUMULATIVE RISE</text>
         <text x="6" y="56" fontFamily="var(--serif)" fontSize="36" fill="#0E1A0B">+{Math.round(value)}<tspan fontFamily="var(--mono)" fontSize="14" fill={soft}> cm</tspan></text>
@@ -1420,14 +1420,6 @@ function Chapter({ metric, bucket }) {
   const activeStep = Math.max(0, Math.min(beats.length - 1, Math.floor(prog * beats.length * 0.999)));
   const b = beats[activeStep];
 
-  const Viz = () => {
-    if (M.id === 'temp') return <Thermometer value={value} dark={M.dark} />;
-    if (M.id === 'co2') return <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
-    if (M.id === 'sea') return <SeaLevel value={value} year={yc} dark={false} />;
-    if (M.id === 'precip') return <div className="viz-box"><GrassField tempValue={tempVal} /></div>;
-    return null;
-  };
-
   const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
 
   if (M.id === 'co2') {
@@ -1477,32 +1469,54 @@ function Chapter({ metric, bucket }) {
     );
   }
 
+  const CARD_TITLES = { sea: 'SEA LEVEL · PROJECTED RISE', temp: 'TEMPERATURE · MEAN ANOMALY', precip: 'DRYING · PRECIPITATION CHANGE' };
+  const VALUE_LABELS = { sea: 'PROJECTED RISE', temp: 'TEMPERATURE ANOMALY', precip: 'PRECIPITATION CHANGE' };
+
   return (
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
         {M.id === 'temp' && <Sun tempValue={tempVal} />}
-        {M.id === 'co2' && <SmokeClouds co2Value={value} />}
-        <div className="metric-comp" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="metric-comp metric-comp--co2" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
             <div className="eyebrow">{M.chapter}</div>
             <div className="metric-section-title">{M.title}</div>
-            <div className="mc-beat" key={activeStep} style={{ marginTop: 0 }}>
-              <div className="mc-year">{year}</div>
-              <h3 style={{ fontFamily: 'var(--tw-serif)', margin: '8px 0 10px' }}>{b.title}</h3>
-              <p style={{ margin: 0 }}>{b.body}</p>
-              <div className="mc-note">{b.note}</div>
+            <div className="co2-narr-beat" key={activeStep}>
+              <h3 className="co2-beat-title">{b.title}</h3>
+              <p className="co2-beat-body">{b.body}</p>
             </div>
-            {M.id === 'sea' && <div className="mc-ice"><IceCaps sspKey={sspKey} year={yc} dark={false} /></div>}
-          </div>
-          <div className="mc-viz"><Viz /></div>
-          <div className="mc-chart">
-            <div className="mc-chart-head">
-              <div>
-                <div className="vt">{M.label} · {year}</div>
-                <div className="vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+            <div className="metric-year-wrapper">
+              <div className="co2-reached-card">
+                <div className="co2-reached-label">YOU'VE REACHED</div>
+                <div className="co2-reached-year">{year}</div>
               </div>
+              <div className="mc-note" style={{ marginTop: 8 }}>{b.note}</div>
             </div>
-            <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+          </div>
+          <div className="co2-right-card">
+            <div className="co2-card-header">
+              <span className="co2-card-title">{CARD_TITLES[M.id] || M.label}</span>
+              <span className="co2-card-badge">
+                <span className="co2-badge-dot" style={{ background: bucket.swatch }} />
+                {bucket.name.toUpperCase()} · {bucket.code}
+              </span>
+            </div>
+            <div className={`co2-card-viz metric-card-viz--${M.id}`}>
+              {M.id === 'sea' && (
+                <div className="sea-split">
+                  <div className="sea-ice-left"><IceCaps sspKey={sspKey} year={yc} dark={false} /></div>
+                  <div className="sea-level-right"><SeaLevel value={value} year={yc} dark={false} tempValue={tempVal} /></div>
+                </div>
+              )}
+              {M.id === 'temp' && <Thermometer value={value} dark={M.dark} />}
+              {M.id === 'precip' && <GrassField tempValue={tempVal} />}
+            </div>
+            <div className="co2-value-row">
+              <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+              <div className="co2-value-label">{VALUE_LABELS[M.id] || M.label}<br />AS OF {year}</div>
+            </div>
+            <div className="co2-card-chart">
+              <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+            </div>
           </div>
         </div>
       </div>
@@ -1912,10 +1926,6 @@ function SummaryTree({ bucket, knobValues }) {
             <rect x={baseX - 200} y={groundY + 42} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
             <text x={baseX} y={groundY + 61} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
 
-            {/* Leaf density legend — top-left sky area */}
-            <rect x={8} y={8} width={192} height={46} rx={8} fill="rgba(250,249,247,0.92)" stroke="rgba(42,51,36,0.13)" strokeWidth={1} />
-            <text x={20} y={29} fontFamily="var(--mono)" fontSize="9.5" letterSpacing="0.1em" fill="rgba(42,51,36,0.6)">LEAF DENSITY ENCODES</text>
-            <text x={20} y={44} fontFamily="var(--mono)" fontSize="9" fill="rgba(42,51,36,0.48)">More = healthier · Fewer = stressed</text>
           </svg>
         </div>
         <p className="label reveal" style={{ marginTop: 10, opacity: 0.5 }}>Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
