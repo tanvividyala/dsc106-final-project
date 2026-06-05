@@ -1152,7 +1152,7 @@ function BrandThermo() {
 
 function Cover() {
   return (
-    <section className="scene cover" data-screen-label="01 Cover">
+    <section className="scene cover" data-screen-label="01 Intro">
       <div className="col--wide">
         <div className="eyebrow reveal" style={{ marginBottom: 28 }}>An interactive story · 75 years of choices</div>
         <div className="cover-title-row reveal">
@@ -2029,7 +2029,7 @@ function App({ climateData }) {
   const [personaContinued, setPersonaContinued] = useState(false);
   const scrollToConsole = React.useRef(false);
   const [progress, setProgress] = useState(0);
-  const [chapter, setChapter] = useState('01 Cover');
+  const [chapter, setChapter] = useState('01 Intro');
   const [dark, setDark] = useState(false);
   useReveal();
 
@@ -2053,8 +2053,10 @@ function App({ climateData }) {
     if (!personaContinued || !scrollToConsole.current) return;
     scrollToConsole.current = false;
     requestAnimationFrame(() => {
-      const el = document.querySelector('[data-screen-label="02 The console"]');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      requestAnimationFrame(() => {
+        const el = document.querySelector('[data-screen-label="02 The console"]');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     });
   }, [personaContinued]);
 

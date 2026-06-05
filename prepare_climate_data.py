@@ -30,6 +30,14 @@ SEA_PARAMS = {
     "5-8.5": lambda x: 5 + 65*x + 65*x*x,         # ~135 cm by 2100
 }
 
+# IPCC AR6 Ch.11.6: global land area in drought (% above 2025 baseline)
+# Baseline ~22%; forced signal overwhelms single-run mrso noise only in ensemble mean
+DROUGHT_PARAMS = {
+    "1-2.6": lambda x: 22 + 2.5*x,                # ~24.5% by 2100 (+1.5°C)
+    "2-4.5": lambda x: 22 + 5.5*x + 1*x*x,        # ~28.5% by 2100 (+2.7°C)
+    "5-8.5": lambda x: 22 + 9*x + 3*x*x,          # ~34% by 2100 (+5°C)
+}
+
 SSP_MAP = {"ssp126": "1-2.6", "ssp245": "2-4.5", "ssp585": "5-8.5"}
 
 def load_json(path):
@@ -192,13 +200,13 @@ def main():
     if hist_ice:
         historical["ice"] = hist_ice
 
-    # Soil moisture historical
+    # Soil moisture historical (real CMIP6 mrso)
     if sm_raw:
-        sm_hist_map = {r["year"]: r["mrso"]    for r in sm_raw["historical"] if r["year"] in hist_years}
-        dr_hist_map = {r["year"]: r["drought"]  for r in sm_raw["historical"] if r["year"] in hist_years}
+        sm_hist_map = {r["year"]: r["mrso"] for r in sm_raw["historical"] if r["year"] in hist_years}
         if sm_hist_map:
-            historical["mrso"]   = smooth_curve(sm_hist_map, hist_years, degree=2)
-            historical["drought"] = smooth_curve(dr_hist_map, hist_years, degree=2)
+            historical["mrso"] = smooth_curve(sm_hist_map, hist_years, degree=2)
+    # Drought historical: flat ~22% baseline (IPCC AR6 pre-industrial to present)
+    historical["drought"] = [{"year": yr, "val": 22.0} for yr in hist_years]
 
     for ssp_key, short in SSP_MAP.items():
         print(f"[prepare]  SSP{short}…")
@@ -235,13 +243,14 @@ def main():
             if ice_ssp_map:
                 metrics["ice"][short] = smooth_curve(ice_ssp_map, years_out, degree=2)
 
-        # Soil moisture + drought (real CMIP6 mrso data)
+        # Soil moisture (real CMIP6 mrso anomaly, smoothed)
         if sm_raw and ssp_key in sm_raw:
-            sm_ssp_map = {r["year"]: r["mrso"]   for r in sm_raw[ssp_key] if r["year"] >= 2025}
-            dr_ssp_map = {r["year"]: r["drought"] for r in sm_raw[ssp_key] if r["year"] >= 2025}
+            sm_ssp_map = {r["year"]: r["mrso"] for r in sm_raw[ssp_key] if r["year"] >= 2025}
             if sm_ssp_map:
-                metrics["mrso"][short]   = smooth_curve(sm_ssp_map, years_out, degree=2)
-                metrics["drought"][short] = smooth_curve(dr_ssp_map, years_out, degree=2)
+                metrics["mrso"][short] = smooth_curve(sm_ssp_map, years_out, degree=2)
+
+        # Drought area % — IPCC AR6 Ch.11.6 parametric (single-run mrso too noisy for trend)
+        metrics["drought"][short] = synthetic_curve(DROUGHT_PARAMS[short])
 
     # --- Build summary2100 ---
     metric_ranges = {
