@@ -495,7 +495,7 @@ button { cursor: default; font-family: inherit; }
 /* Non-CO2 chapters: narr matches CO2 structure */
 .chapter--sea .mc-narr,
 .chapter--temp .mc-narr,
-.chapter--precip .mc-narr {
+.chapter--drought .mc-narr {
   justify-content: flex-start;
   gap: 10px;
   align-self: center;
@@ -554,14 +554,13 @@ button { cursor: default; font-family: inherit; }
   max-height: calc(45vh - 130px);
   width: auto;
 }
-.metric-card-viz--precip {
+.metric-card-viz--drought {
   flex-shrink: 1;
   overflow: hidden;
-  padding-left: 24px;
 }
-.metric-card-viz--precip svg {
+.metric-card-viz--drought svg {
   width: 100%;
-  max-height: calc(32vh - 80px);
+  max-height: calc(38vh - 80px);
 }
 
 /* ── Dial direction indicator ──────────────────────────── */
@@ -900,6 +899,7 @@ button { cursor: default; font-family: inherit; }
   background-repeat: no-repeat;
   background-position: right 12px center;
 }
+.scene.summary { padding-top: calc(120px * var(--tw-rhythm)); }
 .summary-tree { margin-top: 24px; width: 100%; }
 .summary-tree svg { display: block; }
 

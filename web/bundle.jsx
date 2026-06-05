@@ -76,10 +76,10 @@ const METRICS = [
     chartTitle: 'Projected sea level rise',
     blurb: 'Warm water expands and ice melts. Coastlines are quietly redrawn.',
     fmt: v => (v >= 0 ? '+' : '') + Math.round(v), dom: [0, 150] },
-  { id: 'precip', label: 'Drying', unit: '%',  dark: false, chapter: 'Chapter Three · D', title: 'The drying',
-    chartTitle: 'Global mean precipitation change',
-    blurb: 'The global average barely shifts. What shifts is where rain stops — dry regions grow drier, extremes intensify.',
-    fmt: v => (v >= 0 ? '+' : '') + v.toFixed(1), dom: [-2.5, 3.5] },
+  { id: 'drought', label: 'Drought', unit: '%', dark: false, chapter: 'Chapter Three · D', title: 'The drying',
+    chartTitle: 'Drought-affected land area',
+    blurb: 'As temperatures rise, the fraction of land experiencing drought expands — soils crack, rivers run low, harvests fail.',
+    fmt: v => v.toFixed(1), dom: [20, 40] },
 ];
 
 const BEATS = {
@@ -134,21 +134,21 @@ const BEATS = {
       { year: 2100, title: 'Past a meter', body: '135 centimeters of rise. Sea level is now one of the primary forces reshaping where people can live. It will not stop in 2100.', note: '≈ +135 cm · rising.' },
     ],
   },
-  precip: {
+  drought: {
     '1-2.6': [
-      { year: 2040, title: 'Drying at the margins', body: 'Wet regions get a little wetter, dry ones a little drier. The drought belt expands slowly. The bigger story is regional, not the global mean.', note: 'Global mean +0.5%.' },
-      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move north by 200–400 km. Some regions gain arable land; arid zones grow modestly at the subtropics.', note: 'Global mean +1.4%.' },
-      { year: 2100, title: 'Manageable drying', body: 'The hydrology is changed but not broken. Drought frequencies stay within the range infrastructure was built to handle.', note: '≈ +2.4%.' },
+      { year: 2040, title: 'Margins drying', body: 'About a quarter of land is in drought — the belt of arid zones expands slowly at the subtropical edges. Infrastructure holds.', note: 'Drought area ~23%.' },
+      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move poleward by 200–400 km. Where soils stay moist, yields hold. Where they don\'t, they collapse.', note: 'Drought area ~24%.' },
+      { year: 2100, title: 'Manageable stress', body: 'Drought area has grown by about 2–3 percentage points from the baseline. Serious, but within the range of adaptation.', note: 'Drought area ~24.5%.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'The mean misleads', body: 'Average change looks modest. What it hides: drought stress intensifying in the Colorado Basin, the Ganges running low, Sahel growing drier.', note: 'Global mean +0.3%.' },
-      { year: 2070, title: 'Dry regions grow drier', body: 'Wet regions amplify; dry regions lose more soil moisture than the global mean suggests. The map is the story.', note: 'Global mean +1.0%.' },
-      { year: 2100, title: 'Whiplash', body: 'Drying in the subtropics, flooding in the tropics. Chronic drought reshapes agriculture across three continents.', note: '≈ +1.6%.' },
+      { year: 2040, title: 'Soil moisture drops', body: 'The Colorado Basin, the Ganges, the Sahel — soils lose moisture faster than rain replenishes it. Reservoirs hit record lows.', note: 'Drought area ~24.5%.' },
+      { year: 2070, title: 'Dry zones expand', body: 'Soils crack deeper each summer. The crust thickens, runoff increases, groundwater recharge slows. The drying accelerates.', note: 'Drought area ~26.5%.' },
+      { year: 2100, title: 'Chronic drought', body: 'Roughly one in four land areas is in sustained drought. Three continents restructure agriculture around permanent water scarcity.', note: 'Drought area ~28.5%.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'Droughts and deluges', body: 'Extreme floods and droughts alternate in the same river basins. The Amazon shows early tipping signals as rainfall patterns destabilize.', note: 'Global mean +0.6%.' },
-      { year: 2070, title: 'Soil bakes', body: 'A warmer atmosphere holds more water vapor. When it rains, it deluges. When it doesn\'t, the soil dries to record depths.', note: 'Global mean +1.7%.' },
-      { year: 2100, title: 'The drying accelerates', body: 'Agricultural collapse in West Africa, catastrophic drought across South Asia. The global mean is not the story — the extremes are.', note: '≈ +2.9%.' },
+      { year: 2040, title: 'Droughts intensify', body: 'Soil moisture collapses in the subtropics as evaporation outpaces rainfall. What were once dry spells become permanent conditions.', note: 'Drought area ~26%.' },
+      { year: 2070, title: 'Soil bakes', body: 'When rain comes, it arrives as deluges on hardened, cracked earth — most runs off. The land cannot absorb what it needs.', note: 'Drought area ~30%.' },
+      { year: 2100, title: 'One in three', body: 'More than a third of global land is in severe drought. Agricultural collapse across West Africa and South Asia. The soil tells the whole story.', note: 'Drought area ~34%.' },
     ],
   },
 };
@@ -761,7 +761,7 @@ function IceCaps({ sspKey, year = 2025, dark }) {
   const W = 300, H = 330, CX = 150, CY = 122, MAX_R = 94;
   const rawExtent = valAt('ice', sspKey, year);
   const extentMk = Math.max(0.1, rawExtent).toFixed(1);
-  const iceExtent = Math.max(0.04, rawExtent / MAX_HIST_ICE);
+  const iceExtent = Math.max(0.04, Math.sqrt(rawExtent / MAX_HIST_ICE));
   const ANG = Array.from({ length: 24 }, (_, i) => ({ a: i / 24 * Math.PI * 2, w: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2) }));
   const poly = (sc) => ANG.map(({ a, w }) => `${(CX + Math.cos(a) * MAX_R * iceExtent * w * sc).toFixed(1)},${(CY + Math.sin(a) * MAX_R * iceExtent * w * sc).toFixed(1)}`).join(' ');
   return (
@@ -840,6 +840,120 @@ function GrassField({ tempValue = 1.2 }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Soil moisture cross-section ─────────────────────────────
+function SoilMoisture({ droughtPct = 22, mrsoAnom = 0 }) {
+  const { useMemo } = React;
+  const W = 440, H = 220, rulerW = 44;
+  const fg = '42,51,36';
+  const dry = Math.max(0, Math.min(1, (droughtPct - 22) / 12));
+
+  const surfColor = `rgb(${Math.round(lerp(78,154,dry))},${Math.round(lerp(43,132,dry))},${Math.round(lerp(10,112,dry))})`;
+  const midColor  = `rgb(${Math.round(lerp(58,102,dry*.6))},${Math.round(lerp(28,78,dry*.6))},${Math.round(lerp(5,54,dry*.6))})`;
+  const dryDepth  = Math.round(lerp(28, 130, dry));
+  const crackOpacity = Math.max(0, (dry - 0.2) / 0.8);
+  const dryColor  = dry > 0.6 ? '#B83020' : dry > 0.3 ? '#D05E2A' : '#C9923E';
+
+  const cracks = useMemo(() => {
+    let seed = 42;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const n = Math.round(dry * 20);
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const x = 10 + rnd() * (W - rulerW - 20);
+      const y0 = 2 + rnd() * dryDepth * 0.55;
+      const len = 12 + rnd() * 44;
+      const angle = (rnd() - 0.5) * 0.9;
+      const x2 = x + Math.sin(angle) * len, y2 = y0 + Math.cos(Math.abs(angle)) * len;
+      out.push({ x1: x, y1: y0, x2, y2 });
+      if (rnd() > 0.5) {
+        const bl = 8 + rnd() * 20, ba = angle + (rnd() - 0.5) * 1.0;
+        const mx = x + Math.sin(angle)*len*0.55, my = y0 + Math.cos(Math.abs(angle))*len*0.55;
+        out.push({ x1: mx, y1: my, x2: mx + Math.sin(ba)*bl, y2: my + Math.cos(Math.abs(ba))*bl });
+      }
+    }
+    return out;
+  }, [dry, dryDepth]);
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
+        <defs>
+          <linearGradient id="soilGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={surfColor} />
+            <stop offset={`${dryDepth/H*100}%`} stopColor={surfColor} />
+            <stop offset={`${Math.min((dryDepth+55)/H*100,100)}%`} stopColor={midColor} />
+            <stop offset="100%" stopColor="rgb(38,18,4)" />
+          </linearGradient>
+          <clipPath id="soilClip"><rect x="0" y="0" width={W-rulerW} height={H} /></clipPath>
+        </defs>
+        <rect x="0" y="0" width={W-rulerW} height={H} fill="url(#soilGrad)" />
+        {dry < 0.92 && (
+          <line x1="0" y1={dryDepth+6} x2={W-rulerW} y2={dryDepth+6}
+                stroke="#4A8C5C" strokeWidth="1.5" strokeDasharray="6 3"
+                opacity={Math.max(0.1, 0.55 - dry*0.4)} />
+        )}
+        {cracks.map((c,i) => (
+          <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
+                stroke={`rgba(${fg},0.38)`} strokeWidth={0.7 + dry*0.6}
+                opacity={crackOpacity} clipPath="url(#soilClip)" />
+        ))}
+        <rect x={W-rulerW} y="0" width={rulerW} height={H} fill="rgba(0,0,0,0.1)" />
+        {[0,50,100,150,200].map(cm => {
+          const y = (cm/200)*H; if (y > H-8) return null;
+          return <g key={cm}>
+            <line x1={W-rulerW} y1={y} x2={W-rulerW+7} y2={y} stroke={`rgba(${fg},0.3)`} strokeWidth="1" />
+            <text x={W-rulerW+10} y={y+3} fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.5)`}>{cm}cm</text>
+          </g>;
+        })}
+        <text x="6" y={H-4} fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.35)`}>
+          MPI-ESM1-2-LR · mrso · land mean {mrsoAnom >= 0 ? '+' : ''}{Math.round(mrsoAnom)} kg/m²
+        </text>
+      </svg>
+      <div style={{ position: 'absolute', top: 8, left: 10, background: 'rgba(250,249,247,0.92)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 8, padding: '5px 12px', textAlign: 'center', pointerEvents: 'none' }}>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', opacity: 0.5 }}>LAND IN DROUGHT</div>
+        <div style={{ fontFamily: 'var(--tw-serif)', fontSize: 24, fontWeight: 700, lineHeight: 1.1, color: dryColor }}>{droughtPct.toFixed(1)}<span style={{ fontFamily: 'var(--mono)', fontSize: 12, opacity: 0.6 }}>%</span></div>
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 8, opacity: 0.45, letterSpacing: '0.05em' }}>OF LAND AREA</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Grass backdrop (drought chapter background, blades at screen bottom) ───
+function GrassBackdrop({ tempValue = 1.2 }) {
+  const { useMemo } = React;
+  const W = 1000, H = 200, baseY = H - 16;
+  const dry = Math.max(0, Math.min(0.96, tempValue / 5.0));
+  const mix = (a, b, t) => `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
+  const soil = mix([74,86,48],[156,131,80], dry);
+  const blades = useMemo(() => {
+    let seed = 777;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const N = 220, out = [];
+    for (let i = 0; i < N; i++) {
+      const x = (i + 0.5) / N * W + (rnd() - 0.5) * 5;
+      const lDry = Math.max(0, Math.min(1, dry + (rnd()-0.5)*0.4));
+      const ht = lerp(90, 48, lDry) * (0.7 + rnd()*0.5);
+      const sway = rnd() - 0.5;
+      const droop = lDry * 38 * (sway >= 0 ? 1 : -1) + sway * 8;
+      const col = mix([92,143,58],[150,104,46], lDry);
+      out.push({ x, tipX: x+droop, tipY: baseY - ht + lDry*10, cpX: x+droop*0.5+(rnd()-0.5)*6, cpY: baseY - ht*0.55, col, wdt: lerp(2.8,1.8,lDry), z: rnd() });
+    }
+    out.sort((a,b) => a.z - b.z);
+    return out;
+  }, [dry]);
+  return (
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: H, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMax slice">
+        <rect x="0" y={baseY} width={W} height={H-baseY} fill={soil} opacity="0.65" />
+        {blades.map((b,i) =>
+          <path key={i} d={`M ${b.x.toFixed(1)} ${baseY} Q ${b.cpX.toFixed(1)} ${b.cpY.toFixed(1)} ${b.tipX.toFixed(1)} ${b.tipY.toFixed(1)}`}
+                stroke={b.col} strokeWidth={b.wdt.toFixed(1)} fill="none" strokeLinecap="round" opacity="0.75" />
+        )}
+      </svg>
     </div>
   );
 }
@@ -953,7 +1067,7 @@ function SmokeClouds({ co2Value = 420 }) {
   );
 }
 
-window.VIZ = { Dial, CarbonBlocks, LineChart, Thermometer, WarmingStripes, SeaLevel, IceCaps, GrassField };
+window.VIZ = { Dial, CarbonBlocks, LineChart, Thermometer, WarmingStripes, SeaLevel, IceCaps, GrassField, SoilMoisture, GrassBackdrop };
 
 // ============================================================
 // ── SECTION 3: TWEAKS PANEL
@@ -1420,7 +1534,7 @@ function Chapter({ metric, bucket }) {
   const activeStep = Math.max(0, Math.min(beats.length - 1, Math.floor(prog * beats.length * 0.999)));
   const b = beats[activeStep];
 
-  const sceneClass = M.dark ? ' scene--dark' : M.id === 'precip' ? ' scene--alt' : '';
+  const sceneClass = M.dark ? ' scene--dark' : M.id === 'drought' ? ' scene--alt' : '';
 
   if (M.id === 'co2') {
     const CO2Waffle = () => <div className="viz-box"><CarbonBlocks value={value} year={yc} /></div>;
@@ -1469,13 +1583,15 @@ function Chapter({ metric, bucket }) {
     );
   }
 
-  const CARD_TITLES = { sea: 'SEA LEVEL · PROJECTED RISE', temp: 'TEMPERATURE · MEAN ANOMALY', precip: 'DRYING · PRECIPITATION CHANGE' };
-  const VALUE_LABELS = { sea: 'PROJECTED RISE', temp: 'TEMPERATURE ANOMALY', precip: 'PRECIPITATION CHANGE' };
+  const CARD_TITLES = { sea: 'SEA LEVEL · PROJECTED RISE', temp: 'TEMPERATURE · MEAN ANOMALY', drought: 'DROUGHT · LAND AREA AFFECTED' };
+  const VALUE_LABELS = { sea: 'PROJECTED RISE', temp: 'TEMPERATURE ANOMALY', drought: 'DROUGHT AREA' };
+  const mrsoAnom = M.id === 'drought' ? valAt('mrso', sspKey, yc) : 0;
 
   return (
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
         {M.id === 'temp' && <Sun tempValue={tempVal} />}
+        {M.id === 'drought' && <GrassBackdrop tempValue={tempVal} />}
         <div className="metric-comp metric-comp--co2" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
             <div className="eyebrow">{M.chapter}</div>
@@ -1508,7 +1624,7 @@ function Chapter({ metric, bucket }) {
                 </div>
               )}
               {M.id === 'temp' && <Thermometer value={value} dark={M.dark} />}
-              {M.id === 'precip' && <GrassField tempValue={tempVal} />}
+              {M.id === 'drought' && <SoilMoisture droughtPct={value} mrsoAnom={mrsoAnom} />}
             </div>
             <div className="co2-value-row">
               <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
@@ -1601,7 +1717,7 @@ function SummaryTree({ bucket, knobValues }) {
   const [displaySev, setDisplaySev] = useState(TREE_SEVERITY[bucket.key] ?? 0.52);
   const initialVals = useMemo(() => {
     const v = {};
-    ['temp', 'sea', 'precip', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
+    ['temp', 'sea', 'drought', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
     return v;
   }, []);
   const [displayVals, setDisplayVals] = useState(initialVals);
@@ -1613,7 +1729,7 @@ function SummaryTree({ bucket, knobValues }) {
     setView(newView);
     const targetSev = TREE_SEVERITY[newView] ?? 0.5;
     const targetVals = {};
-    ['temp', 'sea', 'precip', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
+    ['temp', 'sea', 'drought', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
     const targetRoots = ROOT_SSP_VALUES[newView];
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const DURATION = 700;
@@ -1657,7 +1773,7 @@ function SummaryTree({ bucket, knobValues }) {
   const treeMetrics = [
     { id: 'temp',    label: 'Temperature', tip: [205, 205], subTips: [[278, 172]], unit: '°C',  desc: 'Surface temp anomaly by 2100',   leafShape: 'spiky',    dataId: 'temp' },
     { id: 'sea',     label: 'Sea Level',   tip: [500, 158], subTips: [[432, 178],[568,178]], unit: 'cm',  desc: 'Sea level rise above 2025',      leafShape: 'teardrop', dataId: 'sea' },
-    { id: 'drought', label: 'Drying',      tip: [795, 205], subTips: [[722, 172]], unit: '%',   desc: 'Dry regions lose soil moisture',  leafShape: 'jagged',   dataId: 'precip' },
+    { id: 'drought', label: 'Drying',      tip: [795, 205], subTips: [[722, 172]], unit: '%',   desc: 'Dry regions lose soil moisture',  leafShape: 'jagged',   dataId: 'drought' },
   ];
   const fmts = {
     temp:    v => (v >= 0 ? '+' : '') + v.toFixed(1),
@@ -1728,6 +1844,7 @@ function SummaryTree({ bucket, knobValues }) {
   const getMetricDef = (id) => METRICS.find(m => m.id === id) || METRICS[0];
 
   const co2Val = displayVals['co2'] ?? valAt('co2', view, 2100);
+  const co2Delta = Math.round(co2Val) - 420;
 
   return (
     <section className="scene summary" data-screen-label="03 The whole picture" style={{ background: `linear-gradient(180deg, ${skyCol} 0%, var(--bg) 60%)` }}>
@@ -1910,10 +2027,10 @@ function SummaryTree({ bucket, knobValues }) {
                       strokeWidth={isHov || isSel ? 2 : 1} />
                     <text x="14" y="28" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
                     <text x={cardW - 14} y="28" textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={meta.swatch}>2100</text>
-                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
+                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{co2Delta >= 0 ? '+' : ''}{co2Delta}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
                     <foreignObject x="12" y="82" width="172" height="28">
                       <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
-                        Atmospheric CO₂ concentration
+                        CO₂ change above 2025 baseline (420 ppm)
                       </div>
                     </foreignObject>
                     <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
