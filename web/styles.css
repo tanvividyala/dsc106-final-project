@@ -437,6 +437,7 @@ button { cursor: default; font-family: inherit; }
 /* ── Chapter (metric) ──────────────────────────────────── */
 .chapter { min-height: unset; justify-content: flex-start; }
 .chapter--tall { height: 400vh; }
+.chapter--co2 { height: 600vh; }
 
 .chapter-sticky2 {
   position: sticky;

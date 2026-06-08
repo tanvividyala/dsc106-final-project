@@ -31,124 +31,124 @@ const PERSONAS = [
     img: '../images/parliament_debate.png',
     values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
   { id: 'scientist', keywords: 'PATHWAY · PROJECTION · EVIDENCE', name: 'The Climate Scientist', label: 'Follow the data',
-    tag: 'The IPCC curves are her north star. Decarbonize by 2050 or the math does not work.',
+    tag: 'The IPCC data guides her decisions. Decarbonize by 2050 or the projections do not work.',
     img: '../images/stressed_researcher.png',
     values: { fossil: 8, renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
 ];
 
 const PERSONA_THOUGHTS = {
   tycoon: {
-    fossil: 'Oil and gas are not optional here; they are civilization\'s scaffolding. Any phase-out is a problem for a later decade.',
-    renew: 'Renewables are a supplement, not a replacement — funded where unavoidable, then quietly deprioritized.',
+    fossil: 'Oil and gas are treated as essential infrastructure. Any phase-out is deferred to a later decade.',
+    renew: 'Renewables are a supplement, funded where unavoidable, then quietly deprioritized.',
     carbon: 'There is no carbon tax in this framework. That conversation ends before it begins.',
     forest: 'Protected areas get lip service. Where they conflict with extraction rights, extraction wins.',
     coop: 'International agreements are PR exercises. Real decisions happen at home, for domestic benefit.',
-    consume: 'Asking people to consume less is political suicide. Demand is allowed to grow unchecked.',
+    consume: 'Asking people to consume less is politically unpopular. Demand is allowed to grow unchecked.',
   },
   politician: {
-    fossil: 'Fossil fuels can\'t be killed overnight without losing the next election. The decline is managed slowly.',
-    renew: 'Renewables get funded — the optics are good and costs have come down. But the pace tracks the news cycle, not the atmosphere.',
+    fossil: 'Fossil fuels cannot be eliminated overnight without losing the next election. The decline is managed slowly.',
+    renew: 'Renewables get funded because costs have come down and the optics are good. But the pace tracks the news cycle, not the science.',
     carbon: 'A carbon price gets discussed, watered down, and passed in a form that satisfies no one. Progress on paper.',
     forest: 'Conservation gets announced in election years. Enforcement is inconsistent.',
-    coop: 'Summits get attended, agreements get signed, targets get set for 2050. Someone else\'s problem.',
+    coop: 'Summits get attended, agreements get signed, targets get set for 2050. Accountability is weak.',
     consume: 'Consumption reduction does not poll well. It gets quietly dropped from every platform.',
   },
   scientist: {
     fossil: 'New extraction halts this decade; existing wells phase out on a set schedule. No 1.5°C pathway includes new oil.',
-    renew: 'The grid can run on renewables by 2035 — an engineering reality, not an aspiration. This framework funds it.',
-    carbon: 'A price on carbon is the most powerful lever in the toolkit. Every tonne costs something; revenue is rebated.',
-    forest: 'Tropical forests sequester 2.6 Gt of CO₂ a year. Every hectare is treated as load-bearing infrastructure.',
-    coop: 'The Paris Agreement is the floor, not the ceiling. Shared grids and common carbon markets are the mechanisms.',
-    consume: 'Absolute consumption must decline in wealthy countries. Efficiency is necessary but not sufficient.',
+    renew: 'The grid can run on renewables by 2035. This framework funds it.',
+    carbon: 'A price on carbon is the most effective lever available. Every tonne costs something; revenue is rebated.',
+    forest: 'Tropical forests sequester 2.6 Gt of CO₂ a year. Every hectare that is protected matters.',
+    coop: 'The Paris Agreement sets minimum commitments. Shared grids and common carbon markets are the primary mechanisms.',
+    consume: 'Absolute consumption must decline in wealthy countries. Efficiency gains alone are not enough.',
   },
 };
 
 const METRICS = [
   { id: 'co2',    label: 'CO₂',          unit: 'ppm', dark: false, chapter: 'Chapter Three · A', title: 'The atmosphere',
     chartTitle: 'Atmospheric CO₂ concentration',
-    blurb: 'Every tonne we emit lingers for centuries. The sky keeps a perfect ledger.',
+    blurb: 'Every tonne emitted lingers in the atmosphere for centuries.',
     fmt: v => Math.round(v), dom: [300, 900] },
   { id: 'temp',   label: 'Temperature',  unit: '°C',  dark: true,  chapter: 'Chapter Three · B', title: 'The heat',
     chartTitle: 'Global mean temperature anomaly',
-    blurb: 'A few degrees of average is the difference between a warm world and an unlivable one.',
+    blurb: 'A few degrees of average warming separates manageable impacts from severe and widespread disruption.',
     fmt: v => (v >= 0 ? '+' : '') + v.toFixed(1), dom: [-0.2, 5.5] },
   { id: 'sea',    label: 'Sea level',    unit: 'cm',  dark: false, chapter: 'Chapter Three · C', title: 'The rising sea',
     chartTitle: 'Projected sea level rise',
-    blurb: 'Warm water expands and ice melts. Coastlines are quietly redrawn.',
+    blurb: 'Thermal expansion and ice melt raise sea levels, permanently altering coastlines.',
     fmt: v => (v >= 0 ? '+' : '') + Math.round(v), dom: [0, 150] },
   { id: 'drought', label: 'Precipitation', unit: '%', dark: false, chapter: 'Chapter Three · D', title: 'Precipitation',
     chartTitle: 'Drought-affected land area',
-    blurb: 'Warming reshuffles rain by biome — Mediterranean coasts parch while savannas see heavier monsoons and boreal forests gain. Click a biome to explore.',
+    blurb: 'Warming redistributes rainfall across biomes. Mediterranean regions dry out while savannas and boreal forests see increased precipitation. Click a biome to explore.',
     fmt: v => v.toFixed(1), dom: [20, 40] },
 ];
 
 const BEATS = {
   co2: {
     '1-2.6': [
-      { year: 2030, title: 'The curve bends', body: 'Three climate bills and a decade of market pressure. The CO₂ curve crests — not enough to erase what\'s up there, but enough to change where this goes.', note: 'Concentration peaks near 428 ppm.' },
-      { year: 2055, title: 'Zeroed out', body: 'Net-zero. The grid runs on wind and solar. Atmospheric concentration plateaus and starts, slowly, to fall.', note: 'First sustained decline since 1850.' },
-      { year: 2100, title: 'The air starts to clear', body: 'For the first time since the Industrial Revolution, humanity pulls more carbon out of the air than it puts in. A slow exhale, 150 years in the making.', note: '≈ 410 ppm · and falling.' },
+      { year: 2030, title: 'Concentration peaks', body: 'Three climate bills and a decade of market pressure bring CO₂ to a peak. Concentration stabilizes but does not fall immediately.', note: 'Concentration peaks near 434 ppm.' },
+      { year: 2055, title: 'Net zero reached', body: 'Net emissions reach zero. The grid runs on wind and solar. Atmospheric concentration plateaus and starts, slowly, to fall.', note: 'First sustained decline since 1850.' },
+      { year: 2100, title: 'Concentration falling', body: 'For the first time since the Industrial Revolution, humanity pulls more carbon out of the atmosphere than it puts in. Net emissions are now negative.', note: '≈ 422 ppm · and falling.' },
     ],
     '2-4.5': [
-      { year: 2030, title: 'Slowing, not stopping', body: 'Emissions flatten as renewables scale, but fossil infrastructure is too entrenched to retreat quickly. The concentration keeps climbing.', note: 'Past 430 ppm.' },
-      { year: 2055, title: 'Half-measures compound', body: 'Emissions finally start to fall — after CO₂ passes a level the atmosphere hasn\'t seen in three million years. The descent will be slow.', note: 'Past 500 ppm.' },
-      { year: 2100, title: 'A different world', body: 'The concentration holds near 565 ppm, roughly double the pre-industrial baseline. Stable. Just not the world that was possible.', note: '≈ 565 ppm · holding.' },
+      { year: 2030, title: 'Concentration climbing', body: 'Emissions flatten as renewables scale, but fossil infrastructure is too entrenched to decline quickly. Concentration keeps climbing.', note: 'Past 443 ppm.' },
+      { year: 2055, title: 'Delayed peak', body: 'Emissions finally begin to fall, after CO₂ surpasses a level not seen in three million years. The descent will be slow.', note: 'Nearing 500 ppm.' },
+      { year: 2100, title: 'Concentration stabilizes', body: 'Concentration holds near 577 ppm, roughly double the pre-industrial baseline. Significant damage has already occurred.', note: '≈ 577 ppm · holding.' },
     ],
     '5-8.5': [
-      { year: 2030, title: 'All throttle', body: 'New coal and gas plants outpace retirements worldwide. The concentration climbs faster than at any point in human history.', note: 'Past 437 ppm, accelerating.' },
-      { year: 2055, title: 'Uncharted air', body: 'Earth hasn\'t seen an atmosphere like this in 50 million years. The forests and oceans are straining to keep up.', note: 'Past 600 ppm.' },
-      { year: 2100, title: 'The sinks give out', body: 'The Amazon and Arctic tundra have stopped absorbing carbon and started releasing it. The feedback loops are no longer a projection — they\'re the weather.', note: '≈ 870 ppm · rising.' },
+      { year: 2030, title: 'Emissions accelerate', body: 'New coal and gas plants outpace retirements worldwide. Concentration climbs faster than at any point in human history.', note: 'Past 449 ppm, accelerating.' },
+      { year: 2055, title: 'Unprecedented levels', body: 'Earth has not had an atmosphere like this in 50 million years. Natural carbon sinks are struggling to absorb emissions at this rate.', note: 'Past 560 ppm.' },
+      { year: 2100, title: 'Carbon sinks become sources', body: 'The Amazon and Arctic tundra have stopped absorbing carbon and started releasing it. Feedback loops are now driving further warming, not just projecting it.', note: '≈ 882 ppm · rising.' },
     ],
   },
   temp: {
     '1-2.6': [
-      { year: 2030, title: 'The rate bends', body: 'Hot summers still set records. But for the first time in decades, the rate of warming starts to ease — not enough to feel, but enough to show in the data.', note: 'Anomaly near +1.4°C.' },
-      { year: 2055, title: 'A plateau', body: 'The anomaly holds near +1.5°C. Heatwaves intensify regionally, but the runaway scenarios are off the table.', note: 'Peak warming, then decline.' },
-      { year: 2100, title: 'Held', body: 'Coral systems are stressed but largely intact. The Arctic thins but doesn\'t vanish in summer. A warmer world — one people can navigate.', note: '≈ +1.3°C · stabilized.' },
+      { year: 2030, title: 'Warming rate slows', body: 'Hot summers still set records. But the rate of warming begins to ease for the first time in decades, visible in the data.', note: 'Anomaly near +1.1°C.' },
+      { year: 2055, title: 'Warming plateaus', body: 'The anomaly holds near +1.3°C. Heatwaves intensify regionally, but the most severe warming scenarios are avoided.', note: 'Peak warming, then decline.' },
+      { year: 2100, title: 'Warming stabilized', body: 'Coral systems are stressed but largely intact. The Arctic thins but retains summer sea ice. The warming is significant but within the range of human adaptation.', note: '≈ +1.1°C · stabilized.' },
     ],
     '2-4.5': [
-      { year: 2030, title: 'Records keep falling', body: 'Each decade sets new heat records. Adaptation becomes a permanent budget line: seawalls, cooling centers, crop adjustments.', note: 'Anomaly near +1.3°C.' },
-      { year: 2055, title: 'Chronic heat', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time. Outdoor labor gets legally restricted.', note: 'Past +1.8°C.' },
-      { year: 2100, title: 'Locked in', body: 'Air conditioning is infrastructure, not comfort. Insurance markets have abandoned whole coastlines. The warming will persist for centuries.', note: '≈ +2.7°C · climbing.' },
+      { year: 2030, title: 'Records keep falling', body: 'Each decade sets new heat records. Adaptation becomes a permanent budget line: seawalls, cooling centers, crop adjustments.', note: 'Anomaly near +1.1°C.' },
+      { year: 2055, title: 'Dangerous heat thresholds crossed', body: 'Wet-bulb temperatures cross dangerous thresholds in South Asia and the Gulf for weeks at a time. Outdoor labor gets legally restricted.', note: 'Past +1.6°C.' },
+      { year: 2100, title: 'Warming locked in', body: 'Air conditioning has become critical infrastructure. Insurance markets have withdrawn from whole coastlines. The warming will persist for centuries.', note: '≈ +2.6°C · climbing.' },
     ],
     '5-8.5': [
-      { year: 2030, title: 'Vertical', body: 'No abatement. Each summer eclipses the last. Wildfires double across the boreal north. The thermometer does not plateau.', note: 'Anomaly near +1.3°C, steepening.' },
-      { year: 2055, title: 'The survivability line', body: 'Multiple regions exceed 35°C wet-bulb for weeks. At that threshold, the human body cannot cool itself outdoors, even in shade.', note: 'Past +2.3°C.' },
-      { year: 2100, title: 'Near +5°C', body: 'Permafrost thaw is now releasing its own carbon. The feedback loops have engaged. The question is no longer whether this accelerates — it\'s how fast.', note: '≈ +5.0°C · accelerating.' },
+      { year: 2030, title: 'Warming accelerates', body: 'No abatement. Each summer is hotter than the last. Wildfires double across the boreal north. Warming shows no sign of slowing.', note: 'Anomaly near +1.1°C, steepening.' },
+      { year: 2055, title: 'Lethal heat', body: 'Multiple regions exceed 35°C wet-bulb for weeks at a time. At that threshold, the human body cannot cool itself outdoors, even in shade.', note: 'Past +2.2°C.' },
+      { year: 2100, title: 'Near +5°C', body: 'Permafrost thaw is now releasing stored carbon. Feedback loops have engaged. Warming is accelerating beyond human control.', note: '≈ +4.9°C · accelerating.' },
     ],
   },
   sea: {
     '1-2.6': [
-      { year: 2040, title: 'A steady climb', body: 'Sea level rises about 4 mm a year — slow enough that cities can plan. Seawalls get funded; managed retreat begins in the most exposed neighborhoods.', note: '≈ 11 cm above 2025.' },
-      { year: 2070, title: 'Adaptation holds', body: 'Most large coastal cities are protected. Some low-lying communities have relocated inland. The ice caps thin, feeding what comes next.', note: '≈ 23 cm.' },
-      { year: 2100, title: 'Thirty-five centimeters', body: 'Difficult, but adaptable. The cities that prepared in the 2030s are the ones still standing.', note: '≈ +35 cm.' },
+      { year: 2040, title: 'Gradual rise', body: 'Sea level rises about 4 mm a year, slow enough that cities can plan. Seawalls get funded and managed retreat begins in the most exposed neighborhoods.', note: '≈ 18 cm.' },
+      { year: 2070, title: 'Adaptation holds', body: 'Most large coastal cities are protected. Some low-lying communities have relocated inland. The ice sheets continue thinning.', note: '≈ 30 cm.' },
+      { year: 2100, title: 'Forty-two centimeters', body: 'Manageable with preparation. Cities that invested in coastal defenses in the 2030s remain viable.', note: '≈ +42 cm.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'The rate picks up', body: 'Greenland\'s ice sheet becomes a meaningful contributor. Insurance markets in low-lying regions begin to buckle — first the private market, then the public backstop.', note: '≈ 16 cm.' },
-      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. The question is no longer whether to retreat, but who pays for it.', note: '≈ 42 cm.' },
-      { year: 2100, title: 'Seventy-five centimeters', body: 'Climate-driven migration is reshaping borders. The word "coastal" is being redefined.', note: '≈ +75 cm.' },
+      { year: 2040, title: 'Rise accelerates', body: 'Greenland\'s ice sheet becomes a significant contributor to sea level rise. Insurance markets in low-lying regions begin to fail, starting with private insurers and then public backstops.', note: '≈ 23 cm.' },
+      { year: 2070, title: 'Selective retreat', body: 'Whole neighborhoods of Miami, Jakarta, and Lagos have been abandoned. Retreat is now accepted; the dispute is over who pays for it.', note: '≈ 50 cm.' },
+      { year: 2100, title: 'Eighty-two centimeters', body: 'Climate-driven migration is reshaping where people can live. Coastal boundaries are being redrawn.', note: '≈ +82 cm.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'The Antarctic wakes', body: 'The West Antarctic ice sheet enters runaway melt. The rate of rise doubles. What was a planning problem becomes an emergency.', note: '≈ 21 cm.' },
-      { year: 2070, title: 'Coastlines erased', body: 'Multiple island nations have ceased to exist as legal territories. Cumulative rise approaches 90 cm.', note: '≈ 67 cm.' },
-      { year: 2100, title: 'Past a meter', body: '135 centimeters of rise. Sea level is now one of the primary forces reshaping where people can live. It will not stop in 2100.', note: '≈ +135 cm · rising.' },
+      { year: 2040, title: 'West Antarctic ice melt accelerates', body: 'The West Antarctic ice sheet enters an accelerating melt phase. The rate of rise doubles. Coastal planning transitions to emergency response.', note: '≈ 28 cm.' },
+      { year: 2070, title: 'Coastlines lost', body: 'Multiple island nations have ceased to exist as legal territories. Cumulative rise approaches 75 cm.', note: '≈ 75 cm.' },
+      { year: 2100, title: 'Past a meter', body: '142 centimeters of rise. Sea level is one of the primary forces reshaping where people can live. It will not stop in 2100.', note: '≈ +142 cm · rising.' },
     ],
   },
   drought: {
     '1-2.6': [
-      { year: 2040, title: 'Rain shifts poleward', body: 'Mediterranean coasts lose about 0.1 mm/day while boreal forests gain. Rainfall nudges north — the subtropical fringe dries first.', note: 'Med −0.11 · Boreal +0.09 mm/day.' },
-      { year: 2070, title: 'A partial reprieve', body: 'Boreal and tundra zones absorb more rain as warmth redistributes moisture northward. The Mediterranean briefly stabilizes — the pattern slows.', note: 'Boreal +0.09 · Med +0.04 mm/day.' },
-      { year: 2100, title: 'Shifted, not shattered', body: 'Temperate forests grow wetter, deserts edge drier. The biome map has shifted — but in this pathway, adaptation stays ahead of the change.', note: 'Temperate +0.13 · Desert −0.03 mm/day.' },
+      { year: 2040, title: 'Rain shifts poleward', body: 'Mediterranean coasts lose about 0.1 mm/day of precipitation while boreal forests gain. Rainfall shifts poleward and the subtropical fringe dries first.', note: 'Med −0.11 · Boreal +0.09 mm/day.' },
+      { year: 2070, title: 'Boreal zones gain precipitation', body: 'Boreal and tundra zones receive more rain as warmth redistributes moisture northward. The Mediterranean briefly stabilizes as the shift slows.', note: 'Boreal +0.09 · Med +0.04 mm/day.' },
+      { year: 2100, title: 'Biome patterns shift', body: 'Temperate forests grow wetter and deserts drier. The biome map has shifted, but in this pathway, adaptation keeps pace with the change.', note: 'Temperate +0.13 · Desert −0.03 mm/day.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'Mediterranean dries', body: 'Southern Europe and California shed rainfall as moisture heads north. Savannas see heavier seasonal pulses — feast and famine deepen by biome.', note: 'Med −0.11 · Savanna +0.11 mm/day.' },
-      { year: 2070, title: 'The split widens', body: 'Mediterranean drought shifts from seasonal to structural. Boreal zones gain 0.1 mm/day — snowmelt timing shifts, rivers peak months early.', note: 'Med −0.10 · Boreal +0.11 mm/day.' },
-      { year: 2100, title: 'Entrenched divergence', body: 'Mediterranean coasts have lost nearly 0.2 mm/day from baseline. Boreal and Arctic zones absorb what the subtropics shed — the gap is now structural.', note: 'Med −0.17 · Boreal +0.18 mm/day.' },
+      { year: 2040, title: 'Mediterranean dries', body: 'Southern Europe and California lose rainfall as moisture shifts north. Savannas see heavier seasonal pulses, increasing the gap between wet and dry periods.', note: 'Med −0.11 · Savanna +0.11 mm/day.' },
+      { year: 2070, title: 'Divergence widens', body: 'Mediterranean drought shifts from seasonal to structural. Boreal zones gain 0.1 mm/day, snowmelt timing shifts, and rivers peak months earlier than historical norms.', note: 'Med −0.10 · Boreal +0.11 mm/day.' },
+      { year: 2100, title: 'Permanent divergence', body: 'Mediterranean coasts have lost nearly 0.2 mm/day from baseline. Boreal and Arctic zones absorb the moisture that the subtropics have lost. The divergence is now permanent.', note: 'Med −0.17 · Boreal +0.18 mm/day.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'Monsoons amplify', body: 'Savanna and boreal belts gain 0.1 mm/day as warming intensifies convection. Mediterranean summers grow parched — drought extends month by month.', note: 'Savanna +0.12 · Med −0.05 mm/day.' },
-      { year: 2070, title: 'The rain belt moves', body: 'Mediterranean rainfall collapses by 0.2 mm/day as boreal zones grow nearly as wet as the tropics. The storm tracks have physically shifted.', note: 'Med −0.21 · Savanna +0.25 mm/day.' },
-      { year: 2100, title: 'Two different worlds', body: "Mediterranean regions lose a third of their baseline rainfall. Savannas and boreal zones flood with new moisture — the planet's rain falls in new places.", note: 'Med −0.34 · Savanna +0.31 mm/day.' },
+      { year: 2040, title: 'Monsoons intensify', body: 'Savanna and boreal belts gain 0.1 mm/day as warming intensifies convection. Mediterranean summers grow drier with each passing year.', note: 'Savanna +0.12 · Med −0.05 mm/day.' },
+      { year: 2070, title: 'Storm tracks shift', body: 'Mediterranean rainfall collapses by 0.2 mm/day as boreal zones approach tropical rainfall levels. Storm tracks have physically relocated.', note: 'Med −0.21 · Savanna +0.25 mm/day.' },
+      { year: 2100, title: 'Rainfall redistributed', body: 'Mediterranean regions lose a third of their baseline rainfall. Savannas and boreal zones receive substantially more moisture. Precipitation patterns have fundamentally shifted.', note: 'Med −0.34 · Savanna +0.31 mm/day.' },
     ],
   },
 };
@@ -157,9 +157,9 @@ function computeScore(v) {
   return Math.round(((100 - v.fossil) + v.renew + v.carbon + v.forest + v.coop + v.consume) / 6);
 }
 function classify(score) {
-  if (score >= 65) return { code: 'SSP1-2.6', key: '1-2.6', name: 'Sustainable',   delta: 1.3, swatch: 'var(--tw-low)' };
-  if (score >= 35) return { code: 'SSP2-4.5', key: '2-4.5', name: 'Middle Road',   delta: 2.7, swatch: 'var(--tw-mid)' };
-  return               { code: 'SSP5-8.5', key: '5-8.5', name: 'Fossil-Fueled', delta: 5.0, swatch: 'var(--tw-high)' };
+  if (score >= 65) return { code: 'SSP1-2.6', key: '1-2.6', name: 'Sustainable',   delta: 1.1, swatch: 'var(--tw-low)' };
+  if (score >= 35) return { code: 'SSP2-4.5', key: '2-4.5', name: 'Middle Road',   delta: 2.6, swatch: 'var(--tw-mid)' };
+  return               { code: 'SSP5-8.5', key: '5-8.5', name: 'Fossil-Fueled', delta: 4.9, swatch: 'var(--tw-high)' };
 }
 
 // Raw climate-data.json is populated after fetch
@@ -173,7 +173,9 @@ function generateFullCurve(metric, ssp) {
 
   const hist = _CLIMATE.historical[metric] || [];
   const proj = (_CLIMATE.metrics[metric] || {})[ssp] || [];
-  const out = [...hist, ...proj];
+  const offset = (hist.length && proj.length) ? hist[hist.length - 1].val - proj[0].val : 0;
+  const adjustedProj = offset !== 0 ? proj.map(p => ({ ...p, val: p.val + offset })) : proj;
+  const out = [...hist, ...adjustedProj];
   _FULL_CACHE[key] = out;
   return out;
 }
@@ -259,11 +261,11 @@ const CARBON_MILESTONES = {
   450: '≈2°C threshold',
   500: 'Pliocene-era level',
   600: 'Eocene-era level',
-  870: 'SSP5-8.5 worst case · 2100',
+  882: 'SSP5-8.5 worst case · 2100',
 };
 
 function carbonExcessColor(i) {
-  const t = Math.min(1, Math.max(0, (i - 280) / (870 - 280)));
+  const t = Math.min(1, Math.max(0, (i - 280) / (882 - 280)));
   const stops = [[160,160,160],[120,120,120],[70,70,70],[20,20,20]];
   const seg = Math.min(2, Math.floor(t * 3));
   const loc = t * 3 - seg;
@@ -396,7 +398,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
 }
 
 // ── Line chart 1980–2100 with info-dense tooltip ────────────
-function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear, seriesOverride = null, titleOverride = null, smooth = false }) {
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear, seriesOverride = null, titleOverride = null, smooth = false, xStart = 1980 }) {
   const { useState, useRef, useMemo, useCallback } = React;
   const W = 1100, H = 284, pad = { t: 34, r: 22, b: 46, l: 72 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -404,7 +406,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear,
   const fg = dark ? '236,230,206' : '42,51,36';
   const accent = dark ? '#E08D5C' : 'var(--tw-accent)';
 
-  const X0 = 1980, X1 = 2100, SPAN = 120;
+  const X0 = xStart, X1 = 2100, SPAN = X1 - X0;
   const xs = (y) => pad.l + (y - X0) / SPAN * (W - pad.l - pad.r);
   const ys = (v) => H - pad.b - (v - dom[0]) / (dom[1] - dom[0]) * (H - pad.t - pad.b);
 
@@ -422,7 +424,7 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear,
     return d;
   };
 
-  const xticks = [1980, 2000, 2025, 2050, 2075, 2100];
+  const xticks = X0 <= 1980 ? [1980, 2000, 2025, 2050, 2075, 2100] : [2025, 2050, 2075, 2100];
   const yticks = useMemo(() => {
     const out = []; const steps = 4;
     for (let i = 0; i <= steps; i++) out.push(dom[0] + i / steps * (dom[1] - dom[0]));
@@ -481,9 +483,11 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear,
           <text key={t} x={xs(t)} y={H - pad.b + 18} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.5)`}>{t}</text>
         )}
         <text x={(pad.l + W - pad.r) / 2} y={H - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" letterSpacing="0.08em" fill={`rgba(${fg},0.4)`}>YEAR</text>
-        <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.32)`} strokeWidth="1" strokeDasharray="3 3" />
-        <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
-        <path d={seg(X0, 2025)} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2" strokeLinecap="round" />
+        {X0 < 2025 && <>
+          <line x1={xs(2025)} y1={pad.t - 2} x2={xs(2025)} y2={H - pad.b} stroke={`rgba(${fg},0.32)`} strokeWidth="1" strokeDasharray="3 3" />
+          <text x={xs(2025)} y={pad.t - 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>2025</text>
+          <path d={seg(X0, 2025)} fill="none" stroke={`rgba(${fg},0.55)`} strokeWidth="2" strokeLinecap="round" />
+        </>}
         <path d={seg(2025, X1)} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="1.5" opacity="0.3" />
         <path d={seg(2025, Math.min(2100, year))} fill="none" stroke={PATH_VARS[activeKey]} strokeWidth="3" strokeLinecap="round" />
         <circle cx={xs(Math.min(2100, year))} cy={ys(curVal)} r="5" fill={PATH_VARS[activeKey]} stroke={dark ? '#0E1A0B' : '#FAF9F3'} strokeWidth="2" />
@@ -1001,10 +1005,10 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
   }[name] || name.toUpperCase().slice(0, 8));
 
   // Chart geometry — dynamic scale for % data
-  const ML = 62, MR = 10, MT = 32, MB = 80;
+  const ML = 76, MR = 10, MT = 32, MB = 80;
   const W = 500, H = 240;
   const cW = W - ML - MR, cH = H - MT - MB;
-  const maxAbs = bars.length ? Math.max(5, Math.ceil(Math.max(...bars.map(b => Math.abs(b.anomaly))) * 1.25 / 5) * 5) : 15;
+  const maxAbs = 50;
   const zeroY = MT + cH * 0.5;
   const toY = v => MT + cH * (1 - (v + maxAbs) / (2 * maxAbs));
   const bW = Math.floor(cW / Math.max(bars.length, 1));
@@ -1021,19 +1025,19 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
     <div style={{ position: 'relative', width: '100%' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" style={{ display: 'block' }}>
         {/* Chart title */}
-        <text x={ML + cW / 2} y={10} textAnchor="middle"
+        <text x={ML + cW / 2} y={17} textAnchor="middle"
               fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em"
               fill="rgba(42,51,36,0.65)">
           PRECIPITATION ANOMALY · BY BIOME
         </text>
         {/* Y-axis label — inside SVG for exact scaling */}
-        <text x={ML / 2} y={MT + cH / 2} textAnchor="middle" dominantBaseline="central"
-              transform={`rotate(-90, ${ML / 2}, ${MT + cH / 2})`}
+        <text x={22} y={MT + cH / 2} textAnchor="middle" dominantBaseline="central"
+              transform={`rotate(-90, 22, ${MT + cH / 2})`}
               fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em"
               fill="rgba(42,51,36,0.65)">
           % CHANGE
         </text>
-        {/* Grid lines — dynamic ticks at 1/4 and 3/4 of maxAbs */}
+        {/* Grid lines — fixed ticks at ±25% and ±50% */}
         {[maxAbs * 0.5, maxAbs * -0.5].map(v => (
           <line key={v} x1={ML} y1={toY(v)} x2={W - MR} y2={toY(v)}
                 stroke="rgba(42,51,36,0.07)" strokeWidth="1" />
@@ -1057,7 +1061,7 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
           const isActive = isSel || (!selectedBiome && !isHov);
           const dimmed = selectedBiome && !isSel && !isHov;
           const pos = b.anomaly >= 0;
-          const barCol = pos ? '#4E7558' : '#B4542F';
+          const barCol = pos ? '#2B6CB0' : '#B4542F';
           const y1 = pos ? toY(b.anomaly) : zeroY;
           const barH = Math.abs(toY(b.anomaly) - zeroY);
           return (
@@ -1097,7 +1101,7 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
 
         {/* Wetter / Drier labels */}
         <text x={W - MR} y={MT - 5} textAnchor="end"
-              fontFamily="var(--mono)" fontSize="7.5" fill="#4E7558" opacity="0.7">▲ WETTER</text>
+              fontFamily="var(--mono)" fontSize="7.5" fill="#2B6CB0" opacity="0.7">▲ WETTER</text>
         <text x={W - MR} y={H - MB - 4} textAnchor="end"
               fontFamily="var(--mono)" fontSize="7.5" fill="#B4542F" opacity="0.7">▼ DRIER</text>
 
@@ -1749,15 +1753,15 @@ function About() {
     <section className="scene scene--alt" data-screen-label="01 About">
       <div className="col stack-28">
         <div className="eyebrow reveal">Chapter One · The premise</div>
-        <p className="lede reveal" style={{ maxWidth: '44ch', fontSize: 'clamp(20px, 2.6vw, 26px)' }}>The decisions that shape the next century are being made right now — through votes, boardrooms, and budgets. Pick a seat at the table and see what your choices leave behind.</p>
+        <p className="lede reveal" style={{ maxWidth: '44ch', fontSize: 'clamp(20px, 2.6vw, 26px)' }}>The decisions that shape the next century are being made right now, through votes, boardrooms, and budgets. Pick a seat at the table and see what your choices leave behind.</p>
         <p className="body reveal" style={{ fontSize: 19, lineHeight: 1.75, maxWidth: '58ch' }}>
-          This story is built on <strong>CMIP6</strong> climate-model data — the same projections used by
+          This story is built on <strong>CMIP6</strong> climate-model data, the same projections used by
           the Intergovernmental Panel on Climate Change (IPCC). We surface three plausible futures, each
           one shaped by a different set of human decisions compounded over 75 years. Pick a worldview,
           watch the model run it forward to 2100, and see the world it produces.
         </p>
         <div className="reveal" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'center', paddingTop: 8 }}>
-          {[['var(--tw-low)', 'Sustainable', '+1.3°C'], ['var(--tw-mid)', 'Middle Road', '+2.7°C'], ['var(--tw-high)', 'Fossil-Fueled', '+5.0°C']].map(([c, n, d]) =>
+          {[['var(--tw-low)', 'Sustainable', '+1.1°C'], ['var(--tw-mid)', 'Middle Road', '+2.6°C'], ['var(--tw-high)', 'Fossil-Fueled', '+4.9°C']].map(([c, n, d]) =>
             <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
               <span style={{ width: 14, height: 14, borderRadius: '50%', background: c, flexShrink: 0 }} />
               <span><span className="label" style={{ display: 'block' }}>{n}</span><b style={{ fontFamily: 'var(--tw-serif)', fontSize: 26 }}>{d}</b></span>
@@ -1823,7 +1827,7 @@ function PolicyConsole({ persona }) {
         <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Two · The console</div>
         <h2 className="h3 reveal" style={{ maxWidth: '24ch' }}>Six levers. One climate outcome.</h2>
         <p className="body reveal" style={{ maxWidth: '60ch', marginTop: 16 }}>
-          {p.name}'s worldview sets each lever automatically — this is what their priorities look like as policy.
+          {p.name}'s worldview sets each lever automatically. This is what their priorities look like as policy.
           Click any dial to read the logic behind the position. Higher is better for every lever <em>except</em> fossil fuels, where lower means a cleaner path.
         </p>
         <div className="reveal console-layout" style={{ marginTop: 40 }}>
@@ -1891,11 +1895,11 @@ function TimeJump({ persona }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   const LINES = [
-    [0.00, 'The room empties. The decisions begin to settle.'],
-    [0.22, 'The atmosphere keeps a perfect ledger.'],
-    [0.44, 'Children born during the meeting are writing the headlines.'],
-    [0.66, 'The atmosphere keeps a perfect ledger.'],
-    [0.86, 'The future arrives. On schedule.'],
+    [0.00, 'The decisions are in motion.'],
+    [0.22, 'Carbon stays in the atmosphere for centuries.'],
+    [0.44, 'The effects play out over the next 75 years.'],
+    [0.66, 'Carbon stays in the atmosphere for centuries.'],
+    [0.86, 'The outcomes emerge.'],
   ];
   // Gate: if no persona selected, scroll back when user enters this section
   useEffect(() => {
@@ -1948,7 +1952,7 @@ function TimelineIntro({ bucket }) {
         <h2 className="h2 reveal">This is the world<br />your framework builds.</h2>
         <p className="lede reveal" style={{ maxWidth: '54ch' }}>
           Scroll forward from 2025 to 2100 through four lenses: atmospheric carbon, global heat,
-          rising seas, and the water cycle. Each one reflects the same underlying choice — your pathway.
+          rising seas, and the water cycle. Each one reflects the same underlying choice: your pathway.
         </p>
         <div className="reveal pathway-tag">
           <span className="sw" style={{ background: bucket.swatch }} />
@@ -2008,7 +2012,7 @@ function Chapter({ metric, bucket }) {
       const v = pt ? pt.val : 0;
       return { str: (v >= 0 ? '+' : '') + v.toFixed(1), unit: '%' };
     }
-    const v = smoothedValAt('precip', sspKey, yc2);
+    const v = valAt('precip', sspKey, yc2);
     return { str: (v >= 0 ? '+' : '') + v.toFixed(2), unit: '%' };
   }, [biomeSeriesData, prog, sspKey]);
 
@@ -2173,9 +2177,10 @@ function Chapter({ metric, bucket }) {
                   dom={biomeSeriesData ? biomeChartDom : [-0.5, 3.5]}
                   unit="%"
                   fmt={v => (v >= 0 ? '+' : '') + v.toFixed(1)}
-                  smooth={!biomeSeriesData}
+                  smooth={false}
                   seriesOverride={biomeSeriesData}
-                  titleOverride={selectedBiome ? selectedBiome + ' · Precipitation anomaly (% vs 1995–2014)' : 'Global mean precipitation anomaly (% vs 1995–2014)'}
+                  xStart={1980}
+                  titleOverride={selectedBiome ? selectedBiome + ' · Precipitation anomaly (% vs 1995–2014)' : 'Global precipitation anomaly (% vs 1995–2014 baseline)'}
                   onClickYear={handleChartClick}
                 />
               ) : (
@@ -2191,9 +2196,9 @@ function Chapter({ metric, bucket }) {
 
 // ── Summary tree ────────────────────────────────────────────
 const TREE_PATHS = {
-  '1-2.6': { code: 'SSP1-2.6', name: 'Sustainable',   delta: 1.3, swatch: 'var(--tw-low)' },
-  '2-4.5': { code: 'SSP2-4.5', name: 'Middle Road',   delta: 2.7, swatch: 'var(--tw-mid)' },
-  '5-8.5': { code: 'SSP5-8.5', name: 'Fossil-Fueled', delta: 5.0, swatch: 'var(--tw-high)' },
+  '1-2.6': { code: 'SSP1-2.6', name: 'Sustainable',   delta: 1.1, swatch: 'var(--tw-low)' },
+  '2-4.5': { code: 'SSP2-4.5', name: 'Middle Road',   delta: 2.6, swatch: 'var(--tw-mid)' },
+  '5-8.5': { code: 'SSP5-8.5', name: 'Fossil-Fueled', delta: 4.9, swatch: 'var(--tw-high)' },
 };
 
 // Severity drives tree appearance: 0 = fully lush, 1 = fully barren
@@ -2268,7 +2273,7 @@ function SummaryTree({ bucket, knobValues }) {
   const [displaySev, setDisplaySev] = useState(TREE_SEVERITY[bucket.key] ?? 0.52);
   const initialVals = useMemo(() => {
     const v = {};
-    ['temp', 'sea', 'precip', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
+    ['temp', 'sea', 'drought', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
     return v;
   }, []);
   const [displayVals, setDisplayVals] = useState(initialVals);
@@ -2280,7 +2285,7 @@ function SummaryTree({ bucket, knobValues }) {
     setView(newView);
     const targetSev = TREE_SEVERITY[newView] ?? 0.5;
     const targetVals = {};
-    ['temp', 'sea', 'precip', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
+    ['temp', 'sea', 'drought', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
     const targetRoots = ROOT_SSP_VALUES[newView];
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const DURATION = 700;
@@ -2318,18 +2323,18 @@ function SummaryTree({ bucket, knobValues }) {
   const groundCol = mix([96,140,76], [168,148,110], sev);
   const skyCol = mix([240,248,240], [252,244,220], sev);
 
-  const W = 1000, H = 700, groundY = 565, baseX = 500, forkX = 500, forkY = 350;
+  const W = 1000, H = 600, groundY = 490, baseX = 500, forkX = 500, forkY = 310;
 
   // Three branches (CO₂ is now the trunk)
   const treeMetrics = [
     { id: 'temp',    label: 'Temperature', tip: [205, 205], subTips: [[278, 172]], unit: '°C',  desc: 'Surface temp anomaly by 2100',   leafShape: 'spiky',    dataId: 'temp' },
     { id: 'sea',     label: 'Sea Level',   tip: [500, 158], subTips: [[432, 178],[568,178]], unit: 'cm',  desc: 'Sea level rise above 2025',      leafShape: 'teardrop', dataId: 'sea' },
-    { id: 'drought', label: 'Precipitation', tip: [795, 205], subTips: [[722, 172]], unit: '%', desc: 'Precipitation anomaly vs 1995–2014 baseline', leafShape: 'jagged', dataId: 'precip' },
+    { id: 'drought', label: 'Drought Area', tip: [795, 205], subTips: [[722, 172]], unit: '%', desc: '% of global land affected by drought in 2100', leafShape: 'jagged', dataId: 'drought' },
   ];
   const fmts = {
     temp:    v => (v >= 0 ? '+' : '') + v.toFixed(1),
     sea:     v => '+' + Math.round(v),
-    drought: v => (v >= 0 ? '+' : '') + v.toFixed(1),
+    drought: v => v.toFixed(1),
     co2:     v => Math.round(v),
   };
 
@@ -2391,7 +2396,7 @@ function SummaryTree({ bucket, knobValues }) {
         <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Three · E · The whole picture</div>
         <h2 className="h2 reveal" style={{ maxWidth: '28ch' }}>Compare three climate futures.</h2>
         <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 10, color: 'var(--ink-soft)', fontSize: 16 }}>
-          CO₂ is the trunk. Policy choices feed the roots — every tonne branches into temperature, sea level, and drying. Click any card to see how each pathway compares.
+          CO₂ drives all other outcomes. Every tonne emitted raises temperature, sea level, and disrupts precipitation. Click any card to see how each pathway compares.
         </p>
         <div className="tree-controls reveal">
           <span className="lbl">Compare pathway</span>
@@ -2427,7 +2432,7 @@ function SummaryTree({ bucket, knobValues }) {
             <g clipPath="url(#underground-clip)">
               {ROOTS_DEF.map((r, i) => {
                 const t = i / (ROOTS_DEF.length - 1);
-                const rootEndX = 195 + t * 610;
+                const rootEndX = 100 + t * 800;
                 const dist = Math.abs(rootEndX - baseX);
                 const val = displayRoots ? (displayRoots[r.id] ?? 50) : 50;
                 const rootGood = r.bad ? (100 - val) / 100 : val / 100;
@@ -2570,7 +2575,6 @@ function SummaryTree({ bucket, knobValues }) {
                         {m.desc}
                       </div>
                     </foreignObject>
-                    <text x="186" y="114" textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
@@ -2604,7 +2608,6 @@ function SummaryTree({ bucket, knobValues }) {
                         CO₂ change above 2025 baseline (420 ppm)
                       </div>
                     </foreignObject>
-                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
@@ -2698,8 +2701,7 @@ function Outro({ onRestart }) {
             Just <strong>57 corporations</strong> are responsible for 80 percent of global emissions since 2016.
             The CMIP6 pathways diverge not on individual choices but on policy: binding carbon pricing,
             ending fossil-fuel subsidies, regulating methane, and a managed phase-out of extraction.
-            Demanding those policies — and holding governments to account when they stall — is the lever that
-            actually moves the models.
+            Demanding those policies, and holding governments to account when they stall, is what actually moves the models.
           </p>
           <button className="btn btn--primary reveal" onClick={onRestart}>Restart your future <Arrow /></button>
           <div className="outro-illos reveal">
@@ -2712,7 +2714,6 @@ function Outro({ onRestart }) {
           <b>Story</b>Degrees of Consequence<br />A climate adventure
           <b>Team</b>Tanvi Vidyala<br />Nithya Nair<br />Viela Lansangan
           <b>Data</b>CMIP6 / MPI-ESM1-2-LR<br />via NOAA / Google Cloud<br />Processed with xarray + regionmask
-          <b>Issue</b>Vol. 01 · 2026<br />UCSD · DSC 106
         </div>
       </div>
     </section>
@@ -2785,8 +2786,17 @@ function App({ climateData }) {
   }, [personaContinued]);
 
   const handleContinue = () => {
-    scrollToConsole.current = true;
-    setPersonaContinued(true);
+    if (personaContinued) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.querySelector('[data-screen-label="02 The console"]');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+    } else {
+      scrollToConsole.current = true;
+      setPersonaContinued(true);
+    }
   };
 
   useEffect(() => {

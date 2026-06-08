@@ -34,7 +34,7 @@
 
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+html { scroll-behavior: smooth; }
 body {
   background: var(--bg);
   color: var(--ink);
@@ -240,6 +240,7 @@ button { cursor: default; font-family: inherit; }
   min-height: 100vh;
   background: var(--bg);
   position: relative;
+  padding-bottom: 12vh;
 }
 .cover-title-row {
   display: flex;
@@ -437,6 +438,7 @@ button { cursor: default; font-family: inherit; }
 /* ── Chapter (metric) ──────────────────────────────────── */
 .chapter { min-height: unset; justify-content: flex-start; }
 .chapter--tall { height: 400vh; }
+.chapter--co2 { height: 600vh; }
 
 .chapter-sticky2 {
   position: sticky;
@@ -1202,7 +1204,7 @@ button { cursor: default; font-family: inherit; }
 .tree-modal .tco-unit { font-size: 14px; }
 
 /* ── Smooth section transitions ─────────────────────────── */
-.scene { position: relative; scroll-snap-align: start; }
+.scene { position: relative; }
 
 /* ── Scrollbar ─────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
