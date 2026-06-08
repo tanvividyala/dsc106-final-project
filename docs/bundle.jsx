@@ -13,26 +13,26 @@
 const SSP_NAMES = { '1-2.6': 'Sustainable', '2-4.5': 'Middle Road', '5-8.5': 'Fossil-Fueled' };
 
 const KNOB_DEFS = [
-  { id: 'fossil',  short: 'Fossil fuel',    color: '#B4633A', img: 'images/coal_mine_cart.png',   desc: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.' },
-  { id: 'renew',   short: 'Renewables',     color: '#4E7558', img: 'images/solar_panel.png',      desc: 'How fast new wind, solar, and clean energy gets built and funded.' },
-  { id: 'carbon',  short: 'Carbon pricing', color: '#4E7558', img: 'images/capitol_building.png', desc: 'Whether burning carbon costs money, and how much.' },
-  { id: 'forest',  short: 'Forests & land', color: '#82A78A', img: 'images/rainforest.png',       desc: 'How much land gets protected from deforestation and degradation.' },
-  { id: 'coop',    short: 'Cooperation',    color: '#82A78A', img: 'images/handshake.png',        desc: 'Whether countries work together or compete on climate action.' },
-  { id: 'consume', short: 'Consumption',    color: '#82A78A', img: 'images/recycling.png',        desc: 'How much the framework tries to reduce overall demand for energy and goods.' },
+  { id: 'fossil',  short: 'Fossil fuel',    color: '#B4633A', img: '../images/coal_mine_cart.png',   desc: 'How heavily the framework keeps investing in extracting and burning oil, gas, and coal.' },
+  { id: 'renew',   short: 'Renewables',     color: '#4E7558', img: '../images/solar_panel.png',      desc: 'How fast new wind, solar, and clean energy gets built and funded.' },
+  { id: 'carbon',  short: 'Carbon pricing', color: '#4E7558', img: '../images/capitol_building.png', desc: 'Whether burning carbon costs money, and how much.' },
+  { id: 'forest',  short: 'Forests & land', color: '#82A78A', img: '../images/rainforest.png',       desc: 'How much land gets protected from deforestation and degradation.' },
+  { id: 'coop',    short: 'Cooperation',    color: '#82A78A', img: '../images/handshake.png',        desc: 'Whether countries work together or compete on climate action.' },
+  { id: 'consume', short: 'Consumption',    color: '#82A78A', img: '../images/recycling.png',        desc: 'How much the framework tries to reduce overall demand for energy and goods.' },
 ];
 
 const PERSONAS = [
   { id: 'tycoon', keywords: 'ENERGY · EXTRACTION · GROWTH', name: 'The Oil Tycoon', label: 'Drill, baby, drill',
     tag: 'Oil built the modern world, and he plans to keep it that way. Future costs are someone else\'s problem.',
-    img: 'images/oil_baron_floating.png',
+    img: '../images/oil_baron_floating.png',
     values: { fossil: 92, renew: 12, carbon: 6, forest: 18, coop: 18, consume: 8 } },
   { id: 'politician', keywords: 'POLITICS · COMPROMISE · OPTICS', name: 'The Politician', label: 'Split the difference',
     tag: 'He talks green and votes convenient. Every choice is filtered through the next election.',
-    img: 'images/parliament_debate.png',
+    img: '../images/parliament_debate.png',
     values: { fossil: 58, renew: 48, carbon: 38, forest: 42, coop: 50, consume: 32 } },
   { id: 'scientist', keywords: 'PATHWAY · PROJECTION · EVIDENCE', name: 'The Climate Scientist', label: 'Follow the data',
     tag: 'The IPCC curves are her north star. Decarbonize by 2050 or the math does not work.',
-    img: 'images/stressed_researcher.png',
+    img: '../images/stressed_researcher.png',
     values: { fossil: 8, renew: 92, carbon: 84, forest: 86, coop: 88, consume: 76 } },
 ];
 
@@ -76,9 +76,9 @@ const METRICS = [
     chartTitle: 'Projected sea level rise',
     blurb: 'Warm water expands and ice melts. Coastlines are quietly redrawn.',
     fmt: v => (v >= 0 ? '+' : '') + Math.round(v), dom: [0, 150] },
-  { id: 'drought', label: 'Drought', unit: '%', dark: false, chapter: 'Chapter Three · D', title: 'The drying',
+  { id: 'drought', label: 'Precipitation', unit: '%', dark: false, chapter: 'Chapter Three · D', title: 'Precipitation',
     chartTitle: 'Drought-affected land area',
-    blurb: 'As temperatures rise, the fraction of land experiencing drought expands — soils crack, rivers run low, harvests fail.',
+    blurb: 'Warming reshuffles rain by biome — Mediterranean coasts parch while savannas see heavier monsoons and boreal forests gain. Click a biome to explore.',
     fmt: v => v.toFixed(1), dom: [20, 40] },
 ];
 
@@ -136,19 +136,19 @@ const BEATS = {
   },
   drought: {
     '1-2.6': [
-      { year: 2040, title: 'Margins drying', body: 'About a quarter of land is in drought — the belt of arid zones expands slowly at the subtropical edges. Infrastructure holds.', note: 'Drought area ~23%.' },
-      { year: 2070, title: 'Crop belts shift', body: 'Agricultural zones move poleward by 200–400 km. Where soils stay moist, yields hold. Where they don\'t, they collapse.', note: 'Drought area ~24%.' },
-      { year: 2100, title: 'Manageable stress', body: 'Drought area has grown by about 2–3 percentage points from the baseline. Serious, but within the range of adaptation.', note: 'Drought area ~24.5%.' },
+      { year: 2040, title: 'Rain shifts poleward', body: 'Mediterranean coasts lose about 0.1 mm/day while boreal forests gain. Rainfall nudges north — the subtropical fringe dries first.', note: 'Med −0.11 · Boreal +0.09 mm/day.' },
+      { year: 2070, title: 'A partial reprieve', body: 'Boreal and tundra zones absorb more rain as warmth redistributes moisture northward. The Mediterranean briefly stabilizes — the pattern slows.', note: 'Boreal +0.09 · Med +0.04 mm/day.' },
+      { year: 2100, title: 'Shifted, not shattered', body: 'Temperate forests grow wetter, deserts edge drier. The biome map has shifted — but in this pathway, adaptation stays ahead of the change.', note: 'Temperate +0.13 · Desert −0.03 mm/day.' },
     ],
     '2-4.5': [
-      { year: 2040, title: 'Soil moisture drops', body: 'The Colorado Basin, the Ganges, the Sahel — soils lose moisture faster than rain replenishes it. Reservoirs hit record lows.', note: 'Drought area ~24.5%.' },
-      { year: 2070, title: 'Dry zones expand', body: 'Soils crack deeper each summer. The crust thickens, runoff increases, groundwater recharge slows. The drying accelerates.', note: 'Drought area ~26.5%.' },
-      { year: 2100, title: 'Chronic drought', body: 'Roughly one in four land areas is in sustained drought. Three continents restructure agriculture around permanent water scarcity.', note: 'Drought area ~28.5%.' },
+      { year: 2040, title: 'Mediterranean dries', body: 'Southern Europe and California shed rainfall as moisture heads north. Savannas see heavier seasonal pulses — feast and famine deepen by biome.', note: 'Med −0.11 · Savanna +0.11 mm/day.' },
+      { year: 2070, title: 'The split widens', body: 'Mediterranean drought shifts from seasonal to structural. Boreal zones gain 0.1 mm/day — snowmelt timing shifts, rivers peak months early.', note: 'Med −0.10 · Boreal +0.11 mm/day.' },
+      { year: 2100, title: 'Entrenched divergence', body: 'Mediterranean coasts have lost nearly 0.2 mm/day from baseline. Boreal and Arctic zones absorb what the subtropics shed — the gap is now structural.', note: 'Med −0.17 · Boreal +0.18 mm/day.' },
     ],
     '5-8.5': [
-      { year: 2040, title: 'Droughts intensify', body: 'Soil moisture collapses in the subtropics as evaporation outpaces rainfall. What were once dry spells become permanent conditions.', note: 'Drought area ~26%.' },
-      { year: 2070, title: 'Soil bakes', body: 'When rain comes, it arrives as deluges on hardened, cracked earth — most runs off. The land cannot absorb what it needs.', note: 'Drought area ~30%.' },
-      { year: 2100, title: 'One in three', body: 'More than a third of global land is in severe drought. Agricultural collapse across West Africa and South Asia. The soil tells the whole story.', note: 'Drought area ~34%.' },
+      { year: 2040, title: 'Monsoons amplify', body: 'Savanna and boreal belts gain 0.1 mm/day as warming intensifies convection. Mediterranean summers grow parched — drought extends month by month.', note: 'Savanna +0.12 · Med −0.05 mm/day.' },
+      { year: 2070, title: 'The rain belt moves', body: 'Mediterranean rainfall collapses by 0.2 mm/day as boreal zones grow nearly as wet as the tropics. The storm tracks have physically shifted.', note: 'Med −0.21 · Savanna +0.25 mm/day.' },
+      { year: 2100, title: 'Two different worlds', body: "Mediterranean regions lose a third of their baseline rainfall. Savannas and boreal zones flood with new moisture — the planet's rain falls in new places.", note: 'Med −0.34 · Savanna +0.31 mm/day.' },
     ],
   },
 };
@@ -184,6 +184,21 @@ function valAt(metric, ssp, year) {
   const pt = curve.find(d => d.year === year);
   if (pt) return pt.val;
   return curve[curve.length - 1].val;
+}
+
+function smoothedValAt(metric, ssp, year, window = 10) {
+  const curve = generateFullCurve(metric, ssp);
+  const pts = curve.filter(x => x.year > year - window && x.year <= year);
+  if (!pts.length) return valAt(metric, ssp, year);
+  return pts.reduce((s, x) => s + x.val, 0) / pts.length;
+}
+
+function smoothSeries(data, window = 10) {
+  return data.map(pt => {
+    const pts = data.filter(x => x.year > pt.year - window && x.year <= pt.year);
+    const val = pts.length ? pts.reduce((s, x) => s + x.val, 0) / pts.length : pt.val;
+    return { year: pt.year, val };
+  });
 }
 
 function initDOC(climateData) {
@@ -381,10 +396,11 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
 }
 
 // ── Line chart 1980–2100 with info-dense tooltip ────────────
-function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear }) {
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear, seriesOverride = null, titleOverride = null, smooth = false }) {
   const { useState, useRef, useMemo, useCallback } = React;
-  const W = 1100, H = 284, pad = { t: 34, r: 22, b: 46, l: 54 };
+  const W = 1100, H = 284, pad = { t: 34, r: 22, b: 46, l: 72 };
   const [hoverYear, setHoverYear] = useState(null);
+  const [cursorY, setCursorY] = useState(null);
   const fg = dark ? '236,230,206' : '42,51,36';
   const accent = dark ? '#E08D5C' : 'var(--tw-accent)';
 
@@ -392,7 +408,10 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
   const xs = (y) => pad.l + (y - X0) / SPAN * (W - pad.l - pad.r);
   const ys = (v) => H - pad.b - (v - dom[0]) / (dom[1] - dom[0]) * (H - pad.t - pad.b);
 
-  const data = useMemo(() => generateFullCurve(metric, activeKey), [metric, activeKey]);
+  const data = useMemo(() => {
+    const raw = seriesOverride ? seriesOverride : generateFullCurve(metric, activeKey);
+    return (smooth && !seriesOverride) ? smoothSeries(raw) : raw;
+  }, [metric, activeKey, seriesOverride, smooth]);
 
   const seg = (a, b) => {
     let d = '';
@@ -425,6 +444,8 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
   }, []);
 
   const onMove = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setCursorY((e.clientY - rect.top) / rect.height * H);
     setHoverYear(Math.max(X0, Math.min(X1, yearFromEvent(e))));
   }, [yearFromEvent]);
 
@@ -446,10 +467,10 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
 
   return (
     <div className="chart-wrap">
-      <div className="lc-title">{metricChartTitle} · {SSP_NAMES[activeKey]} pathway</div>
-      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
-        <text x={11} y={chartMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
-          transform={`rotate(-90, 11, ${chartMidY})`}>{unit}</text>
+      <div className="lc-title">{titleOverride || metricChartTitle} · {SSP_NAMES[activeKey]} pathway</div>
+      <svg viewBox={`0 0 ${W} ${H}`} onMouseMove={onMove} onMouseLeave={() => { setHoverYear(null); setCursorY(null); }} onClick={onClick} style={{ cursor: onClickYear ? 'pointer' : 'default' }}>
+        <text x={18} y={chartMidY + 6} textAnchor="middle" fontFamily="var(--mono)" fontSize="16" fill={`rgba(${fg},0.55)`}
+          transform={`rotate(-90, 18, ${chartMidY + 6})`}>{unit}</text>
         {yticks.map((v, i) =>
           <g key={i}>
             <line x1={pad.l} y1={ys(v)} x2={W - pad.r} y2={ys(v)} stroke={`rgba(${fg},0.10)`} strokeWidth="1" />
@@ -469,8 +490,25 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
         {hoverYear != null &&
           <line x1={xs(hoverYear)} y1={pad.t} x2={xs(hoverYear)} y2={H - pad.b} stroke={accent} strokeWidth="1" opacity="0.6" />
         }
+        {dom[0] <= 0 && dom[1] >= 0 && (
+          <g>
+            <line x1={pad.l} y1={ys(0)} x2={W - pad.r} y2={ys(0)} stroke={`rgba(${fg},0.28)`} strokeWidth="1.5" strokeDasharray="4 3" />
+            <text x={W - pad.r - 2} y={ys(0) - 5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.35)`}>BASELINE</text>
+          </g>
+        )}
       </svg>
-      {tip &&
+      {(() => {
+        const nearZero = cursorY != null && dom[0] <= 0 && dom[1] >= 0 && Math.abs(cursorY - ys(0)) < 12;
+        if (nearZero) return (
+          <div className="tip" style={{ left: '50%', transform: 'translateX(-50%)', top: 8 }}>
+            <div className="tip-year"><span>BASELINE</span><span>1995–2014</span></div>
+            <div className="tip-hero"><span className="n">0</span><span className="u">{unit}</span></div>
+            <div className="tip-rows">
+              <div className="tip-row"><span className="lab">means</span><span className="num">no change from baseline</span></div>
+            </div>
+          </div>
+        );
+        return tip ? (
         <div className="tip" style={{
           left: tip.flip ? 'auto' : `calc(${tip.px}% + 14px)`,
           right: tip.flip ? `calc(${100 - tip.px}% + 14px)` : 'auto',
@@ -483,18 +521,20 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear 
             <div className="tip-row"><span className="lab">vs 1980</span><span className="num">{dfmt(tip.val - v1980)} {unit}</span></div>
             <div className="tip-row me"><span className="lab">2100 outcome</span><span className="num">{fmt(vEnd)} {unit}</span></div>
           </div>
-          <div className="tip-foot">{tip.hist ? 'Observed record · CMIP6 historical' : SSP_NAMES[activeKey] + ' pathway'} · MPI-ESM1-2-LR</div>
         </div>
-      }
+        ) : null;
+      })()}
     </div>
   );
 }
 
 // ── Multi-scenario line chart (all 3 SSPs at once) ──────────
 function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
-  const { useState, useMemo } = React;
+  const { useState, useMemo, useRef } = React;
   const W = 960, H = 290, pad = { t: 36, r: 24, b: 48, l: 62 };
   const [hoverYear, setHoverYear] = useState(null);
+  const [cursorPos, setCursorPos] = useState(null);
+  const containerRef = useRef(null);
   const fg = dark ? '236,230,206' : '42,51,36';
   const X0 = 1980, X1 = 2100, SPAN = 120;
   const xs = y => pad.l + (y - X0) / SPAN * (W - pad.l - pad.r);
@@ -537,6 +577,10 @@ function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
     const x = (e.clientX - rect.left) / rect.width * W;
     const yr = Math.round(X0 + Math.max(0, Math.min(1, (x - pad.l) / (W - pad.l - pad.r))) * SPAN);
     setHoverYear(Math.max(X0, Math.min(X1, yr)));
+    if (containerRef.current) {
+      const cRect = containerRef.current.getBoundingClientRect();
+      setCursorPos({ x: e.clientX - cRect.left, y: e.clientY - cRect.top });
+    }
   };
 
   const SSP_COLORS = { '1-2.6': 'var(--tw-low)', '2-4.5': 'var(--tw-mid)', '5-8.5': 'var(--tw-high)' };
@@ -548,10 +592,10 @@ function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
   const multiMidY = pad.t + (H - pad.t - pad.b) / 2;
 
   return (
-    <div className="chart-wrap" style={{ position: 'relative' }}>
+    <div className="chart-wrap" style={{ position: 'relative' }} ref={containerRef}>
       {!hideTitle && <div className="lc-title">{metricChartTitle2} · all three pathways</div>}
       <svg viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', width: '100%', height: 'auto' }}
-        onMouseMove={onMove} onMouseLeave={() => setHoverYear(null)}>
+        onMouseMove={onMove} onMouseLeave={() => { setHoverYear(null); setCursorPos(null); }}>
         <text x={11} y={multiMidY} textAnchor="middle" fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.45)`}
           transform={`rotate(-90, 11, ${multiMidY})`}>{unit}</text>
         {yticks.map((v, i) => (
@@ -588,26 +632,52 @@ function MultiLineChart({ metric, dark, dom, unit, fmt, hideTitle = false }) {
           </g>
         ))}
       </svg>
-      {/* Hover values tooltip */}
-      {hoverYear != null && (
-        <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(250,249,247,0.98)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 10, padding: '10px 16px', pointerEvents: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 8 }}>{hoverYear}</div>
-          {SSPS.map(k => (
-            <div key={k} style={{ display: 'flex', gap: 16, justifyContent: 'space-between', minWidth: 210, marginBottom: 4, alignItems: 'baseline' }}>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'rgba(42,51,36,0.55)' }}>{SSP_LABELS[k]}</span>
-              <span style={{ fontFamily: 'var(--mono)', fontSize: 13, color: SSP_COLORS[k], fontWeight: 600 }}>{fmt(valOf(k, hoverYear))} {unit}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Hover values tooltip — follows cursor */}
+      {hoverYear != null && cursorPos && (() => {
+        const TIP_W = 242;
+        const containerW = containerRef.current?.offsetWidth || 600;
+        const flipLeft = cursorPos.x + TIP_W + 18 > containerW;
+        const tipLeft = flipLeft ? cursorPos.x - TIP_W - 8 : cursorPos.x + 16;
+        const tipTop = Math.max(8, cursorPos.y - 60);
+        return (
+          <div style={{ position: 'absolute', top: tipTop, left: tipLeft, background: 'rgba(250,249,247,0.98)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 10, padding: '10px 16px', pointerEvents: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.08)' }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.1em', color: 'rgba(42,51,36,0.5)', marginBottom: 8 }}>{hoverYear}</div>
+            {SSPS.map(k => (
+              <div key={k} style={{ display: 'flex', gap: 16, justifyContent: 'space-between', minWidth: 210, marginBottom: 4, alignItems: 'baseline' }}>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'rgba(42,51,36,0.55)' }}>{SSP_LABELS[k]}</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 13, color: SSP_COLORS[k], fontWeight: 600 }}>{fmt(valOf(k, hoverYear))} {unit}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
 
 // ── Mercury thermometer ─────────────────────────────────────
+const THERMO_TIPS = {
+  0:   { label: '+0°C', body: 'Pre-industrial baseline. Earth\'s climate in relative equilibrium.' },
+  0.5: { label: '+0.5°C', body: 'More frequent heat extremes and heavier rainfall events globally.' },
+  1:   { label: '+1°C', body: 'Where we are today. Coral reefs stressed; Arctic sea ice retreating rapidly.' },
+  1.5: { label: '+1.5°C', body: 'Paris Agreement target. Ice-free Arctic summers likely. ~10% of species face very high extinction risk.' },
+  2:   { label: '+2°C', body: 'Deadly heat waves 3× more frequent. 90% of coral reefs bleached. ~400M more face water scarcity.' },
+  2.5: { label: '+2.5°C', body: 'Global crop yields drop 10–20%. Hundreds of millions face food insecurity.' },
+  3:   { label: '+3°C', body: 'Beyond any previous human experience. Major ecosystems begin to collapse. 3–10% GDP loss projected.' },
+  3.5: { label: '+3.5°C', body: 'Sea level rise accelerates sharply. Large swaths of tropics become uninhabitable.' },
+  4:   { label: '+4°C', body: 'Up to 1 billion people displaced. Amazon dieback begins. Near year-round ice-free Arctic.' },
+  4.5: { label: '+4.5°C', body: 'Agriculture fails across vast regions. Existential stress on global civilization.' },
+  5:   { label: '+5°C', body: 'Earth last this warm 50+ million years ago. Mass extinction event underway. No modern precedent.' },
+};
+
 function Thermometer({ value, dark }) {
+  const { useState, useRef } = React;
+  const [tipDeg, setTipDeg] = useState(null);
+  const [tipPos, setTipPos] = useState({ x: 0, y: 0 });
+  const wrapRef = useRef(null);
+
   const W = 200, H = 380, TMAX = 5.5;
-  const cx = 84, tubeW = 30, innerW = 15;
+  const cx = 105, tubeW = 30, innerW = 15;
   const tt = 24, bulbCy = 330, bulbR = 30;
   const scaleTop = tt + 16, scaleBot = bulbCy - 10;
   const yFor = (t) => scaleBot - Math.max(0, Math.min(1, t / TMAX)) * (scaleBot - scaleTop);
@@ -616,24 +686,77 @@ function Thermometer({ value, dark }) {
   const red = value < 1.5 ? '#5C9468' : value < 2 ? '#C9923E' : value < 3 ? '#E0773C' : '#D33C28';
   const glass = dark ? 'rgba(248,246,236,0.93)' : 'rgba(255,255,255,0.96)';
   const outline = `rgba(${fg},0.38)`;
+  const MARKS = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+  const onSvgMove = (e) => {
+    const svg = e.currentTarget;
+    const svgRect = svg.getBoundingClientRect();
+    const svgY = ((e.clientY - svgRect.top) / svgRect.height) * H;
+    const svgX = ((e.clientX - svgRect.left) / svgRect.width) * W;
+    if (svgX > cx + tubeW / 2 - 10) {
+      let closest = null, minDist = Infinity;
+      for (const t of MARKS) {
+        const dist = Math.abs(svgY - yFor(t));
+        if (dist < minDist) { minDist = dist; closest = t; }
+      }
+      if (minDist < 18) {
+        const wrap = wrapRef.current;
+        if (wrap) {
+          const wrapRect = wrap.getBoundingClientRect();
+          setTipPos({ x: e.clientX - wrapRect.left, y: e.clientY - wrapRect.top });
+        }
+        setTipDeg(closest);
+        return;
+      }
+    }
+    setTipDeg(null);
+  };
+
+  const tip = tipDeg !== null ? THERMO_TIPS[tipDeg] : null;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-      <rect x={cx - tubeW / 2} y={tt} width={tubeW} height={bulbCy - tt + 6} rx={tubeW / 2} fill={glass} stroke={outline} strokeWidth="2" />
-      <circle cx={cx} cy={bulbCy} r={bulbR} fill={glass} stroke={outline} strokeWidth="2" />
-      <circle cx={cx} cy={bulbCy} r={bulbR - 5} fill={red} />
-      <rect x={cx - innerW / 2} y={mercY} width={innerW} height={bulbCy - mercY} fill={red} rx={innerW / 2} />
-      <circle cx={cx} cy={mercY} r={innerW / 2 + 1} fill={red} />
-      <rect x={cx - tubeW / 2 + 5} y={tt + 8} width="4" height={bulbCy - tt - 34} rx="2" fill="rgba(255,255,255,0.5)" />
-      {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map(t => {
-        const major = Number.isInteger(t);
-        return <g key={t}>
-          <line x1={cx + tubeW / 2 + 2} y1={yFor(t)} x2={cx + tubeW / 2 + (major ? 12 : 7)} y2={yFor(t)} stroke={`rgba(${fg},0.5)`} strokeWidth="1" />
-          {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 4} fontFamily="var(--mono)" fontSize="13" fill={`rgba(${fg},0.6)`}>{t}°</text>}
-        </g>;
-      })}
-      <line x1={cx - tubeW / 2 - 14} y1={mercY} x2={cx - tubeW / 2 - 2} y2={mercY} stroke={red} strokeWidth="2" />
-      <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="15" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
-    </svg>
+    <div ref={wrapRef} style={{ position: 'relative', width: '100%' }}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto"
+        onMouseMove={onSvgMove} onMouseLeave={() => setTipDeg(null)} style={{ display: 'block' }}>
+        <rect x={cx - tubeW / 2} y={tt} width={tubeW} height={bulbCy - tt + 6} rx={tubeW / 2} fill={glass} stroke={outline} strokeWidth="2" />
+        <circle cx={cx} cy={bulbCy} r={bulbR} fill={glass} stroke={outline} strokeWidth="2" />
+        <circle cx={cx} cy={bulbCy} r={bulbR - 5} fill={red} />
+        <rect x={cx - innerW / 2} y={mercY} width={innerW} height={bulbCy - mercY} fill={red} rx={innerW / 2} />
+        <circle cx={cx} cy={mercY} r={innerW / 2 + 1} fill={red} />
+        <rect x={cx - tubeW / 2 + 5} y={tt + 8} width="4" height={bulbCy - tt - 34} rx="2" fill="rgba(255,255,255,0.5)" />
+        {MARKS.map(t => {
+          const major = Number.isInteger(t);
+          const isActive = tipDeg === t;
+          return <g key={t}>
+            <line x1={cx + tubeW / 2 + 2} y1={yFor(t)} x2={cx + tubeW / 2 + (major ? 12 : 7)} y2={yFor(t)}
+              stroke={isActive ? red : `rgba(${fg},0.5)`} strokeWidth={isActive ? 2 : 1} />
+            {major && <text x={cx + tubeW / 2 + 17} y={yFor(t) + 5} fontFamily="var(--mono)" fontSize="15"
+              fill={isActive ? red : `rgba(${fg},0.6)`} fontWeight={isActive ? 'bold' : 'normal'}>{t}°</text>}
+          </g>;
+        })}
+        <line x1={cx - tubeW / 2 - 14} y1={mercY} x2={cx - tubeW / 2 - 2} y2={mercY} stroke={red} strokeWidth="2" />
+        <text x={cx - tubeW / 2 - 18} y={mercY + 4} textAnchor="end" fontFamily="var(--mono)" fontSize="15" fill={red}>{value >= 0 ? '+' : ''}{value.toFixed(1)}°</text>
+      </svg>
+      {tip && (
+        <div style={{
+          position: 'absolute',
+          left: Math.min(tipPos.x + 14, (wrapRef.current?.offsetWidth || 300) - 210),
+          top: tipPos.y - 44,
+          background: dark ? 'rgba(20,22,18,0.96)' : 'rgba(251,247,236,0.97)',
+          border: `1px solid rgba(${fg},0.18)`,
+          borderRadius: 8,
+          padding: '8px 12px',
+          pointerEvents: 'none',
+          boxShadow: '0 3px 14px rgba(42,51,36,0.16)',
+          minWidth: 190,
+          maxWidth: 200,
+          zIndex: 20,
+        }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 13, fontWeight: 700, color: red, marginBottom: 4 }}>{tip.label}</div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: `rgba(${fg},0.75)`, lineHeight: 1.55 }}>{tip.body}</div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -664,9 +787,10 @@ function WarmingStripes({ sspKey, year, dark }) {
 
 // ── Sea level cross-section ─────────────────────────────────
 function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
-  const { useState } = React;
+  const { useState, useRef } = React;
   const [showWaterTip, setShowWaterTip] = useState(false);
   const [tipPos, setTipPos] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
   const w = 430, h = 320;
   const fg = '42,51,36';
   const soft = `rgba(${fg},0.6)`, faint = `rgba(${fg},0.42)`;
@@ -681,15 +805,16 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
   const seaY = baselineY - Math.min(value, 200) * 1.1;
 
   const onWaterMove = (e) => {
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
-    setTipPos({ x: ((e.clientX - rect.left) / rect.width) * w, y: ((e.clientY - rect.top) / rect.height) * h });
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    setTipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     setShowWaterTip(true);
   };
   const SST_ANOMALY = (tempValue * 0.72).toFixed(1); // ocean warms ~72% of land warming rate
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
+    <div style={{ position: 'relative', width: '100%' }} ref={containerRef}>
       <svg viewBox={`0 0 ${w} ${h}`} width="100%" height="auto">
         <defs>
           <linearGradient id="seaG2" x1="0" y1="0" x2="0" y2="1">
@@ -736,7 +861,7 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
         <text x="6" y="76" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.1em" fill={`rgba(${fg},0.5)`}>OCEAN SURFACE: +{SST_ANOMALY}°C VS 1980</text>
       </svg>
       {showWaterTip && (
-        <div className="sea-water-tip" style={{ left: `${(tipPos.x / w) * 100}%`, top: `${(tipPos.y / h) * 100}%` }}>
+        <div className="sea-water-tip" style={{ left: tipPos.x, top: tipPos.y }}>
           <div className="tip-year"><span>OCEAN CONDITIONS</span><span>{year}</span></div>
           <div style={{ fontFamily: 'var(--serif)', fontSize: 22, fontWeight: 700, margin: '4px 0 2px' }}>+{SST_ANOMALY}°C</div>
           <div style={{ fontSize: 10, opacity: 0.6, fontFamily: 'var(--mono)', letterSpacing: '0.06em' }}>SEA SURFACE TEMPERATURE ANOMALY</div>
@@ -752,14 +877,18 @@ function SeaLevel({ value, year, dark, tempValue = 1.2 }) {
 }
 
 // ── Arctic sea-ice disc ─────────────────────────────────────
-function IceCaps({ tempValue, year = 2025, dark }) {
+// MAX_HIST_ICE: approximate NH September extent at 1979 start of satellite record (~7.5 M km²).
+// Used to scale the disc radius — raw CMIP6 siconc data drives the number, not a formula.
+const MAX_HIST_ICE = 7.5;
+function IceCaps({ sspKey, year = 2025, dark }) {
   const fg = '42,51,36';
   const soft = `rgba(${fg},0.62)`;
   const W = 300, H = 330, CX = 150, CY = 122, MAX_R = 94;
-  const iceExtent = Math.max(0.05, 1 - tempValue / 3.8);
+  const rawExtent = valAt('ice', sspKey, year);
+  const extentMk = Math.max(0.1, rawExtent).toFixed(1);
+  const iceExtent = Math.max(0.04, Math.sqrt(rawExtent / MAX_HIST_ICE));
   const ANG = Array.from({ length: 24 }, (_, i) => ({ a: i / 24 * Math.PI * 2, w: 1 + 0.08 * Math.sin(i * 3.7) + 0.05 * Math.cos(i * 5.2) }));
   const poly = (sc) => ANG.map(({ a, w }) => `${(CX + Math.cos(a) * MAX_R * iceExtent * w * sc).toFixed(1)},${(CY + Math.sin(a) * MAX_R * iceExtent * w * sc).toFixed(1)}`).join(' ');
-  const extentMk = (4.7 * iceExtent).toFixed(1);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
       <text x={CX} y="17" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.14em" fill={soft}>ARCTIC SEA-ICE MINIMUM</text>
@@ -771,7 +900,7 @@ function IceCaps({ tempValue, year = 2025, dark }) {
       <circle cx={CX} cy={CY} r="3" fill="rgba(218,234,245,0.6)" />
       <text x={CX} y="264" textAnchor="middle" fontFamily="var(--serif)" fontSize="46" fill="#0E1A0B">{extentMk}</text>
       <text x={CX} y="287" textAnchor="middle" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.08em" fill={soft}>MILLION KM²</text>
-      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year} · +{tempValue.toFixed(1)}°C vs 1995–2014</text>
+      <text x={CX} y="312" textAnchor="middle" fontFamily="var(--mono)" fontSize="11" fill={soft} opacity="0.75">{year}</text>
     </svg>
   );
 }
@@ -821,7 +950,6 @@ function GrassField({ tempValue = 1.2 }) {
         {/* stress bar */}
         <rect x="6" y="46" width="120" height="4" rx="2" fill={`rgba(${fg},0.1)`} />
         <rect x="6" y="46" width={Math.round(dry * 120)} height="4" rx="2" fill={stressColor} />
-        <text x="6" y={H - 8} fontFamily="var(--mono)" fontSize="11" fill={`rgba(${fg},0.4)`}>SOURCE: CMIP6 temperature anomaly → vegetation heat stress model</text>
       </svg>
       {hovering && (
         <div className="grass-tip">
@@ -829,10 +957,7 @@ function GrassField({ tempValue = 1.2 }) {
           <div style={{ fontFamily: 'var(--serif)', fontSize: 20, fontWeight: 700, margin: '4px 0 2px', color: stressColor }}>{stressLabel} STRESS</div>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.65, margin: '4px 0 8px', letterSpacing: '0.06em' }}>+{tempValue.toFixed(1)}°C surface anomaly</div>
           <div style={{ borderTop: '1px solid rgba(42,51,36,0.12)', paddingTop: 8, fontSize: 11, lineHeight: 1.6, opacity: 0.8 }}>
-            As temperatures rise, soil moisture drops and vegetation wilts. This chart shows projected vegetation health using CMIP6 surface temperature anomaly as a heat stress proxy. Each blade represents local variability.
-          </div>
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.5, marginTop: 8, letterSpacing: '0.04em' }}>
-            Data: MPI-ESM1-2-LR · CMIP6 · tas anomaly
+            As temperatures rise, soil moisture drops and vegetation wilts. Each blade represents local variability.
           </div>
         </div>
       )}
@@ -840,115 +965,453 @@ function GrassField({ tempValue = 1.2 }) {
   );
 }
 
-// ── Soil moisture cross-section ─────────────────────────────
-function SoilMoisture({ droughtPct = 22, mrsoAnom = 0 }) {
-  const { useMemo } = React;
-  const W = 440, H = 220, rulerW = 44;
-  const fg = '42,51,36';
-  const dry = Math.max(0, Math.min(1, (droughtPct - 22) / 12));
+// ── Biome precipitation anomaly chart ───────────────────────
+function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null, onBiomeSelect }) {
+  const { useState, useEffect, useMemo } = React;
+  const [biomeData, setBiomeData] = useState(null);
+  const [hovered, setHovered] = useState(null);
 
-  const surfColor = `rgb(${Math.round(lerp(78,154,dry))},${Math.round(lerp(43,132,dry))},${Math.round(lerp(10,112,dry))})`;
-  const midColor  = `rgb(${Math.round(lerp(58,102,dry*.6))},${Math.round(lerp(28,78,dry*.6))},${Math.round(lerp(5,54,dry*.6))})`;
-  const dryDepth  = Math.round(lerp(28, 130, dry));
-  const crackOpacity = Math.max(0, (dry - 0.2) / 0.8);
-  const dryColor  = dry > 0.6 ? '#B83020' : dry > 0.3 ? '#D05E2A' : '#C9923E';
+  useEffect(() => {
+    fetch('../data/biome_precip.json')
+      .then(r => r.json())
+      .then(d => setBiomeData(d))
+      .catch(() => {});
+  }, []);
 
-  const cracks = useMemo(() => {
-    let seed = 42;
-    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    const n = Math.round(dry * 20);
-    const out = [];
-    for (let i = 0; i < n; i++) {
-      const x = 10 + rnd() * (W - rulerW - 20);
-      const y0 = 2 + rnd() * dryDepth * 0.55;
-      const len = 12 + rnd() * 44;
-      const angle = (rnd() - 0.5) * 0.9;
-      const x2 = x + Math.sin(angle) * len, y2 = y0 + Math.cos(Math.abs(angle)) * len;
-      out.push({ x1: x, y1: y0, x2, y2 });
-      if (rnd() > 0.5) {
-        const bl = 8 + rnd() * 20, ba = angle + (rnd() - 0.5) * 1.0;
-        const mx = x + Math.sin(angle)*len*0.55, my = y0 + Math.cos(Math.abs(angle))*len*0.55;
-        out.push({ x1: mx, y1: my, x2: mx + Math.sin(ba)*bl, y2: my + Math.cos(Math.abs(ba))*bl });
-      }
-    }
-    return out;
-  }, [dry, dryDepth]);
+  const SSP_MAP = { '1-2.6': 'ssp126', '2-4.5': 'ssp245', '5-8.5': 'ssp585' };
+  const ssp = SSP_MAP[sspKey] || 'ssp585';
+  const bars = useMemo(() => {
+    if (!biomeData) return [];
+    return Object.values(biomeData.biomes).map(b => {
+      const records = b.scenarios[ssp] || [];
+      // 10-year trailing mean ending at current year — removes interannual noise
+      const window = records.filter(r => r.year > year - 10 && r.year <= year);
+      const anomaly = window.length
+        ? window.reduce((s, r) => s + r.anomaly, 0) / window.length
+        : (records.find(r => r.year === year) || records[records.length - 1] || { anomaly: 0 }).anomaly;
+      return { name: b.name, anomaly };
+    });
+  }, [biomeData, ssp, year]);
+
+  // Abbreviated labels
+  const abbrev = name => ({
+    'Tropical Forest': 'TROPICAL 🌴', 'Savanna': 'SAVANNA 🦓', 'Desert': 'DESERT 🏜️',
+    'Mediterranean': 'MEDITERR. 🫒', 'Temperate Forest': 'TEMPERATE 🌲',
+    'Steppe / Grassland': 'STEPPE 🌾', 'Boreal / Taiga': 'BOREAL 🐺', 'Tundra & Arctic': 'TUNDRA ❄️',
+  }[name] || name.toUpperCase().slice(0, 8));
+
+  // Chart geometry — dynamic scale for % data
+  const ML = 62, MR = 10, MT = 32, MB = 80;
+  const W = 500, H = 240;
+  const cW = W - ML - MR, cH = H - MT - MB;
+  const maxAbs = bars.length ? Math.max(5, Math.ceil(Math.max(...bars.map(b => Math.abs(b.anomaly))) * 1.25 / 5) * 5) : 15;
+  const zeroY = MT + cH * 0.5;
+  const toY = v => MT + cH * (1 - (v + maxAbs) / (2 * maxAbs));
+  const bW = Math.floor(cW / Math.max(bars.length, 1));
+  const barW = bW - 6;
+
+  if (!biomeData) return (
+    <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--mono)', fontSize: 10, color: 'rgba(42,51,36,0.4)' }}>
+      Loading…
+    </div>
+  );
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto">
-        <defs>
-          <linearGradient id="soilGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={surfColor} />
-            <stop offset={`${dryDepth/H*100}%`} stopColor={surfColor} />
-            <stop offset={`${Math.min((dryDepth+55)/H*100,100)}%`} stopColor={midColor} />
-            <stop offset="100%" stopColor="rgb(38,18,4)" />
-          </linearGradient>
-          <clipPath id="soilClip"><rect x="0" y="0" width={W-rulerW} height={H} /></clipPath>
-        </defs>
-        <rect x="0" y="0" width={W-rulerW} height={H} fill="url(#soilGrad)" />
-        {dry < 0.92 && (
-          <line x1="0" y1={dryDepth+6} x2={W-rulerW} y2={dryDepth+6}
-                stroke="#4A8C5C" strokeWidth="1.5" strokeDasharray="6 3"
-                opacity={Math.max(0.1, 0.55 - dry*0.4)} />
-        )}
-        {cracks.map((c,i) => (
-          <line key={i} x1={c.x1} y1={c.y1} x2={c.x2} y2={c.y2}
-                stroke={`rgba(${fg},0.38)`} strokeWidth={0.7 + dry*0.6}
-                opacity={crackOpacity} clipPath="url(#soilClip)" />
-        ))}
-        <rect x={W-rulerW} y="0" width={rulerW} height={H} fill="rgba(0,0,0,0.1)" />
-        {[0,50,100,150,200].map(cm => {
-          const y = (cm/200)*H; if (y > H-8) return null;
-          return <g key={cm}>
-            <line x1={W-rulerW} y1={y} x2={W-rulerW+7} y2={y} stroke={`rgba(${fg},0.3)`} strokeWidth="1" />
-            <text x={W-rulerW+10} y={y+3} fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.5)`}>{cm}cm</text>
-          </g>;
-        })}
-        <text x="6" y={H-4} fontFamily="var(--mono)" fontSize="9" fill={`rgba(${fg},0.35)`}>
-          MPI-ESM1-2-LR · mrso · land mean {mrsoAnom >= 0 ? '+' : ''}{Math.round(mrsoAnom)} kg/m²
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="auto" style={{ display: 'block' }}>
+        {/* Chart title */}
+        <text x={ML + cW / 2} y={10} textAnchor="middle"
+              fontFamily="var(--mono)" fontSize="9" letterSpacing="0.08em"
+              fill="rgba(42,51,36,0.65)">
+          PRECIPITATION ANOMALY · BY BIOME
         </text>
+        {/* Y-axis label — inside SVG for exact scaling */}
+        <text x={ML / 2} y={MT + cH / 2} textAnchor="middle" dominantBaseline="central"
+              transform={`rotate(-90, ${ML / 2}, ${MT + cH / 2})`}
+              fontFamily="var(--mono)" fontSize="9" letterSpacing="0.1em"
+              fill="rgba(42,51,36,0.65)">
+          % CHANGE
+        </text>
+        {/* Grid lines — dynamic ticks at 1/4 and 3/4 of maxAbs */}
+        {[maxAbs * 0.5, maxAbs * -0.5].map(v => (
+          <line key={v} x1={ML} y1={toY(v)} x2={W - MR} y2={toY(v)}
+                stroke="rgba(42,51,36,0.07)" strokeWidth="1" />
+        ))}
+        {/* Y-axis tick labels */}
+        {[-maxAbs, -maxAbs * 0.5, 0, maxAbs * 0.5, maxAbs].map(v => (
+          <text key={v} x={ML - 4} y={toY(v) + 3} textAnchor="end"
+                fontFamily="var(--mono)" fontSize="8" fill="rgba(42,51,36,0.38)">
+            {v > 0 ? '+' : ''}{Math.round(v)}%
+          </text>
+        ))}
+        {/* Zero line */}
+        <line x1={ML} y1={zeroY} x2={W - MR} y2={zeroY}
+              stroke="#C0584A" strokeWidth="1.5" />
+
+        {/* Bars */}
+        {bars.map((b, i) => {
+          const bx = ML + i * bW + (bW - barW) / 2;
+          const isSel = selectedBiome === b.name;
+          const isHov = hovered === b.name;
+          const isActive = isSel || (!selectedBiome && !isHov);
+          const dimmed = selectedBiome && !isSel && !isHov;
+          const pos = b.anomaly >= 0;
+          const barCol = pos ? '#4E7558' : '#B4542F';
+          const y1 = pos ? toY(b.anomaly) : zeroY;
+          const barH = Math.abs(toY(b.anomaly) - zeroY);
+          return (
+            <g key={b.name} style={{ cursor: 'pointer' }}
+               onClick={() => onBiomeSelect(isSel ? null : b.name, b.anomaly)}
+               onMouseEnter={() => setHovered(b.name)}
+               onMouseLeave={() => setHovered(null)}>
+              <rect x={bx} y={y1} width={barW} height={Math.max(barH, 1)}
+                    fill={barCol}
+                    opacity={dimmed ? 0.22 : isHov ? 1 : isSel ? 0.95 : 0.72}
+                    rx="2" />
+              {(isSel || isHov) && (
+                <rect x={bx - 1} y={Math.min(y1, zeroY) - 1}
+                      width={barW + 2} height={barH + 2}
+                      fill="none" stroke={barCol} strokeWidth="1.5" rx="3" opacity="0.9" />
+              )}
+              {/* X label */}
+              <text
+                x={bx + barW / 2} y={H - MB + 10}
+                textAnchor="end"
+                fontFamily="var(--mono)" fontSize="7.5"
+                fill={dimmed ? 'rgba(42,51,36,0.25)' : isSel ? '#2A3324' : 'rgba(42,51,36,0.55)'}
+                transform={`rotate(-55, ${bx + barW / 2}, ${H - MB + 10})`}>
+                {abbrev(b.name)}
+              </text>
+              {/* Value label on bar */}
+              {(isHov || isSel) && (
+                <text x={bx + barW / 2} y={pos ? y1 - 4 : y1 + barH + 11}
+                      textAnchor="middle" fontFamily="var(--mono)" fontSize="8"
+                      fill={barCol} fontWeight="600">
+                  {b.anomaly > 0 ? '+' : ''}{b.anomaly.toFixed(1)}%
+                </text>
+              )}
+            </g>
+          );
+        })}
+
+        {/* Wetter / Drier labels */}
+        <text x={W - MR} y={MT - 5} textAnchor="end"
+              fontFamily="var(--mono)" fontSize="7.5" fill="#4E7558" opacity="0.7">▲ WETTER</text>
+        <text x={W - MR} y={H - MB - 4} textAnchor="end"
+              fontFamily="var(--mono)" fontSize="7.5" fill="#B4542F" opacity="0.7">▼ DRIER</text>
+
+        {/* Tooltip */}
+        {hovered && (() => {
+          const b = bars.find(x => x.name === hovered);
+          if (!b) return null;
+          const i = bars.indexOf(b);
+          const bx = ML + i * bW + (bW - barW) / 2;
+          const tx = Math.min(bx + barW / 2, W - 130);
+          const ty = b.anomaly >= 0 ? toY(b.anomaly) - 38 : toY(b.anomaly) + 18;
+          return (
+            <g>
+              <rect x={tx} y={ty} width={124} height={44} rx="6"
+                    fill="rgba(251,247,236,0.97)" stroke="rgba(42,51,36,0.14)" strokeWidth="1" />
+              <text x={tx + 8} y={ty + 14} fontFamily="var(--mono)" fontSize="8"
+                    fill="rgba(42,51,36,0.55)">{b.name.toUpperCase()}</text>
+              <text x={tx + 8} y={ty + 30} fontFamily="var(--mono)" fontSize="10"
+                    fontWeight="700" fill={b.anomaly >= 0 ? '#4E7558' : '#B4542F'}>
+                {b.anomaly > 0 ? '+' : ''}{b.anomaly.toFixed(1)}% change
+              </text>
+            </g>
+          );
+        })()}
+
       </svg>
-      <div style={{ position: 'absolute', top: 8, left: 10, background: 'rgba(250,249,247,0.92)', border: '1px solid rgba(42,51,36,0.14)', borderRadius: 8, padding: '5px 12px', textAlign: 'center', pointerEvents: 'none' }}>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 9, letterSpacing: '0.1em', opacity: 0.5 }}>LAND IN DROUGHT</div>
-        <div style={{ fontFamily: 'var(--tw-serif)', fontSize: 24, fontWeight: 700, lineHeight: 1.1, color: dryColor }}>{droughtPct.toFixed(1)}<span style={{ fontFamily: 'var(--mono)', fontSize: 12, opacity: 0.6 }}>%</span></div>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 8, opacity: 0.45, letterSpacing: '0.05em' }}>OF LAND AREA</div>
-      </div>
     </div>
   );
 }
 
-// ── Grass backdrop (drought chapter background, blades at screen bottom) ───
-function GrassBackdrop({ tempValue = 1.2 }) {
-  const { useMemo } = React;
-  const W = 1000, H = 200, baseY = H - 16;
-  const dry = Math.max(0, Math.min(0.96, tempValue / 5.0));
-  const mix = (a, b, t) => `rgb(${Math.round(lerp(a[0],b[0],t))},${Math.round(lerp(a[1],b[1],t))},${Math.round(lerp(a[2],b[2],t))})`;
-  const soil = mix([74,86,48],[156,131,80], dry);
-  const blades = useMemo(() => {
-    let seed = 777;
-    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    const N = 220, out = [];
-    for (let i = 0; i < N; i++) {
-      const x = (i + 0.5) / N * W + (rnd() - 0.5) * 5;
-      const lDry = Math.max(0, Math.min(1, dry + (rnd()-0.5)*0.4));
-      const ht = lerp(90, 48, lDry) * (0.7 + rnd()*0.5);
-      const sway = rnd() - 0.5;
-      const droop = lDry * 38 * (sway >= 0 ? 1 : -1) + sway * 8;
-      const col = mix([92,143,58],[150,104,46], lDry);
-      out.push({ x, tipX: x+droop, tipY: baseY - ht + lDry*10, cpX: x+droop*0.5+(rnd()-0.5)*6, cpY: baseY - ht*0.55, col, wdt: lerp(2.8,1.8,lDry), z: rnd() });
+// ── Old gauge (kept for reference, replaced above) ───────────
+function SoilMoisture({ droughtPct = 22, mrsoAnom = 0 }) {
+  const { useMemo, useState } = React;
+
+  // Map droughtPct [22, 34] → moisture [80, 26]
+  const moisture = Math.max(0, Math.min(100, 80 - ((droughtPct - 22) / 12) * 54));
+  const dry = 1 - moisture / 100;
+  const m   = moisture / 100;
+
+  // Gauge geometry — hub at (cx, cy), arc radius R
+  const cx = 180, cy = 122, R = 42;
+  const pt = (v, rad) => {
+    const phi = Math.PI - v * Math.PI; // v=0 → left (WET), v=1 → right (DRY)
+    return [cx + rad * Math.cos(phi), cy - rad * Math.sin(phi)];
+  };
+  const zonePath = (a, b, rad) => {
+    const [x1, y1] = pt(a, rad), [x2, y2] = pt(b, rad);
+    return `M${x1.toFixed(2)} ${y1.toFixed(2)} A${rad} ${rad} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  };
+
+  // Needle: low moisture → swing right toward DRY
+  const [nx, ny] = pt(1 - m, R - 9);
+
+  const lerpC = (a, b, t) => {
+    const h = s => [0, 2, 4].map(i => parseInt(s.slice(1 + i, 3 + i), 16));
+    const [pa, pb] = [h(a), h(b)];
+    return `rgb(${pa.map((x, i) => Math.round(x + (pb[i] - x) * t)).join(',')})`;
+  };
+  const soilCol  = lerpC('#5C462C', '#AE926A', dry);
+  const dryColor = dry > 0.6 ? '#B83020' : dry > 0.3 ? '#D05E2A' : '#C9923E';
+  const zone     = moisture > 65 ? 'WET' : moisture > 35 ? 'MOIST' : 'DRY';
+  const zoneCol  = moisture > 65 ? '#7E9C72' : moisture > 35 ? '#C49B5E' : '#B4542F';
+
+  // Tick marks around the arc
+  const ticks = useMemo(() => {
+    const out = [];
+    for (let i = 0; i <= 10; i++) {
+      const phi = Math.PI - (i / 10) * Math.PI;
+      out.push({
+        x1: (cx + (R - 8) * Math.cos(phi)).toFixed(2), y1: (cy - (R - 8) * Math.sin(phi)).toFixed(2),
+        x2: (cx + (R - 1) * Math.cos(phi)).toFixed(2), y2: (cy - (R - 1) * Math.sin(phi)).toFixed(2),
+        major: i % 5 === 0,
+      });
     }
-    out.sort((a,b) => a.z - b.z);
     return out;
+  }, []);
+
+  // Branching soil cracks — appear past ~45% dry
+  const cracks = useMemo(() => {
+    if (dry <= 0.45) return [];
+    let seed = 99;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const n = Math.round((dry - 0.45) * 12) + 2;
+    const paths = [];
+    for (let i = 0; i < n; i++) {
+      const sx = 28 + rnd() * 304, sy = 217 + rnd() * 17;
+      const mainLen = 18 + rnd() * 28, mainAngle = (rnd() - 0.5) * 0.55;
+      let mx = sx, my = sy;
+      const nSegs = 3 + Math.floor(rnd() * 2), segLen = mainLen / nSegs;
+      let d = `M ${sx.toFixed(1)} ${sy.toFixed(1)}`;
+      let brX = mx, brY = my;
+      for (let j = 0; j < nSegs; j++) {
+        mx += Math.sin(mainAngle + (rnd() - 0.5) * 0.3) * segLen;
+        my += Math.cos(mainAngle) * segLen * 0.18;
+        d += ` L ${mx.toFixed(1)} ${my.toFixed(1)}`;
+        if (j === Math.floor(nSegs / 2)) { brX = mx; brY = my; }
+      }
+      paths.push({ d, w: 1.1 });
+      // Y-branch off mid-point
+      if (rnd() > 0.3) {
+        const brAngle = mainAngle + (rnd() > 0.5 ? 1 : -1) * (0.55 + rnd() * 0.65);
+        const bl = 8 + rnd() * 14;
+        let bx = brX, by = brY;
+        let bd = `M ${bx.toFixed(1)} ${by.toFixed(1)}`;
+        const nb = 2 + Math.floor(rnd() * 2);
+        for (let j = 0; j < nb; j++) {
+          bx += Math.sin(brAngle + (rnd() - 0.5) * 0.28) * (bl / nb);
+          by += Math.cos(brAngle) * (bl / nb) * 0.16;
+          bd += ` L ${bx.toFixed(1)} ${by.toFixed(1)}`;
+        }
+        paths.push({ d: bd, w: 0.65 });
+      }
+    }
+    return paths;
   }, [dry]);
+  const crackOpacity = Math.max(0, (dry - 0.45) * 1.5);
+
+  // Grass blades rooted at soil surface — droop + shorten as drought worsens
+  const lean = dry * 26;
+  const bladeRoots = [130, 143, 155, 165, 176, 188, 199, 211, 223];
+  const blades = bladeRoots.map((bx, i) => {
+    const lDry = Math.max(0, Math.min(1, dry + ((i % 3) - 1) * 0.12));
+    const ht   = lerp(30, 13, lDry) * (i % 2 === 0 ? 1.15 : 0.88);
+    const sway = ((i % 5) - 2) * 4 + lean * 0.85;
+    return {
+      bx, col: lerpC('#4E7A33', '#A89A4C', lDry),
+      tipX: (bx + sway).toFixed(1),
+      tipY: (215 - ht).toFixed(1),
+      cpX:  (bx + sway * 0.42).toFixed(1),
+      cpY:  (215 - ht * 0.56).toFixed(1),
+      w:    lerp(2.0, 1.3, lDry).toFixed(1),
+    };
+  });
+
+  const [gaugeHover, setGaugeHover] = useState(false);
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg viewBox="0 0 360 248" width="100%" height="auto">
+
+        {/* SOIL MOISTURE title — centered above the teardrop */}
+        <text x={cx} y="17" textAnchor="middle"
+              fontFamily="var(--mono)" fontSize="9" letterSpacing="2"
+              fill="rgba(42,51,36,0.48)">SOIL MOISTURE</text>
+
+        {/* Probe shaft */}
+        <rect x="175" y="210" width="10" height="28" rx="2.5" fill="#3E5236" opacity="0.9" />
+
+        {/* Soil strip */}
+        <rect x="16" y="215" width="328" height="30" rx="4" fill={soilCol} />
+
+        {/* Branching cracks */}
+        {cracks.map((c, i) => (
+          <path key={i} d={c.d} fill="none" stroke="rgba(32,20,8,0.7)"
+                strokeWidth={c.w} opacity={crackOpacity} strokeLinecap="round" />
+        ))}
+
+        {/* Grass blades growing from soil surface */}
+        {blades.map((b, i) => (
+          <path key={i}
+                d={`M ${b.bx} 216 Q ${b.cpX} ${b.cpY} ${b.tipX} ${b.tipY}`}
+                stroke={b.col} strokeWidth={b.w} fill="none" strokeLinecap="round" opacity="0.88" />
+        ))}
+
+        {/* Meter body — teardrop */}
+        <path d="M180 30 C 138 30 104 66 104 104 C 104 146 150 184 180 214
+                 C 210 184 256 146 256 104 C 256 66 222 30 180 30 Z"
+              fill="#587049" stroke="#3E5236" strokeWidth="2" />
+
+        {/* Dial face */}
+        <circle cx={cx} cy={cy - 18} r="56" fill="#FBF7EC" stroke="#3E5236" strokeWidth="1.5" />
+
+        {/* Zone arcs: WET · MOIST · DRY */}
+        <path d={zonePath(0.02, 0.32, R)} fill="none" stroke="#7E9C72" strokeWidth="11" strokeLinecap="butt" />
+        <path d={zonePath(0.35, 0.65, R)} fill="none" stroke="#C49B5E" strokeWidth="11" strokeLinecap="butt" />
+        <path d={zonePath(0.68, 0.98, R)} fill="none" stroke="#B4542F" strokeWidth="11" strokeLinecap="butt" />
+
+        {/* Ticks */}
+        {ticks.map((t, i) => (
+          <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
+                stroke="rgba(42,51,36,0.35)" strokeWidth={t.major ? 1.5 : 0.8} />
+        ))}
+
+        {/* Scale labels */}
+        <text x={cx - R - 4} y={cy + 14} textAnchor="start"
+              fontFamily="var(--mono)" fontSize="8.5" fill="#7E9C72">WET</text>
+        <text x={cx} y={cy - R - 7} textAnchor="middle"
+              fontFamily="var(--mono)" fontSize="8.5" fill="#C49B5E">MOIST</text>
+        <text x={cx + R + 4} y={cy + 14} textAnchor="end"
+              fontFamily="var(--mono)" fontSize="8.5" fill="#B4542F">DRY</text>
+
+        {/* Needle — dark base + thin rust overlay */}
+        <line x1={cx} y1={cy} x2={nx.toFixed(2)} y2={ny.toFixed(2)}
+              stroke="#2A3324" strokeWidth="3" strokeLinecap="round" />
+        <line x1={cx} y1={cy} x2={nx.toFixed(2)} y2={ny.toFixed(2)}
+              stroke="#B4542F" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="4.5" fill="#2A3324" />
+
+        {/* Soil moisture chip — upper-left whitespace beside teardrop */}
+        <rect x="8" y="32" width="90" height="52" rx="8"
+              fill="white" fillOpacity="0.93" stroke="rgba(42,51,36,0.13)" strokeWidth="1" />
+        <text x="16" y="47" fontFamily="var(--mono)" fontSize="7.5" letterSpacing="1.2"
+              fill="rgba(56,66,50,0.62)">SOIL MOISTURE</text>
+        <text x="16" y="74" fontFamily="'Bricolage Grotesque', system-ui, sans-serif"
+              fontSize="26" fontWeight="700" letterSpacing="-0.02em" fill={dryColor}>{moisture.toFixed(0)}</text>
+        <text x={moisture >= 100 ? 56 : moisture >= 10 ? 46 : 36} y="74"
+              fontFamily="var(--mono)" fontSize="10" fill="rgba(42,51,36,0.42)">/100</text>
+
+        {/* Invisible hit-area for gauge hover */}
+        <ellipse cx={cx} cy={104} rx="80" ry="92" fill="transparent"
+                 onMouseEnter={() => setGaugeHover(true)}
+                 onMouseLeave={() => setGaugeHover(false)}
+                 style={{ cursor: 'crosshair' }} />
+
+      </svg>
+
+      {/* Gauge tooltip on hover */}
+      {gaugeHover && (
+        <div style={{
+          position: 'absolute', top: '26%', left: '50%', transform: 'translate(-50%, -50%)',
+          background: 'rgba(251,247,236,0.97)', border: '1px solid rgba(42,51,36,0.18)',
+          borderRadius: 10, padding: '10px 14px', pointerEvents: 'none',
+          boxShadow: '0 2px 10px rgba(42,51,36,0.13)', minWidth: 168, zIndex: 10,
+        }}>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 8, letterSpacing: '0.12em', color: 'rgba(42,51,36,0.48)', marginBottom: 5 }}>GAUGE READING</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, marginBottom: 4 }}>
+            <span style={{ fontFamily: "'Bricolage Grotesque', system-ui", fontSize: 24, fontWeight: 700, color: dryColor }}>{moisture.toFixed(0)}</span>
+            <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'rgba(42,51,36,0.45)' }}>/100</span>
+          </div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: zoneCol, fontWeight: 600, marginBottom: 7 }}>● {zone}</div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 8, color: 'rgba(42,51,36,0.62)', lineHeight: 1.7 }}>
+            <div>Land in drought: <strong>{droughtPct.toFixed(1)}%</strong></div>
+            <div>mrso anomaly: {mrsoAnom >= 0 ? '+' : ''}{Math.round(mrsoAnom)} kg/m²</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Crops backdrop — reacts to selected biome anomaly ────────
+function CropsBackdrop({ anomaly = 0 }) {
+  const { useMemo } = React;
+  const W = 1000, H = 150, baseY = H - 12;
+  // anomaly: negative = drought (dry), positive = flood (excess rain)
+  const wetness  = Math.max(-1, Math.min(1, anomaly / 0.6));  // -1 dry … +1 flood
+  const mix = (a, b, t) => `rgb(${a.map((v,i) => Math.round(v + (b[i]-v)*t)).join(',')})`;
+
+  const soilCol = wetness > 0
+    ? mix([88,96,54],[62,72,44], wetness * 0.6)   // darker/muddier when wet
+    : mix([88,96,54],[148,122,72], -wetness * 0.8); // pale tan when dry
+
+  const crops = useMemo(() => {
+    let seed = 314;
+    const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+    const N = 55, out = [];
+    for (let i = 0; i < N; i++) {
+      const x = (i + 0.5) / N * W + (rnd() - 0.5) * 8;
+      const localVar = (rnd() - 0.5) * 0.3;
+      const localWet = Math.max(-1, Math.min(1, wetness + localVar));
+      const ht = lerp(68, 42, Math.abs(localWet)) * (0.8 + rnd() * 0.38);
+      // Drought: droop downward. Flood: blow sideways.
+      const lean = localWet > 0
+        ? localWet * 38 * (rnd() > 0.5 ? 1 : -1)  // wind-blown sideways
+        : localWet * -22;                           // droop forward
+      const stalkCol = localWet > 0.3
+        ? mix([72,108,52],[44,68,36], localWet)       // dark olive — waterlogged
+        : localWet < -0.3
+          ? mix([168,148,60],[196,166,80], -localWet) // pale gold — drought
+          : mix([112,152,60],[168,148,60], Math.abs(localWet)); // healthy green-gold
+      const headCol = localWet < -0.3
+        ? mix([188,162,72],[210,185,100], -localWet)  // bleached
+        : mix([172,148,58],[124,108,44], Math.max(0, localWet));
+      out.push({ x, ht, lean, stalkCol, headCol, z: rnd() });
+    }
+    out.sort((a, b) => a.z - b.z);
+    return out;
+  }, [wetness]);
+
+  // Water puddle overlay when flooded
+  const floodOpacity = Math.max(0, wetness - 0.15) * 0.55;
+
   return (
     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: H, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMax slice">
-        <rect x="0" y={baseY} width={W} height={H-baseY} fill={soil} opacity="0.65" />
-        {blades.map((b,i) =>
-          <path key={i} d={`M ${b.x.toFixed(1)} ${baseY} Q ${b.cpX.toFixed(1)} ${b.cpY.toFixed(1)} ${b.tipX.toFixed(1)} ${b.tipY.toFixed(1)}`}
-                stroke={b.col} strokeWidth={b.wdt.toFixed(1)} fill="none" strokeLinecap="round" opacity="0.75" />
+        {/* Soil strip */}
+        <rect x="0" y={baseY} width={W} height={H - baseY} fill={soilCol} opacity="0.7" />
+        {/* Flood water sheen */}
+        {floodOpacity > 0 && (
+          <rect x="0" y={baseY - 3} width={W} height={H - baseY + 3}
+                fill="#4A7EA5" opacity={floodOpacity} />
         )}
+        {crops.map((c, i) => {
+          const tipX = c.x + c.lean;
+          const tipY = baseY - c.ht;
+          const cpX  = c.x + c.lean * 0.45;
+          const cpY  = baseY - c.ht * 0.58;
+          // Wheat head — 4 short grain spikes at tip
+          const spikes = [[-4,-9],[-2,-12],[2,-12],[4,-9],[-1,-14],[1,-14]];
+          return (
+            <g key={i}>
+              {/* Stalk */}
+              <path d={`M ${c.x.toFixed(1)} ${baseY} Q ${cpX.toFixed(1)} ${cpY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)}`}
+                    stroke={c.stalkCol} strokeWidth="2.2" fill="none" strokeLinecap="round" opacity="0.82" />
+              {/* Grain head spikes */}
+              {spikes.map(([dx, dy], si) => (
+                <line key={si}
+                      x1={tipX.toFixed(1)} y1={tipY.toFixed(1)}
+                      x2={(tipX + dx).toFixed(1)} y2={(tipY + dy).toFixed(1)}
+                      stroke={c.headCol} strokeWidth="1.3" strokeLinecap="round" opacity="0.88" />
+              ))}
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
@@ -979,23 +1442,23 @@ function Sun({ tempValue = 1.2 }) {
   }), [intensity, coreR, rayLen]);
 
   return (
-    <div style={{ position: 'absolute', top: 0, right: 0, width: 300, height: 300, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-      <svg viewBox="0 0 300 300" width="300" height="300">
+    <div style={{ position: 'absolute', top: 0, right: 0, width: 340, height: 340, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      <svg viewBox="0 0 340 340" width="340" height="340">
         <defs>
           <radialGradient id="sunHalo" cx="100%" cy="0%" r="80%">
-            <stop offset="0%" stopColor={col} stopOpacity={lerp(0.18, 0.42, intensity)} />
-            <stop offset="60%" stopColor={col} stopOpacity={lerp(0.04, 0.12, intensity)} />
+            <stop offset="0%" stopColor={col} stopOpacity={lerp(0.42, 0.72, intensity)} />
+            <stop offset="55%" stopColor={col} stopOpacity={lerp(0.12, 0.28, intensity)} />
             <stop offset="100%" stopColor={col} stopOpacity="0" />
           </radialGradient>
         </defs>
-        <rect x="0" y="0" width="300" height="300" fill="url(#sunHalo)" />
+        <rect x="0" y="0" width="340" height="340" fill="url(#sunHalo)" />
         {rays.map((r, i) => (
           <line key={i} x1={r.x1.toFixed(1)} y1={r.y1.toFixed(1)} x2={r.x2.toFixed(1)} y2={r.y2.toFixed(1)}
-            stroke={col} strokeWidth={lerp(1.8, 3.5, intensity).toFixed(1)} strokeLinecap="round"
-            opacity={lerp(0.45, 0.9, intensity).toFixed(2)} />
+            stroke={col} strokeWidth={lerp(2.5, 4.5, intensity).toFixed(1)} strokeLinecap="round"
+            opacity={lerp(0.70, 0.95, intensity).toFixed(2)} />
         ))}
-        <circle cx={cx} cy={cy} r={lerp(90, 140, intensity)} fill={col} opacity={lerp(0.06, 0.14, intensity).toFixed(2)} />
-        <circle cx={cx} cy={cy} r={coreR.toFixed(1)} fill={col} opacity="0.95" />
+        <circle cx={cx} cy={cy} r={lerp(100, 155, intensity)} fill={col} opacity={lerp(0.14, 0.28, intensity).toFixed(2)} />
+        <circle cx={cx} cy={cy} r={coreR.toFixed(1)} fill={col} opacity="0.97" />
       </svg>
     </div>
   );
@@ -1004,36 +1467,34 @@ function Sun({ tempValue = 1.2 }) {
 // ── Smoke clouds (co2 section background) ──────────────────
 function SmokeClouds({ co2Value = 420 }) {
   const { useMemo } = React;
-  // starts showing at 280 (baseline), maxes out at 700+
   const intensity = Math.min(1, Math.max(0, (co2Value - 415) / (700 - 415)));
   const W = 1200, H = 900;
-  const clouds = useMemo(() => {
+  const plumes = useMemo(() => {
     let seed = 77;
     const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
     const all = [];
-    for (let i = 0; i < 24; i++) {
-      const scale = 0.7 + rnd() * 1.2;
-      const baseOp = 0.28 + rnd() * 0.18;
-      const n = 3 + Math.floor(rnd() * 3);
-      const puffs = [];
-      // flat base ellipse
-      puffs.push({ type: 'e', x: 0, y: 12 * scale, rx: 55 * scale, ry: 18 * scale });
-      // bumpy top circles spread left to right
-      for (let j = 0; j < n; j++) {
-        const t = (j + 0.5) / n;
-        const bx = (t - 0.5) * 90 * scale;
-        const br = (18 + rnd() * 28) * scale;
-        puffs.push({ type: 'c', x: bx, y: -(br * 0.5 + rnd() * 8 * scale), r: br });
+    for (let i = 0; i < 22; i++) {
+      const scale = 0.65 + rnd() * 1.3;
+      const baseOp = 0.13 + rnd() * 0.17;
+      const blurId = ['smk-a', 'smk-b', 'smk-c'][Math.floor(rnd() * 3)];
+      const nBlobs = 4 + Math.floor(rnd() * 4);
+      const blobs = [];
+      for (let j = 0; j < nBlobs; j++) {
+        const frac = j / (nBlobs - 1);
+        // wider in the middle, narrower at base and tip — smoke column shape
+        const rx = (25 + Math.sin(frac * Math.PI) * 22 + rnd() * 16) * scale;
+        const ry = (15 + rnd() * 12) * scale;
+        blobs.push({ rx, ry, bx: (rnd() - 0.5) * 26 * scale, by: -frac * 108 * scale });
       }
       all.push({
-        cx: 80 + rnd() * (W - 160),
-        cy: 80 + rnd() * (H - 100),
-        puffs, baseOp,
-        dur: (8 + rnd() * 14).toFixed(1),
-        opDur: (7 + rnd() * 9).toFixed(1),
-        dx: (rnd() - 0.5) * 60,
-        dy: -18 - rnd() * 38,
-        delay: (-rnd() * 14).toFixed(1),
+        cx: 60 + rnd() * (W - 120),
+        cy: 150 + rnd() * (H - 80),
+        blobs, baseOp, blurId,
+        dur: (14 + rnd() * 16).toFixed(1),
+        opDur: (9 + rnd() * 11).toFixed(1),
+        dx: (rnd() - 0.5) * 34,
+        dy: -52 - rnd() * 72,
+        delay: (-rnd() * 22).toFixed(1),
       });
     }
     return all;
@@ -1043,20 +1504,23 @@ function SmokeClouds({ co2Value = 420 }) {
     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
       opacity: intensity, transition: 'opacity 1.8s ease' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
-        {clouds.map((c, i) => (
-          <g key={i} opacity={c.baseOp}>
+        <defs>
+          <filter id="smk-a" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10" /></filter>
+          <filter id="smk-b" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="17" /></filter>
+          <filter id="smk-c" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="25" /></filter>
+        </defs>
+        {plumes.map((c, i) => (
+          <g key={i} opacity={c.baseOp} filter={`url(#${c.blurId})`}>
             <animateTransform attributeName="transform" type="translate"
               values={`${c.cx},${c.cy}; ${(c.cx+c.dx).toFixed(1)},${(c.cy+c.dy).toFixed(1)}; ${c.cx},${c.cy}`}
               keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
               dur={`${c.dur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
             <animate attributeName="opacity"
-              values={`${c.baseOp.toFixed(3)};${Math.min(0.6,c.baseOp*1.2).toFixed(3)};${(c.baseOp*0.75).toFixed(3)};${c.baseOp.toFixed(3)}`}
+              values={`${c.baseOp.toFixed(3)};${Math.min(0.52,c.baseOp*1.6).toFixed(3)};${(c.baseOp*0.38).toFixed(3)};${c.baseOp.toFixed(3)}`}
               dur={`${c.opDur}s`} repeatCount="indefinite" begin={`${c.delay}s`} />
-            {c.puffs.map((p, j) =>
-              p.type === 'c'
-                ? <circle key={j} cx={p.x} cy={p.y} r={p.r} fill="rgba(195,205,215,1)" />
-                : <ellipse key={j} cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill="rgba(195,205,215,1)" />
-            )}
+            {c.blobs.map((b, j) => (
+              <ellipse key={j} cx={b.bx} cy={b.by} rx={b.rx} ry={b.ry} fill="rgba(138,130,120,0.70)" />
+            ))}
           </g>
         ))}
       </svg>
@@ -1064,7 +1528,7 @@ function SmokeClouds({ co2Value = 420 }) {
   );
 }
 
-window.VIZ = { Dial, CarbonBlocks, LineChart, Thermometer, WarmingStripes, SeaLevel, IceCaps, GrassField, SoilMoisture, GrassBackdrop };
+window.VIZ = { Dial, CarbonBlocks, LineChart, Thermometer, WarmingStripes, SeaLevel, IceCaps, GrassField, BiomePrecipChart, CropsBackdrop };
 
 // ============================================================
 // ── SECTION 3: TWEAKS PANEL
@@ -1300,7 +1764,6 @@ function About() {
             </div>
           )}
         </div>
-        <p className="label reveal" style={{ marginTop: 8, opacity: 0.55 }}>Data · CMIP6 · MPI-ESM1-2-LR · NOAA / Google Cloud · 1980–2100</p>
       </div>
     </section>
   );
@@ -1491,19 +1954,71 @@ function TimelineIntro({ bucket }) {
           <span className="sw" style={{ background: bucket.swatch }} />
           Your pathway · {bucket.code} · {bucket.name} · +{bucket.delta.toFixed(1)}°C by 2100
         </div>
-        <p className="label reveal" style={{ marginTop: 4, opacity: 0.5 }}>Data · MPI-ESM1-2-LR · CMIP6 · 1980–2100</p>
       </div>
     </section>
   );
 }
 
+// Rough global land-area fractions for each simplified biome
+const BIOME_AREA_WEIGHTS = {
+  'Tropical Forest': 0.12,
+  'Savanna': 0.17,
+  'Desert': 0.22,
+  'Mediterranean': 0.02,
+  'Temperate Forest': 0.11,
+  'Steppe / Grassland': 0.13,
+  'Boreal / Taiga': 0.14,
+  'Tundra & Arctic': 0.09,
+};
+const CHAPTER_SSP_MAP = { '1-2.6': 'ssp126', '2-4.5': 'ssp245', '5-8.5': 'ssp585' };
+
 // ── Metric chapter ──────────────────────────────────────────
 function Chapter({ metric, bucket }) {
-  const { useRef, useState, useEffect } = React;
+  const { useRef, useState, useEffect, useMemo } = React;
   const ref = useRef(null);
   const [prog, setProg] = useState(0);
+  const [selectedBiome, setSelectedBiome] = useState(null);
+  const [biomeAnomaly, setBiomeAnomaly] = useState(0);
+  const [biomeData, setBiomeData] = useState(null);
   const M = metric;
   const sspKey = bucket.key;
+
+  useEffect(() => {
+    if (M.id !== 'drought') return;
+    fetch('../data/biome_precip.json').then(r => r.json()).then(setBiomeData).catch(() => {});
+  }, [M.id]);
+
+  const biomeSeriesData = useMemo(() => {
+    if (!biomeData || !selectedBiome) return null;
+    const ssp = CHAPTER_SSP_MAP[sspKey] || 'ssp585';
+    const biome = Object.values(biomeData.biomes).find(b => b.name === selectedBiome);
+    if (!biome) return null;
+    const records = biome.scenarios[ssp] || [];
+    return records.map(r => {
+      const w = records.filter(x => x.year > r.year - 10 && x.year <= r.year);
+      const val = w.length ? w.reduce((s, x) => s + x.anomaly, 0) / w.length : r.anomaly;
+      return { year: r.year, val };
+    });
+  }, [biomeData, selectedBiome, sspKey]);
+
+  const precipChipVal = useMemo(() => {
+    const yc2 = Math.min(2100, Math.round(2025 + Math.min(1, prog) * 75));
+    if (biomeSeriesData) {
+      const pt = biomeSeriesData.find(r => r.year === yc2) || biomeSeriesData[biomeSeriesData.length - 1];
+      const v = pt ? pt.val : 0;
+      return { str: (v >= 0 ? '+' : '') + v.toFixed(1), unit: '%' };
+    }
+    const v = smoothedValAt('precip', sspKey, yc2);
+    return { str: (v >= 0 ? '+' : '') + v.toFixed(2), unit: '%' };
+  }, [biomeSeriesData, prog, sspKey]);
+
+  const biomeChartDom = useMemo(() => {
+    if (!biomeSeriesData || !biomeSeriesData.length) return [-0.5, 3.5];
+    const vals = biomeSeriesData.map(d => d.val);
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    const pad2 = (mx - mn || 5) * 0.15;
+    return [Math.min(mn - pad2, -1), Math.max(mx + pad2, 1)];
+  }, [biomeSeriesData]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -1580,7 +2095,7 @@ function Chapter({ metric, bucket }) {
     );
   }
 
-  const CARD_TITLES = { sea: 'SEA LEVEL · PROJECTED RISE', temp: 'TEMPERATURE · MEAN ANOMALY', drought: 'DROUGHT · LAND AREA AFFECTED' };
+  const CARD_TITLES = { sea: 'SEA LEVEL · PROJECTED RISE', temp: 'TEMPERATURE · MEAN ANOMALY', drought: 'PRECIPITATION · BIOME ANOMALY' };
   const VALUE_LABELS = { sea: 'PROJECTED RISE', temp: 'TEMPERATURE ANOMALY', drought: 'DROUGHT AREA' };
   const mrsoAnom = M.id === 'drought' ? valAt('mrso', sspKey, yc) : 0;
 
@@ -1588,7 +2103,6 @@ function Chapter({ metric, bucket }) {
     <section className={'scene chapter chapter--tall chapter--' + M.id + sceneClass} ref={ref} data-screen-label={M.chapter + ' · ' + M.title} style={{ padding: 0 }}>
       <div className="chapter-sticky2">
         {M.id === 'temp' && <Sun tempValue={tempVal} />}
-        {M.id === 'drought' && <GrassBackdrop tempValue={tempVal} />}
         <div className="metric-comp metric-comp--co2" style={{ position: 'relative', zIndex: 1 }}>
           <div className="mc-narr">
             <div className="eyebrow">{M.chapter}</div>
@@ -1621,14 +2135,52 @@ function Chapter({ metric, bucket }) {
                 </div>
               )}
               {M.id === 'temp' && <Thermometer value={value} dark={M.dark} />}
-              {M.id === 'drought' && <SoilMoisture droughtPct={value} mrsoAnom={mrsoAnom} />}
+              {M.id === 'drought' && <BiomePrecipChart
+                sspKey={sspKey} year={yc}
+                selectedBiome={selectedBiome}
+                onBiomeSelect={(name, anomaly) => {
+                  setSelectedBiome(name);
+                  setBiomeAnomaly(name ? anomaly : 0);
+                }}
+              />}
             </div>
-            <div className="co2-value-row">
-              <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
-              <div className="co2-value-label">{VALUE_LABELS[M.id] || M.label}<br />AS OF {year}</div>
-            </div>
+            {M.id === 'drought' ? (
+              <div className="precip-stats-row">
+                <div className="precip-stat">
+                  <img src="images/drought.png" className="precip-stat-icon" alt="" />
+                  <div className="precip-stat-value">{smoothedValAt('drought', sspKey, yc).toFixed(1)}<span className="precip-stat-unit">%</span></div>
+                  <div className="precip-stat-label">LAND IN DROUGHT</div>
+                </div>
+                <div className="precip-stat">
+                  <img src="images/water_drop.png" className="precip-stat-icon" alt="" />
+                  <div className="precip-stat-value">{precipChipVal.str}<span className="precip-stat-unit">{precipChipVal.unit}</span></div>
+                  <div className="precip-stat-label">{selectedBiome ? selectedBiome.toUpperCase() + ' ANOMALY' : 'PRECIP ANOMALY'}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="co2-value-row">
+                <div className="vv co2-vv">{M.fmt(value)}<span className="u">{M.unit}</span></div>
+                <div className="co2-value-label">{VALUE_LABELS[M.id] || M.label}<br />AS OF {year}</div>
+              </div>
+            )}
             <div className="co2-card-chart">
-              <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+              {M.id === 'drought' ? (
+                <LineChart
+                  metric="precip"
+                  activeKey={sspKey}
+                  year={yc}
+                  dark={false}
+                  dom={biomeSeriesData ? biomeChartDom : [-0.5, 3.5]}
+                  unit="%"
+                  fmt={v => (v >= 0 ? '+' : '') + v.toFixed(1)}
+                  smooth={!biomeSeriesData}
+                  seriesOverride={biomeSeriesData}
+                  titleOverride={selectedBiome ? selectedBiome + ' · Precipitation anomaly (% vs 1995–2014)' : 'Global mean precipitation anomaly (% vs 1995–2014)'}
+                  onClickYear={handleChartClick}
+                />
+              ) : (
+                <LineChart metric={M.id} activeKey={sspKey} year={yc} dark={M.dark} dom={M.dom} unit={M.unit} fmt={M.fmt} onClickYear={handleChartClick} />
+              )}
             </div>
           </div>
         </div>
@@ -1709,12 +2261,14 @@ function SummaryTree({ bucket, knobValues }) {
   const [view, setView] = useState(bucket.key);
   const [hoveredMetric, setHoveredMetric] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState(null);
+  const [hoveredRoot, setHoveredRoot] = useState(null);
+  const [rootTipPos, setRootTipPos] = useState({ x: 0, y: 0 });
 
   // rAF-based interpolation state
   const [displaySev, setDisplaySev] = useState(TREE_SEVERITY[bucket.key] ?? 0.52);
   const initialVals = useMemo(() => {
     const v = {};
-    ['temp', 'sea', 'drought', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
+    ['temp', 'sea', 'precip', 'co2'].forEach(id => { v[id] = valAt(id, bucket.key, 2100); });
     return v;
   }, []);
   const [displayVals, setDisplayVals] = useState(initialVals);
@@ -1726,7 +2280,7 @@ function SummaryTree({ bucket, knobValues }) {
     setView(newView);
     const targetSev = TREE_SEVERITY[newView] ?? 0.5;
     const targetVals = {};
-    ['temp', 'sea', 'drought', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
+    ['temp', 'sea', 'precip', 'co2'].forEach(id => { targetVals[id] = valAt(id, newView, 2100); });
     const targetRoots = ROOT_SSP_VALUES[newView];
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     const DURATION = 700;
@@ -1770,7 +2324,7 @@ function SummaryTree({ bucket, knobValues }) {
   const treeMetrics = [
     { id: 'temp',    label: 'Temperature', tip: [205, 205], subTips: [[278, 172]], unit: '°C',  desc: 'Surface temp anomaly by 2100',   leafShape: 'spiky',    dataId: 'temp' },
     { id: 'sea',     label: 'Sea Level',   tip: [500, 158], subTips: [[432, 178],[568,178]], unit: 'cm',  desc: 'Sea level rise above 2025',      leafShape: 'teardrop', dataId: 'sea' },
-    { id: 'drought', label: 'Drying',      tip: [795, 205], subTips: [[722, 172]], unit: '%',   desc: 'Dry regions lose soil moisture',  leafShape: 'jagged',   dataId: 'drought' },
+    { id: 'drought', label: 'Precipitation', tip: [795, 205], subTips: [[722, 172]], unit: '%', desc: 'Precipitation anomaly vs 1995–2014 baseline', leafShape: 'jagged', dataId: 'precip' },
   ];
   const fmts = {
     temp:    v => (v >= 0 ? '+' : '') + v.toFixed(1),
@@ -1822,18 +2376,6 @@ function SummaryTree({ bucket, knobValues }) {
     };
   });
 
-  // Crack lines in dry ground
-  const cracks = [];
-  if (sev > 0.5) {
-    let cs = 12345;
-    const cr = () => (cs = (cs * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-    for (let i = 0; i < Math.round((sev - 0.5) * 20); i++) {
-      const x = 80 + cr() * (W - 160), y = groundY + 8 + cr() * 26;
-      const len = 10 + cr() * 40, angle = (cr() - 0.5) * 1.2;
-      cracks.push({ x, y, len, angle });
-    }
-  }
-
   // Selected metric for chart panel (including CO₂ trunk)
   const handleCardClick = (id) => setSelectedMetric(selectedMetric === id ? null : id);
 
@@ -1841,14 +2383,15 @@ function SummaryTree({ bucket, knobValues }) {
   const getMetricDef = (id) => METRICS.find(m => m.id === id) || METRICS[0];
 
   const co2Val = displayVals['co2'] ?? valAt('co2', view, 2100);
+  const co2Delta = Math.round(co2Val) - 420;
 
   return (
     <section className="scene summary" data-screen-label="03 The whole picture" style={{ background: `linear-gradient(180deg, ${skyCol} 0%, var(--bg) 60%)` }}>
       <div className="col--wide">
         <div className="eyebrow reveal" style={{ marginBottom: 18 }}>Chapter Three · E · The whole picture</div>
-        <h2 className="h2 reveal" style={{ maxWidth: '22ch' }}>One driver, three consequences.</h2>
-        <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 18, color: 'var(--ink-soft)' }}>
-          CO₂ is the trunk. Your policy choices feed the roots — and every tonne emitted branches into temperature, sea level, and drying. Click any card to compare all three pathways.
+        <h2 className="h2 reveal" style={{ maxWidth: '28ch' }}>Compare three climate futures.</h2>
+        <p className="lede reveal" style={{ maxWidth: '54ch', marginTop: 10, color: 'var(--ink-soft)', fontSize: 16 }}>
+          CO₂ is the trunk. Policy choices feed the roots — every tonne branches into temperature, sea level, and drying. Click any card to see how each pathway compares.
         </p>
         <div className="tree-controls reveal">
           <span className="lbl">Compare pathway</span>
@@ -1870,6 +2413,9 @@ function SummaryTree({ bucket, knobValues }) {
                 <stop offset="0" stopColor={skyCol} stopOpacity="0.4" />
                 <stop offset="1" stopColor={skyCol} stopOpacity="0" />
               </linearGradient>
+              <clipPath id="underground-clip">
+                <rect x="0" y={groundY} width={W} height={H - groundY} />
+              </clipPath>
             </defs>
             <rect x="0" y="0" width={W} height={groundY} fill="url(#skyGrad)" />
 
@@ -1877,36 +2423,65 @@ function SummaryTree({ bucket, knobValues }) {
             <rect x="0" y={groundY} width={W} height={H - groundY} fill={groundCol} />
             <rect x="0" y={groundY} width={W} height="4" fill={`rgba(42,51,36,${lerp(0.18, 0.08, sev)})`} />
 
-            {/* Policy roots — buttress arches visible above ground surface */}
-            {ROOTS_DEF.map((r, i) => {
-              const t = i / (ROOTS_DEF.length - 1);
-              const rootEndX = 195 + t * 610;
-              const dist = Math.abs(rootEndX - baseX);
-              const archH = dist * 0.14 + 10;
-              const midX = (baseX + rootEndX) / 2;
-              const val = displayRoots ? (displayRoots[r.id] ?? 50) : 50;
-              const rootGood = r.bad ? (100 - val) / 100 : val / 100;
-              const rootW = lerp(1.5, 8, rootGood);
-              const rootColor = r.bad
-                ? mix([180, 99, 58], [70, 55, 42], rootGood)
-                : mix([70, 55, 42], [58, 128, 70], rootGood);
-              return (
-                <g key={r.id}>
-                  <path d={`M ${baseX} ${groundY - 3} Q ${midX} ${groundY - archH} ${rootEndX} ${groundY - 3}`}
-                    stroke={rootColor} strokeWidth={rootW} fill="none" strokeLinecap="round" />
-                  <text x={midX} y={groundY - archH - 5}
-                    textAnchor="middle" fontFamily="var(--mono)" fontSize="7.5"
-                    letterSpacing="0.07em" fill={rootColor} opacity="0.9">{r.short.toUpperCase()}</text>
-                </g>
-              );
-            })}
+            {/* Policy roots — underground organic curves */}
+            <g clipPath="url(#underground-clip)">
+              {ROOTS_DEF.map((r, i) => {
+                const t = i / (ROOTS_DEF.length - 1);
+                const rootEndX = 195 + t * 610;
+                const dist = Math.abs(rootEndX - baseX);
+                const val = displayRoots ? (displayRoots[r.id] ?? 50) : 50;
+                const rootGood = r.bad ? (100 - val) / 100 : val / 100;
+                const rootW = lerp(1.5, 7, rootGood);
+                const rootColor = r.bad
+                  ? mix([180, 99, 58], [70, 55, 42], rootGood)
+                  : mix([70, 55, 42], [58, 128, 70], rootGood);
+                const isHov = hoveredRoot === r.id;
 
-            {/* Dry cracks */}
-            {cracks.map((c, i) => (
-              <line key={i} x1={c.x} y1={c.y}
-                x2={c.x + Math.cos(c.angle) * c.len} y2={c.y + Math.sin(c.angle) * c.len}
-                stroke="rgba(42,30,16,0.35)" strokeWidth="1" />
-            ))}
+                // Deterministic jitter per root for organic feel
+                const jit = (Math.sin(i * 3.7 + 1.1) + 1) * 0.5; // 0–1
+
+                // Cubic bezier: drop down near trunk then sweep outward
+                const depth = 36 + dist * 0.175;
+                const endX = rootEndX + (rootEndX - baseX) * 0.04;
+                const endY = groundY + depth;
+                const c1x = baseX + (rootEndX - baseX) * 0.12;
+                const c1y = groundY + depth * 0.30 + jit * 8;
+                const c2x = rootEndX + (rootEndX - baseX) * 0.06;
+                const c2y = endY - depth * 0.20 + jit * 6;
+
+                const mainD = `M ${baseX} ${groundY} C ${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}`;
+
+                // Small side branch off ~58% along the main curve
+                const bp = bezPt(0.58, [baseX, groundY], [c1x, c1y], [c2x, c2y], [endX, endY]);
+                const dir = rootEndX >= baseX ? 1 : -1;
+                const brEndX = bp[0] + dir * (10 + jit * 16);
+                const brEndY = bp[1] + 18 + jit * 10;
+                const brD = `M ${bp[0].toFixed(1)} ${bp[1].toFixed(1)} Q ${(bp[0] + dir * 5).toFixed(1)} ${(bp[1] + 10).toFixed(1)} ${brEndX.toFixed(1)} ${brEndY.toFixed(1)}`;
+
+                // Tiny tip tendril
+                const tp = bezPt(0.82, [baseX, groundY], [c1x, c1y], [c2x, c2y], [endX, endY]);
+                const tpEndX = tp[0] - dir * (6 + jit * 8);
+                const tpEndY = tp[1] + 12 + jit * 6;
+                const tpD = `M ${tp[0].toFixed(1)} ${tp[1].toFixed(1)} Q ${(tp[0] - dir * 3).toFixed(1)} ${(tp[1] + 7).toFixed(1)} ${tpEndX.toFixed(1)} ${tpEndY.toFixed(1)}`;
+
+                return (
+                  <g key={r.id}>
+                    <path d={mainD} stroke={rootColor} strokeWidth={rootW} fill="none" strokeLinecap="round"
+                      opacity={isHov ? 1 : 0.78} />
+                    <path d={brD} stroke={rootColor} strokeWidth={rootW * 0.55} fill="none" strokeLinecap="round"
+                      opacity={isHov ? 0.9 : 0.62} />
+                    <path d={tpD} stroke={rootColor} strokeWidth={rootW * 0.35} fill="none" strokeLinecap="round"
+                      opacity={isHov ? 0.8 : 0.5} />
+                    {/* Wide invisible hit area */}
+                    <path d={mainD} stroke="transparent" strokeWidth={Math.max(rootW + 16, 20)} fill="none" strokeLinecap="round"
+                      style={{ cursor: 'pointer' }}
+                      onMouseEnter={e => { setHoveredRoot(r.id); setRootTipPos({ x: e.clientX, y: e.clientY }); }}
+                      onMouseMove={e => setRootTipPos({ x: e.clientX, y: e.clientY })}
+                      onMouseLeave={() => setHoveredRoot(null)} />
+                  </g>
+                );
+              })}
+            </g>
 
             {/* Grass blades when lush */}
             {lush > 0.4 && Array.from({ length: Math.round(lush * 60) }).map((_, i) => {
@@ -1983,19 +2558,19 @@ function SummaryTree({ bucket, knobValues }) {
                     onClick={() => handleCardClick(m.id)}
                     onMouseEnter={() => setHoveredMetric(m.id)}
                     onMouseLeave={() => setHoveredMetric(null)}>
-                    <rect x="0" y="0" width="200" height="110" rx="14"
+                    <rect x="0" y="0" width="200" height="120" rx="14"
                       fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.94)'}
                       stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.14)'}
                       strokeWidth={isHov || isSel ? 2 : 1} />
-                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">{m.label.toUpperCase()}</text>
-                    <text x="186" y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
-                    <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{fmts[displayId](rawVal)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> {m.unit}</tspan></text>
-                    <foreignObject x="12" y="74" width="176" height="28">
-                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
+                    <text x="14" y="28" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">{m.label.toUpperCase()}</text>
+                    <text x="186" y="28" textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={meta.swatch}>2100</text>
+                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{fmts[displayId](rawVal)}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> {m.unit}</tspan></text>
+                    <foreignObject x="12" y="82" width="176" height="28">
+                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
                         {m.desc}
                       </div>
                     </foreignObject>
-                    <text x="186" y="102" textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
+                    <text x="186" y="114" textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
@@ -2003,7 +2578,7 @@ function SummaryTree({ bucket, knobValues }) {
 
             {/* CO₂ trunk card — to the right of the trunk */}
             {(() => {
-              const cardW = 196, cardH = 108;
+              const cardW = 196, cardH = 120;
               const cardX = forkX + 36;
               const cardY = forkY + 8;
               const isHov = hoveredMetric === 'co2';
@@ -2021,27 +2596,60 @@ function SummaryTree({ bucket, knobValues }) {
                       fill={isHov || isSel ? '#fff' : 'rgba(250,249,247,0.96)'}
                       stroke={isHov || isSel ? meta.swatch : 'rgba(42,51,36,0.18)'}
                       strokeWidth={isHov || isSel ? 2 : 1} />
-                    <text x="14" y="26" fontFamily="var(--mono)" fontSize="10" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
-                    <text x={cardW - 14} y="26" textAnchor="end" fontFamily="var(--mono)" fontSize="9" fill={meta.swatch}>2100</text>
-                    <text x="14" y="68" fontFamily="var(--serif)" fontSize="34" fill="#0E1A0B">{Math.round(co2Val)}<tspan fontFamily="var(--mono)" fontSize="12" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
-                    <foreignObject x="12" y="74" width="172" height="28">
-                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '9px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
-                        Atmospheric CO₂ concentration
+                    <text x="14" y="28" fontFamily="var(--mono)" fontSize="12" letterSpacing="0.12em" fill="rgba(42,51,36,0.55)">CO₂ · TRUNK</text>
+                    <text x={cardW - 14} y="28" textAnchor="end" fontFamily="var(--mono)" fontSize="11" fill={meta.swatch}>2100</text>
+                    <text x="14" y="72" fontFamily="var(--serif)" fontSize="40" fill="#0E1A0B">{co2Delta >= 0 ? '+' : ''}{co2Delta}<tspan fontFamily="var(--mono)" fontSize="15" fill="rgba(42,51,36,0.5)"> ppm</tspan></text>
+                    <foreignObject x="12" y="82" width="172" height="28">
+                      <div xmlns="http://www.w3.org/1999/xhtml" style={{ fontFamily: 'var(--mono)', fontSize: '11px', color: 'rgba(42,51,36,0.38)', lineHeight: '1.45', letterSpacing: '0.05em' }}>
+                        CO₂ change above 2025 baseline (420 ppm)
                       </div>
                     </foreignObject>
-                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="8" fill={meta.swatch} opacity="0.6">↗ chart</text>
+                    <text x={cardW - 14} y={cardH - 8} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={meta.swatch} opacity="0.6">↗ chart</text>
                   </g>
                 </g>
               );
             })()}
 
-            {/* Pathway label */}
-            <rect x={baseX - 200} y={groundY + 42} width="400" height="28" rx="6" fill={`rgba(42,51,36,${lerp(0.06, 0.12, sev)})`} />
-            <text x={baseX} y={groundY + 61} textAnchor="middle" fontFamily="var(--mono)" fontSize="11" letterSpacing="0.14em" fill="rgba(42,51,36,0.65)">PATHWAY · {meta.code} · {meta.name.toUpperCase()} · +{meta.delta.toFixed(1)}°C BY 2100</text>
+
           </svg>
         </div>
-        <p className="label reveal" style={{ marginTop: 12, opacity: 0.5 }}>Click metric cards to compare all scenarios · Data: CMIP6 MPI-ESM1-2-LR · 2100 projections</p>
       </div>
+
+      {/* Root hover tooltip */}
+      {hoveredRoot && (() => {
+        const rd = ROOTS_DEF.find(r => r.id === hoveredRoot);
+        const kd = KNOB_DEFS.find(k => k.id === hoveredRoot);
+        const val = displayRoots?.[hoveredRoot] ?? 50;
+        const rootGood = rd?.bad ? (100 - val) / 100 : val / 100;
+        const tipColor = rd?.bad
+          ? mix([180,99,58],[70,55,42],rootGood)
+          : mix([70,55,42],[58,128,70],rootGood);
+        return (
+          <div style={{
+            position: 'fixed',
+            left: rootTipPos.x + 16,
+            top: rootTipPos.y - 72,
+            background: 'rgba(250,249,247,0.98)',
+            border: '1px solid rgba(42,51,36,0.14)',
+            borderRadius: 10,
+            padding: '10px 14px',
+            pointerEvents: 'none',
+            boxShadow: '0 4px 18px rgba(0,0,0,0.11)',
+            maxWidth: 230,
+            zIndex: 200,
+          }}>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.12em', color: tipColor, fontWeight: 700, marginBottom: 5 }}>
+              {kd?.short?.toUpperCase() || rd?.short?.toUpperCase()}
+            </div>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'rgba(42,51,36,0.72)', lineHeight: 1.55 }}>
+              {kd?.desc}
+            </div>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: tipColor, marginTop: 6, opacity: 0.8 }}>
+              Setting: {Math.round(val)}/100
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Chart modal — centered popup */}
       {selectedMetric && (() => {
@@ -2095,9 +2703,9 @@ function Outro({ onRestart }) {
           </p>
           <button className="btn btn--primary reveal" onClick={onRestart}>Restart your future <Arrow /></button>
           <div className="outro-illos reveal">
-            <div className="fig"><img src="images/handshake.png" alt="" /></div>
-            <div className="fig"><img src="images/wind_turbines.png" alt="" /></div>
-            <div className="fig"><img src="images/green_leaf.png" alt="" /></div>
+            <div className="fig"><img src="../images/handshake.png" alt="" /></div>
+            <div className="fig"><img src="../images/wind_turbines.png" alt="" /></div>
+            <div className="fig"><img src="../images/green_leaf.png" alt="" /></div>
           </div>
         </div>
         <div className="credits reveal">
@@ -2262,7 +2870,7 @@ async function boot() {
   document.body.appendChild(loading);
 
   try {
-    const res = await fetch('data/climate-data.json');
+    const res = await fetch('../data/climate-data.json');
     const climateData = await res.json();
     initDOC(climateData);
     loading.remove();
