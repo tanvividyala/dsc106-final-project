@@ -976,7 +976,7 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
   const [hovered, setHovered] = useState(null);
 
   useEffect(() => {
-    fetch('../data/biome_precip.json')
+    fetch('data/biome_precip.json')
       .then(r => r.json())
       .then(d => setBiomeData(d))
       .catch(() => {});
@@ -2001,7 +2001,7 @@ function Chapter({ metric, bucket }) {
 
   useEffect(() => {
     if (M.id !== 'drought') return;
-    fetch('../data/biome_precip.json').then(r => r.json()).then(setBiomeData).catch(() => {});
+    fetch('data/biome_precip.json').then(r => r.json()).then(setBiomeData).catch(() => {});
   }, [M.id]);
 
   const biomeSeriesData = useMemo(() => {
@@ -2884,7 +2884,7 @@ async function boot() {
   document.body.appendChild(loading);
 
   try {
-    const res = await fetch('../data/climate-data.json');
+    const res = await fetch('data/climate-data.json');
     const climateData = await res.json();
     initDOC(climateData);
     loading.remove();
