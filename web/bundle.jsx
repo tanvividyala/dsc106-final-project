@@ -398,7 +398,7 @@ function CarbonBlocks({ value = 420, year = 2025 }) {
 }
 
 // ── Line chart 1980–2100 with info-dense tooltip ────────────
-function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear, seriesOverride = null, titleOverride = null, smooth = false, xStart = 1980 }) {
+function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear, seriesOverride = null, titleOverride = null, smooth = false, xStart = 1980, baselineColor = null }) {
   const { useState, useRef, useMemo, useCallback } = React;
   const W = 1100, H = 284, pad = { t: 34, r: 22, b: 46, l: 72 };
   const [hoverYear, setHoverYear] = useState(null);
@@ -496,8 +496,8 @@ function LineChart({ metric, activeKey, year, dark, dom, unit, fmt, onClickYear,
         }
         {dom[0] <= 0 && dom[1] >= 0 && (
           <g>
-            <line x1={pad.l} y1={ys(0)} x2={W - pad.r} y2={ys(0)} stroke={`rgba(${fg},0.28)`} strokeWidth="1.5" strokeDasharray="4 3" />
-            <text x={W - pad.r - 2} y={ys(0) - 5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={`rgba(${fg},0.35)`}>BASELINE</text>
+            <line x1={pad.l} y1={ys(0)} x2={W - pad.r} y2={ys(0)} stroke={baselineColor || `rgba(${fg},0.28)`} strokeWidth={baselineColor ? 2 : 1.5} strokeDasharray={baselineColor ? null : "4 3"} />
+            <text x={W - pad.r - 2} y={ys(0) - 5} textAnchor="end" fontFamily="var(--mono)" fontSize="10" fill={baselineColor || `rgba(${fg},0.35)`}>BASELINE</text>
           </g>
         )}
       </svg>
@@ -1008,7 +1008,9 @@ function BiomePrecipChart({ sspKey = '5-8.5', year = 2025, selectedBiome = null,
   const ML = 76, MR = 10, MT = 32, MB = 80;
   const W = 500, H = 240;
   const cW = W - ML - MR, cH = H - MT - MB;
-  const maxAbs = 50;
+  const maxAbs = selectedBiome
+    ? 50
+    : (bars.length ? Math.max(5, Math.ceil(Math.max(...bars.map(b => Math.abs(b.anomaly))) * 1.25 / 5) * 5) : 15);
   const zeroY = MT + cH * 0.5;
   const toY = v => MT + cH * (1 - (v + maxAbs) / (2 * maxAbs));
   const bW = Math.floor(cW / Math.max(bars.length, 1));
@@ -2024,6 +2026,24 @@ function Chapter({ metric, bucket }) {
     return [Math.min(mn - pad2, -1), Math.max(mx + pad2, 1)];
   }, [biomeSeriesData]);
 
+  const globalBiomeDom = useMemo(() => {
+    if (!biomeData) return [-2, 10];
+    const ssp = CHAPTER_SSP_MAP[sspKey] || 'ssp585';
+    const vals = [];
+    for (const biome of Object.values(biomeData.biomes)) {
+      const records = biome.scenarios[ssp] || [];
+      for (const r of records) {
+        if (r.year < 2025) continue;
+        const w = records.filter(x => x.year > r.year - 10 && x.year <= r.year);
+        vals.push(w.length ? w.reduce((s, x) => s + x.anomaly, 0) / w.length : r.anomaly);
+      }
+    }
+    if (!vals.length) return [-2, 10];
+    const mn = Math.min(...vals), mx = Math.max(...vals);
+    const pad2 = (mx - mn || 5) * 0.12;
+    return [Math.floor(mn - pad2), Math.ceil(mx + pad2)];
+  }, [biomeData, sspKey]);
+
   useEffect(() => {
     const onScroll = () => {
       const el = ref.current; if (!el) return;
@@ -2174,12 +2194,13 @@ function Chapter({ metric, bucket }) {
                   activeKey={sspKey}
                   year={yc}
                   dark={false}
-                  dom={biomeSeriesData ? biomeChartDom : [-0.5, 3.5]}
+                  dom={globalBiomeDom}
                   unit="%"
                   fmt={v => (v >= 0 ? '+' : '') + v.toFixed(1)}
                   smooth={false}
                   seriesOverride={biomeSeriesData}
-                  xStart={1980}
+                  xStart={2025}
+                  baselineColor="#C0584A"
                   titleOverride={selectedBiome ? selectedBiome + ' · Precipitation anomaly (% vs 1995–2014)' : 'Global precipitation anomaly (% vs 1995–2014 baseline)'}
                   onClickYear={handleChartClick}
                 />
